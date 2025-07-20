@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='improved-styles.css') }}">
+</head>
+<body>
+    <div class="dashboard-container">
+        <nav class="menu">
+            <ul>
+                <li><a href="{{ url_for('home.index') }}">Inicio</a></li>
+                <li><a href="{{ url_for('dashboard.index') }}" class="active">Dashboard</a></li>
+                <li><a href="{{ url_for('auth.logout') }}">Cerrar Sesión</a></li>
+            </ul>
+        </nav>
+
+        <h1>Dashboard</h1>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% set category, message = messages[0] %}
+                <div id="flash-message" class="flash-message {{ category }}">
+                    {{ message }}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="dashboard-content">
+            <h2>Bienvenido, {{ session['username'] }}</h2>
+            <!-- Aquí puedes agregar el contenido del dashboard -->
+        </div>
+    </div>
+</body>
+</html> 

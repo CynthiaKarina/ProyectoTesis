@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='improved-styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="login-page">
+    
+    
+    <!-- Contenedor principal de login -->
+    <div class="login-page-container">
+        
+        <!-- Sección izquierda - Información del portal -->
+        <div class="login-info-section">
+            <!-- Iconos flotantes de fondo -->
+            <div class="floating-icons-container">
+                <div class="floating-icon icon1">📚</div>
+                <div class="floating-icon icon2">💻</div>
+                <div class="floating-icon icon3">🎓</div>
+                <div class="floating-icon icon4">✏️</div>
+                <div class="floating-icon icon5">📐</div>
+                <div class="floating-icon icon6">🔬</div>
+                <div class="floating-icon icon7">🎨</div>
+                <div class="floating-icon icon8">📝</div>
+                <div class="floating-icon icon9">🔍</div>
+                <div class="floating-icon icon10">📊</div>
+                <div class="floating-icon icon11">💡</div>
+                <div class="floating-icon icon12">⚗️</div>
+                <div class="floating-icon icon13">📓</div>
+                <div class="floating-icon icon14">🧮</div>
+                <div class="floating-icon icon15">📱</div>
+                <div class="floating-icon icon16">🎯</div>
+                <div class="floating-icon icon17">📖</div>
+                <div class="floating-icon icon18">🔖</div>
+                <div class="floating-icon icon19">📏</div>
+                <div class="floating-icon icon20">🎭</div>
+            </div>
+            
+            <div>
+                <div class="portal-branding">
+                    <div class="brand-icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <h1 class="brand-title">Portal Académico</h1>
+                    <p class="brand-subtitle">de Investigación</p>
+                </div>
+                
+                <div class="portal-features">
+                    <h2>Accede a tu cuenta para:</h2>
+                    <div class="features-list">
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-flask"></i>
+                            </div>
+                            <div class="feature-content">
+                                <h3>Explorar Laboratorios</h3>
+                                <p>Accede a más de 150 laboratorios especializados</p>
+                            </div>
+                        </div>
+                        
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-project-diagram"></i>
+                            </div>
+                            <div class="feature-content">
+                                <h3>Gestionar Proyectos</h3>
+                                <p>Colabora en proyectos de investigación innovadores</p>
+                            </div>
+                        </div>
+                        
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="feature-content">
+                                <h3>Conectar con Expertos</h3>
+                                <p>Red de más de 500 investigadores activos</p>
+                            </div>
+                        </div>
+                        
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-university"></i>
+                            </div>
+                            <div class="feature-content">
+                                <h3>Recursos Institucionales</h3>
+                                <p>Acceso a recursos de 50+ instituciones</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="portal-stats-carousel">
+                    <div class="carousel-container">
+                        <div class="carousel-track" id="statsCarousel">
+                            <div class="stat-card" data-category="laboratorios">
+                                <div class="stat-front">
+                                    <div class="stat-number">150+</div>
+                                    <div class="stat-label">Laboratorios</div>
+                                    <div class="stat-icon"><i class="fas fa-flask"></i></div>
+                                </div>
+                                <div class="stat-back">
+                                    <h4>Laboratorios Especializados</h4>
+                                    <ul>
+                                        <li><i class="fas fa-atom"></i> Química Avanzada</li>
+                                        <li><i class="fas fa-microscope"></i> Biología Molecular</li>
+                                        <li><i class="fas fa-calculator"></i> Física Aplicada</li>
+                                        <li><i class="fas fa-laptop"></i> Computación</li>
+                                    </ul>
+                                    <div class="stat-detail">Equipamiento de última generación</div>
+                                </div>
+                            </div>
+    
+                            <div class="stat-card" data-category="proyectos">
+                                <div class="stat-front">
+                                    <div class="stat-number">300+</div>
+                                    <div class="stat-label">Proyectos</div>
+                                    <div class="stat-icon"><i class="fas fa-project-diagram"></i></div>
+                                </div>
+                                <div class="stat-back">
+                                    <h4>Proyectos de Investigación</h4>
+                                    <ul>
+                                        <li><i class="fas fa-seedling"></i> Sostenibilidad</li>
+                                        <li><i class="fas fa-brain"></i> Inteligencia Artificial</li>
+                                        <li><i class="fas fa-dna"></i> Biotecnología</li>
+                                        <li><i class="fas fa-rocket"></i> Innovación</li>
+                                    </ul>
+                                    <div class="stat-detail">Investigación de vanguardia</div>
+                                </div>
+                            </div>
+    
+                            <div class="stat-card" data-category="investigadores">
+                                <div class="stat-front">
+                                    <div class="stat-number">500+</div>
+                                    <div class="stat-label">Investigadores</div>
+                                    <div class="stat-icon"><i class="fas fa-user-tie"></i></div>
+                                </div>
+                                <div class="stat-back">
+                                    <h4>Comunidad Académica</h4>
+                                    <ul>
+                                        <li><i class="fas fa-graduation-cap"></i> Doctores PhD</li>
+                                        <li><i class="fas fa-award"></i> Investigadores Senior</li>
+                                        <li><i class="fas fa-users"></i> Estudiantes Posgrado</li>
+                                        <li><i class="fas fa-globe"></i> Colaboradores Internacionales</li>
+                                    </ul>
+                                    <div class="stat-detail">Excelencia académica</div>
+                                </div>
+                            </div>
+    
+                            <div class="stat-card" data-category="publicaciones">
+                                <div class="stat-front">
+                                    <div class="stat-number">1,200+</div>
+                                    <div class="stat-label">Publicaciones</div>
+                                    <div class="stat-icon"><i class="fas fa-book-open"></i></div>
+                                </div>
+                                <div class="stat-back">
+                                    <h4>Producción Científica</h4>
+                                    <ul>
+                                        <li><i class="fas fa-journal-whills"></i> Revistas Indexadas</li>
+                                        <li><i class="fas fa-trophy"></i> Artículos de Alto Impacto</li>
+                                        <li><i class="fas fa-book"></i> Libros Especializados</li>
+                                        <li><i class="fas fa-certificate"></i> Patentes</li>
+                                    </ul>
+                                    <div class="stat-detail">Conocimiento compartido</div>
+                                </div>
+                            </div>
+    
+                            <div class="stat-card" data-category="colaboraciones">
+                                <div class="stat-front">
+                                    <div class="stat-number">80+</div>
+                                    <div class="stat-label">Colaboraciones</div>
+                                    <div class="stat-icon"><i class="fas fa-handshake"></i></div>
+                                </div>
+                                <div class="stat-back">
+                                    <h4>Red de Colaboración</h4>
+                                    <ul>
+                                        <li><i class="fas fa-university"></i> Universidades</li>
+                                        <li><i class="fas fa-industry"></i> Empresas</li>
+                                        <li><i class="fas fa-landmark"></i> Instituciones</li>
+                                        <li><i class="fas fa-globe-americas"></i> Redes Internacionales</li>
+                                    </ul>
+                                    <div class="stat-detail">Alianzas estratégicas</div>
+                                </div>
+                            </div>
+    
+                            <div class="stat-card" data-category="equipos">
+                                <div class="stat-front">
+                                    <div class="stat-number">2,500+</div>
+                                    <div class="stat-label">Equipos</div>
+                                    <div class="stat-icon"><i class="fas fa-cogs"></i></div>
+                                </div>
+                                <div class="stat-back">
+                                    <h4>Instrumentación Científica</h4>
+                                    <ul>
+                                        <li><i class="fas fa-microscope"></i> Microscopios Avanzados</li>
+                                        <li><i class="fas fa-vial"></i> Espectrómetros</li>
+                                        <li><i class="fas fa-server"></i> Supercomputadoras</li>
+                                        <li><i class="fas fa-tools"></i> Equipos Especializados</li>
+                                    </ul>
+                                    <div class="stat-detail">Tecnología de punta</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button class="carousel-btn carousel-prev" id="prevBtn">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="carousel-btn carousel-next" id="nextBtn">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="carousel-indicators" id="carouselIndicators">
+                        <button class="indicator active" data-slide="0"></button>
+                        <button class="indicator" data-slide="1"></button>
+                        <button class="indicator" data-slide="2"></button>
+                        <button class="indicator" data-slide="3"></button>
+                        <button class="indicator" data-slide="4"></button>
+                        <button class="indicator" data-slide="5"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        
+        <!-- Sección derecha - Formulario de login -->
+        <div class="login-form-section">
+            <div class="login-form-container">
+                <!-- Header del formulario -->
+                <div class="login-form-header">
+                    <div class="login-icon">
+                        <i class="fas fa-sign-in-alt"></i>
+                    </div>
+                    <h2 class="login-title">Iniciar Sesión</h2>
+                    <p class="login-subtitle">Ingresa tus credenciales para acceder al portal</p>
+                </div>
+
+                <!-- Mensajes flash -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                        <div class="flash-messages">
+                    {% for category, message in messages %}
+                                <div class="flash-message flash-{{ category }}">
+                                    <div class="flash-icon">
+                                        {% if category == 'error' %}
+                                            <i class="fas fa-exclamation-circle"></i>
+                                        {% elif category == 'success' %}
+                                            <i class="fas fa-check-circle"></i>
+                                        {% elif category == 'warning' %}
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                        {% else %}
+                                            <i class="fas fa-info-circle"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flash-content">
+                                        <span>{{ message }}</span>
+                                    </div>
+                                    <button type="button" class="flash-close" onclick="closeFlashMessage(this)">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                {% endif %}
+            {% endwith %}
+
+                <!-- Formulario de login -->
+            <form action="{{ url_for('auth.login_post') }}" method="POST" class="login-form" id="loginForm">
+                <div class="form-group">
+                        <label for="username" class="form-label">
+                            <i class="fas fa-user"></i>
+                            <span>Usuario</span>
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="text" 
+                                   id="username" 
+                                   name="username" 
+                                   class="form-control" 
+                                   placeholder="Ingrese su nombre de usuario"
+                                   required 
+                                   autocomplete="username">
+                            <div class="input-icon">
+                            </div>
+                        </div>
+                </div>
+
+                <div class="form-group">
+                        <label for="password" class="form-label">
+                            <i class="fas fa-lock"></i>
+                            <span>Contraseña</span>
+                    </label>
+                        <div class="input-wrapper">
+                            <input type="password" 
+                                   id="password" 
+                                   name="password" 
+                                   class="form-control" 
+                                   placeholder="Ingrese su contraseña"
+                                   required 
+                                   autocomplete="current-password">
+                            <div class="input-icon">
+                            </div>
+                            <button type="button" class="password-toggle" onclick="togglePassword()">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                    <div class="form-options">
+                        <label class="remember-me">
+                            <input type="checkbox" name="remember" id="remember">
+                            <span class="checkmark"></span>
+                            <span class="remember-text">Recordar sesión</span>
+                        </label>
+                        <a href="{{ url_for('auth.recover_password') }}" class="forgot-password-link">
+                            ¿Olvidaste tu contraseña?
+                        </a>
+                    </div>
+
+                    <div class="form-group">
+                        <button type="submit" class="login-btn" id="loginBtn">
+                            <span class="btn-text">
+                                <i class="fas fa-sign-in-alt"></i>
+                                Iniciar Sesión
+                            </span>
+                            <span class="btn-loading" style="display: none;">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                Iniciando...
+                            </span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Footer del formulario -->
+                <div class="login-form-footer">
+                    <div class="divider">
+                        <span>¿No tienes cuenta?</span>
+                    </div>
+                    <a href="{{ url_for('auth.register') }}" class="register-btn">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Crear cuenta nueva</span>
+                    </a>
+                </div>
+
+                <!-- Enlaces adicionales -->
+                <div class="additional-links">
+                    <a href="#" class="help-link">
+                        <i class="fas fa-question-circle"></i>
+                        ¿Necesitas ayuda?
+                    </a>
+                    <a href="#" class="contact-link">
+                        <i class="fas fa-envelope"></i>
+                        Contactar soporte
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript para funcionalidad -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-ocultar mensajes flash
+            const flashMessages = document.querySelectorAll('.flash-message');
+            flashMessages.forEach(message => {
+                setTimeout(() => {
+                    message.style.opacity = '0';
+                    message.style.transform = 'translateY(-10px)';
+                    setTimeout(() => {
+                        message.style.display = 'none';
+                    }, 300);
+                }, 5000);
+            });
+
+            // Validación en tiempo real
+            const form = document.getElementById('loginForm');
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const loginBtn = document.getElementById('loginBtn');
+
+            // Validar campos en tiempo real
+            function validateField(input) {
+                const wrapper = input.closest('.input-wrapper');
+                if (input.value.trim() === '') {
+                    wrapper.classList.add('error');
+                    wrapper.classList.remove('success');
+                } else {
+                    wrapper.classList.remove('error');
+                    wrapper.classList.add('success');
+                }
+                updateSubmitButton();
+            }
+
+            function updateSubmitButton() {
+                const isValid = usernameInput.value.trim() !== '' && passwordInput.value.trim() !== '';
+                loginBtn.disabled = !isValid;
+                loginBtn.classList.toggle('disabled', !isValid);
+            }
+
+            usernameInput.addEventListener('input', () => validateField(usernameInput));
+            passwordInput.addEventListener('input', () => validateField(passwordInput));
+
+            // Manejo del envío del formulario
+            form.addEventListener('submit', function(e) {
+                const btnText = loginBtn.querySelector('.btn-text');
+                const btnLoading = loginBtn.querySelector('.btn-loading');
+                
+                btnText.style.display = 'none';
+                btnLoading.style.display = 'flex';
+                loginBtn.disabled = true;
+            });
+
+            // Inicializar estado del botón
+            updateSubmitButton();
+        });
+
+        // Función para mostrar/ocultar contraseña
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleButton = document.querySelector('.password-toggle i');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleButton.classList.remove('fa-eye');
+                toggleButton.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleButton.classList.remove('fa-eye-slash');
+                toggleButton.classList.add('fa-eye');
+            }
+        }
+
+        // Función para cerrar mensajes flash
+        function closeFlashMessage(button) {
+            const message = button.closest('.flash-message');
+                    message.style.opacity = '0';
+            message.style.transform = 'translateY(-10px)';
+                    setTimeout(() => {
+                        message.style.display = 'none';
+                    }, 300);
+        }
+
+        // Efectos de focus en inputs
+        document.querySelectorAll('.form-control').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.closest('.input-wrapper').classList.add('focused');
+            });
+            
+            input.addEventListener('blur', function() {
+                this.closest('.input-wrapper').classList.remove('focused');
+            });
+        });
+
+        // ========================================================================
+        // ===================== CARRUSEL DE ESTADÍSTICAS =======================
+        // ========================================================================
+        
+        class StatsCarousel {
+            constructor() {
+                this.carousel = document.getElementById('statsCarousel');
+                this.prevBtn = document.getElementById('prevBtn');
+                this.nextBtn = document.getElementById('nextBtn');
+                this.indicators = document.querySelectorAll('.indicator');
+                this.cards = document.querySelectorAll('.stat-card');
+                
+                this.currentSlide = 0;
+                this.totalSlides = this.cards.length;
+                this.cardsPerView = this.getCardsPerView();
+                this.maxSlide = Math.max(0, this.totalSlides - this.cardsPerView);
+                
+                this.init();
+            }
+            
+            init() {
+                this.setupEventListeners();
+                this.updateCarousel();
+                this.startAutoplay();
+                
+                // Actualizar en resize
+                window.addEventListener('resize', () => {
+                    this.cardsPerView = this.getCardsPerView();
+                    this.maxSlide = Math.max(0, this.totalSlides - this.cardsPerView);
+                    this.updateCarousel();
+                });
+            }
+            
+            getCardsPerView() {
+                const width = window.innerWidth;
+                if (width < 576) return 1;
+                if (width < 768) return 1;
+                if (width < 992) return 2;
+                if (width < 1200) return 3;
+                return 3;
+            }
+            
+            setupEventListeners() {
+                // Botones de navegación
+                this.prevBtn.addEventListener('click', () => this.prevSlide());
+                this.nextBtn.addEventListener('click', () => this.nextSlide());
+                
+                // Indicadores
+                this.indicators.forEach((indicator, index) => {
+                    indicator.addEventListener('click', () => this.goToSlide(index));
+                });
+                
+                // Touch/swipe para móviles
+                let startX = 0;
+                let currentX = 0;
+                let isDragging = false;
+                
+                this.carousel.addEventListener('touchstart', (e) => {
+                    startX = e.touches[0].clientX;
+                    isDragging = true;
+                    this.pauseAutoplay();
+                });
+                
+                this.carousel.addEventListener('touchmove', (e) => {
+                    if (!isDragging) return;
+                    currentX = e.touches[0].clientX;
+                });
+                
+                this.carousel.addEventListener('touchend', () => {
+                    if (!isDragging) return;
+                    isDragging = false;
+                    
+                    const diff = startX - currentX;
+                    const threshold = 50;
+                    
+                    if (Math.abs(diff) > threshold) {
+                        if (diff > 0) {
+                            this.nextSlide();
+                        } else {
+                            this.prevSlide();
+                        }
+                    }
+                    
+                    this.startAutoplay();
+                });
+                
+                // Pausar autoplay en hover
+                this.carousel.addEventListener('mouseenter', () => this.pauseAutoplay());
+                this.carousel.addEventListener('mouseleave', () => this.startAutoplay());
+            }
+            
+            updateCarousel() {
+                const cardWidth = this.cards[0].offsetWidth + 16; // 16px gap
+                const translateX = -this.currentSlide * cardWidth;
+                
+                this.carousel.style.transform = `translateX(${translateX}px)`;
+                
+                // Actualizar indicadores
+                this.indicators.forEach((indicator, index) => {
+                    indicator.classList.toggle('active', index === this.currentSlide);
+                });
+                
+                // Actualizar botones
+                this.prevBtn.style.opacity = this.currentSlide === 0 ? '0.5' : '1';
+                this.nextBtn.style.opacity = this.currentSlide >= this.maxSlide ? '0.5' : '1';
+            }
+            
+            nextSlide() {
+                if (this.currentSlide < this.maxSlide) {
+                    this.currentSlide++;
+                } else {
+                    this.currentSlide = 0; // Loop al inicio
+                }
+                this.updateCarousel();
+            }
+            
+            prevSlide() {
+                if (this.currentSlide > 0) {
+                    this.currentSlide--;
+                } else {
+                    this.currentSlide = this.maxSlide; // Loop al final
+                }
+                this.updateCarousel();
+            }
+            
+            goToSlide(index) {
+                this.currentSlide = Math.min(index, this.maxSlide);
+                this.updateCarousel();
+            }
+            
+            startAutoplay() {
+                this.pauseAutoplay();
+                this.autoplayInterval = setInterval(() => {
+                    this.nextSlide();
+                }, 4000); // Cambiar cada 4 segundos
+            }
+            
+            pauseAutoplay() {
+                if (this.autoplayInterval) {
+                    clearInterval(this.autoplayInterval);
+                    this.autoplayInterval = null;
+                }
+            }
+        }
+        
+        // Inicializar carrusel cuando se carga la página
+        if (document.getElementById('statsCarousel')) {
+            new StatsCarousel();
+        }
+    </script>
+</body>
+</html>

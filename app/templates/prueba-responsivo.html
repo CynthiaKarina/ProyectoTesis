@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba de Responsividad - Portal Académico</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='improved-styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .screen-info {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: var(--primary-color);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            z-index: 1000;
+            font-family: monospace;
+        }
+        
+        .test-section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+        }
+        
+        .test-title {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Indicador de tamaño de pantalla -->
+    <div class="screen-info" id="screenInfo">
+        Cargando...
+    </div>
+
+    <!-- Iconos flotantes de fondo -->
+    <div class="floating-icons-container">
+        <div class="floating-icon icon1"><i class="fas fa-flask"></i></div>
+        <div class="floating-icon icon2"><i class="fas fa-microscope"></i></div>
+        <div class="floating-icon icon3"><i class="fas fa-atom"></i></div>
+        <div class="floating-icon icon4"><i class="fas fa-dna"></i></div>
+        <div class="floating-icon icon5"><i class="fas fa-vial"></i></div>
+        <div class="floating-icon icon6"><i class="fas fa-calculator"></i></div>
+        <div class="floating-icon icon7"><i class="fas fa-chart-line"></i></div>
+        <div class="floating-icon icon8"><i class="fas fa-cog"></i></div>
+        <div class="floating-icon icon9"><i class="fas fa-graduation-cap"></i></div>
+        <div class="floating-icon icon10"><i class="fas fa-book"></i></div>
+        <div class="floating-icon icon11"><i class="fas fa-laptop"></i></div>
+        <div class="floating-icon icon12"><i class="fas fa-database"></i></div>
+        <div class="floating-icon icon13"><i class="fas fa-code"></i></div>
+        <div class="floating-icon icon14"><i class="fas fa-server"></i></div>
+        <div class="floating-icon icon15"><i class="fas fa-network-wired"></i></div>
+        <div class="floating-icon icon16"><i class="fas fa-cloud"></i></div>
+        <div class="floating-icon icon17"><i class="fas fa-shield-alt"></i></div>
+        <div class="floating-icon icon18"><i class="fas fa-lock"></i></div>
+        <div class="floating-icon icon19"><i class="fas fa-key"></i></div>
+        <div class="floating-icon icon20"><i class="fas fa-search"></i></div>
+    </div>
+
+    <!-- Navegación -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-university"></i>
+                <span>Portal Académico</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="{{ url_for('home.index') }}"><i class="fas fa-home"></i> <span>Inicio</span></a></li>
+                <li><a href="#"><i class="fas fa-flask"></i> <span>Laboratorios</span></a></li>
+                <li><a href="#"><i class="fas fa-search"></i> <span>Buscar</span></a></li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle">
+                        <i class="fas fa-user"></i> <span>Usuario</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#"><i class="fas fa-user-circle"></i> Perfil</a></li>
+                        <li><a href="#"><i class="fas fa-cog"></i> Configuración</a></li>
+                        <li><a href="#"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="home-page-container">
+        <!-- Título Principal -->
+        <div class="test-section">
+            <h1 class="hero-title text-center-mobile">
+                <span class="title-main">Prueba de</span>
+                <span class="title-accent">Responsividad</span>
+            </h1>
+            <p class="hero-subtitle text-center">
+                Esta página prueba todos los elementos responsivos del sistema
+            </p>
+        </div>
+
+        <!-- Prueba de Navegación -->
+        <div class="test-section">
+            <div class="test-title">1. Navegación Responsiva</div>
+            <p>La navegación debe adaptarse en tablets (menú vertical) y móviles (iconos sin texto).</p>
+        </div>
+
+        <!-- Prueba de Grid Responsivo -->
+        <div class="test-section">
+            <div class="test-title">2. Grid de Acceso Rápido</div>
+            <div class="quick-access-grid grid-responsive">
+                <div class="quick-access-card">
+                    <div class="card-icon">
+                        <i class="fas fa-plus-circle"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Nueva Solicitud</h3>
+                        <p>Crear una nueva solicitud de materiales</p>
+                    </div>
+                </div>
+                <div class="quick-access-card">
+                    <div class="card-icon">
+                        <i class="fas fa-list-alt"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Mis Solicitudes</h3>
+                        <p>Ver el estado de tus solicitudes</p>
+                    </div>
+                </div>
+                <div class="quick-access-card">
+                    <div class="card-icon">
+                        <i class="fas fa-flask"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Laboratorios</h3>
+                        <p>Explorar laboratorios disponibles</p>
+                    </div>
+                </div>
+                <div class="quick-access-card">
+                    <div class="card-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Reportes</h3>
+                        <p>Generar reportes y estadísticas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prueba de Estadísticas -->
+        <div class="test-section">
+            <div class="test-title">3. Estadísticas Responsivas</div>
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <div class="stat-number">150+</div>
+                    <div class="stat-label">Laboratorios</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">2,500+</div>
+                    <div class="stat-label">Materiales</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">500+</div>
+                    <div class="stat-label">Usuarios</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">98%</div>
+                    <div class="stat-label">Satisfacción</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prueba de Búsqueda -->
+        <div class="test-section">
+            <div class="test-title">4. Búsqueda Global Responsiva</div>
+            <div class="global-search-container">
+                <div class="global-search-wrapper">
+                    <div class="global-search-input-container">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="global-search-input" placeholder="Buscar materiales, equipos, reactivos...">
+                        <button class="clear-global-search" style="display: none;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="search-categories">
+                        <div class="category-chip active">
+                            <div class="chip-content">
+                                <i class="fas fa-flask"></i>
+                                <span>Todos</span>
+                            </div>
+                        </div>
+                        <div class="category-chip">
+                            <div class="chip-content">
+                                <i class="fas fa-vial"></i>
+                                <span>Reactivos</span>
+                            </div>
+                        </div>
+                        <div class="category-chip">
+                            <div class="chip-content">
+                                <i class="fas fa-microscope"></i>
+                                <span>Equipos</span>
+                            </div>
+                        </div>
+                        <div class="category-chip">
+                            <div class="chip-content">
+                                <i class="fas fa-tools"></i>
+                                <span>Herramientas</span>
+                            </div>
+                        </div>
+                        <div class="category-chip">
+                            <div class="chip-content">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>Seguridad</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prueba de Cards de Laboratorio -->
+        <div class="test-section">
+            <div class="test-title">5. Tarjetas de Laboratorio Responsivas</div>
+            <div class="labs-grid">
+                <div class="lab-card">
+                    <div class="lab-card-header">
+                        <div class="lab-info">
+                            <h3 class="lab-name">Laboratorio de Química</h3>
+                            <p class="lab-code">LAB-QUI-001</p>
+                        </div>
+                        <div class="lab-status available">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Disponible</span>
+                        </div>
+                    </div>
+                    <div class="lab-card-body">
+                        <div class="lab-description">
+                            <p>Laboratorio especializado en análisis químicos y síntesis orgánica.</p>
+                        </div>
+                        <div class="lab-stats">
+                            <div class="stat-item">
+                                <i class="fas fa-flask"></i>
+                                <span>45 Materiales</span>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-users"></i>
+                                <span>12 Usuarios</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lab-card-footer flex-column-mobile">
+                        <button class="btn btn-primary btn-view-details">
+                            <i class="fas fa-eye"></i>
+                            Ver Detalles
+                        </button>
+                        <button class="btn btn-outline-primary btn-quick-info">
+                            <i class="fas fa-info-circle"></i>
+                            Info Rápida
+                        </button>
+                    </div>
+                </div>
+
+                <div class="lab-card">
+                    <div class="lab-card-header">
+                        <div class="lab-info">
+                            <h3 class="lab-name">Laboratorio de Física</h3>
+                            <p class="lab-code">LAB-FIS-002</p>
+                        </div>
+                        <div class="lab-status maintenance">
+                            <i class="fas fa-tools"></i>
+                            <span>Mantenimiento</span>
+                        </div>
+                    </div>
+                    <div class="lab-card-body">
+                        <div class="lab-description">
+                            <p>Laboratorio equipado para experimentos de mecánica y óptica.</p>
+                        </div>
+                        <div class="lab-stats">
+                            <div class="stat-item">
+                                <i class="fas fa-microscope"></i>
+                                <span>32 Equipos</span>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-users"></i>
+                                <span>8 Usuarios</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lab-card-footer flex-column-mobile">
+                        <button class="btn btn-primary btn-view-details">
+                            <i class="fas fa-eye"></i>
+                            Ver Detalles
+                        </button>
+                        <button class="btn btn-outline-primary btn-quick-info">
+                            <i class="fas fa-info-circle"></i>
+                            Info Rápida
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prueba de Formularios -->
+        <div class="test-section">
+            <div class="test-title">6. Formularios Responsivos</div>
+            <form class="responsive-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="test-input">Campo de Texto</label>
+                        <input type="text" id="test-input" class="form-control" placeholder="Ingresa texto aquí">
+                    </div>
+                    <div class="form-group">
+                        <label for="test-select">Lista Desplegable</label>
+                        <select id="test-select" class="form-control">
+                            <option>Opción 1</option>
+                            <option>Opción 2</option>
+                            <option>Opción 3</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="test-textarea">Área de Texto</label>
+                    <textarea id="test-textarea" class="form-control" rows="4" placeholder="Descripción detallada..."></textarea>
+                </div>
+                <div class="form-actions flex-column-mobile">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Guardar
+                    </button>
+                    <button type="button" class="btn btn-secondary">
+                        <i class="fas fa-times"></i>
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn btn-outline-primary">
+                        <i class="fas fa-eye"></i>
+                        Vista Previa
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Prueba de Tabla -->
+        <div class="test-section">
+            <div class="test-title">7. Tabla Responsiva</div>
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Material</th>
+                            <th>Categoría</th>
+                            <th>Cantidad</th>
+                            <th>Estado</th>
+                            <th class="d-none-mobile">Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>001</td>
+                            <td>Ácido Sulfúrico</td>
+                            <td>Reactivo</td>
+                            <td>500ml</td>
+                            <td><span class="badge badge-success">Disponible</span></td>
+                            <td class="d-none-mobile">2024-01-15</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary">
+                                    <i class="fas fa-edit"></i>
+                                    <span class="d-none-mobile">Editar</span>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>002</td>
+                            <td>Microscopio Óptico</td>
+                            <td>Equipo</td>
+                            <td>1 unidad</td>
+                            <td><span class="badge badge-warning">Mantenimiento</span></td>
+                            <td class="d-none-mobile">2024-01-14</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary">
+                                    <i class="fas fa-edit"></i>
+                                    <span class="d-none-mobile">Editar</span>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Prueba de Alertas -->
+        <div class="test-section">
+            <div class="test-title">8. Alertas Responsivas</div>
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i>
+                <strong>¡Éxito!</strong> La solicitud se ha procesado correctamente.
+            </div>
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Advertencia:</strong> Algunos materiales tienen stock limitado.
+            </div>
+            <div class="alert alert-danger">
+                <i class="fas fa-times-circle"></i>
+                <strong>Error:</strong> No se pudo completar la operación.
+            </div>
+        </div>
+
+        <!-- Prueba de Utilidades Responsivas -->
+        <div class="test-section">
+            <div class="test-title">9. Utilidades Responsivas</div>
+            <div class="p-responsive" style="background: #f8f9fa; border-radius: 4px;">
+                <p class="text-center-mobile">Este texto se centra en móviles</p>
+                <div class="flex-column-mobile" style="display: flex; gap: 1rem;">
+                    <button class="btn btn-primary">Botón 1</button>
+                    <button class="btn btn-secondary">Botón 2</button>
+                    <button class="btn btn-outline-primary">Botón 3</button>
+                </div>
+                <p class="d-none-mobile" style="margin-top: 1rem; color: #666;">
+                    Este texto se oculta en móviles
+                </p>
+                <p class="d-block-mobile" style="margin-top: 1rem; color: #666;">
+                    Este texto solo se muestra en móviles
+                </p>
+            </div>
+        </div>
+
+        <!-- Instrucciones -->
+        <div class="test-section">
+            <div class="test-title">Instrucciones de Prueba</div>
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <strong>Cómo probar:</strong>
+                <ul style="margin: 0.5rem 0 0 1.5rem;">
+                    <li>Redimensiona la ventana del navegador</li>
+                    <li>Usa las herramientas de desarrollador (F12) para simular dispositivos</li>
+                    <li>Observa el indicador de tamaño de pantalla en la esquina superior derecha</li>
+                    <li>Verifica que todos los elementos se adapten correctamente</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Actualizar indicador de pantalla
+        function updateScreenInfo() {
+            const width = window.innerWidth;
+            let screenType = '';
+            let color = '';
+            
+            if (width >= 1200) {
+                screenType = 'XL';
+                color = '#28a745';
+            } else if (width >= 992) {
+                screenType = 'LG';
+                color = '#17a2b8';
+            } else if (width >= 768) {
+                screenType = 'MD';
+                color = '#ffc107';
+            } else if (width >= 576) {
+                screenType = 'SM';
+                color = '#fd7e14';
+            } else {
+                screenType = 'XS';
+                color = '#dc3545';
+            }
+            
+            const screenInfo = document.getElementById('screenInfo');
+            screenInfo.textContent = `${screenType}: ${width}px`;
+            screenInfo.style.backgroundColor = color;
+        }
+
+        // Toggle dropdown
+        document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+            toggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                const dropdown = this.closest('.dropdown');
+                dropdown.classList.toggle('active');
+            });
+        });
+
+        // Cerrar dropdown al hacer clic fuera
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.dropdown')) {
+                document.querySelectorAll('.dropdown').forEach(dropdown => {
+                    dropdown.classList.remove('active');
+                });
+            }
+        });
+
+        // Funcionalidad de búsqueda
+        const searchInput = document.querySelector('.global-search-input');
+        const clearButton = document.querySelector('.clear-global-search');
+
+        if (searchInput && clearButton) {
+            searchInput.addEventListener('input', function() {
+                if (this.value.length > 0) {
+                    clearButton.style.display = 'flex';
+                } else {
+                    clearButton.style.display = 'none';
+                }
+            });
+
+            clearButton.addEventListener('click', function() {
+                searchInput.value = '';
+                this.style.display = 'none';
+                searchInput.focus();
+            });
+        }
+
+        // Chips de categoría
+        document.querySelectorAll('.category-chip').forEach(chip => {
+            chip.addEventListener('click', function() {
+                document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Inicializar y actualizar en resize
+        updateScreenInfo();
+        window.addEventListener('resize', updateScreenInfo);
+    </script>
+</body>
+</html> 

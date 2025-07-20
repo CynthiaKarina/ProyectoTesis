@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciando sesión...</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .login-success-container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 400px;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .success-message {
+            color: #667eea;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .user-info {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-success-container">
+        <div class="spinner"></div>
+        <h2 class="success-message">¡Bienvenido de vuelta!</h2>
+        <p class="user-info">Hola, {{ user_data.nombre_completo }}</p>
+        <p class="user-info">Configurando tu sesión...</p>
+    </div>
+
+    <script>
+        // Función para guardar datos del usuario en localStorage
+        function saveUserToLocalStorage(userData) {
+            try {
+                // Datos principales del usuario
+                const userInfo = {
+                    id_usuario: userData.id_usuario,
+                    username: userData.username,
+                    email: userData.email,
+                    nombre: userData.nombre,
+                    apellido_paterno: userData.apellido_paterno,
+                    apellido_materno: userData.apellido_materno,
+                    nombre_completo: userData.nombre_completo,
+                    telefono: userData.telefono,
+                    ruta_imagen: userData.ruta_imagen,
+                    id_rol: userData.id_rol,
+                    role_name: userData.role_name,
+                    id_institucion: userData.id_institucion,
+                    institucion_nombre: userData.institucion_nombre,
+                    id_area: userData.id_area,
+                    area_nombre: userData.area_nombre,
+                    activo: userData.activo,
+                    fecha_registro: userData.fecha_registro,
+                    ultimo_acceso: new Date().toISOString(),
+                    session_timestamp: new Date().toISOString()
+                };
+
+                // Guardar en localStorage
+                localStorage.setItem('user_data', JSON.stringify(userInfo));
+                localStorage.setItem('user_logged_in', 'true');
+                localStorage.setItem('login_timestamp', new Date().toISOString());
+
+                // Guardar también datos específicos para acceso rápido
+                localStorage.setItem('user_id', userData.id_usuario);
+                localStorage.setItem('username', userData.username);
+                localStorage.setItem('user_name', userData.nombre_completo);
+                localStorage.setItem('user_role', userData.role_name || 'Usuario');
+                localStorage.setItem('user_email', userData.email);
+
+                console.log('✅ Datos del usuario guardados en localStorage:', userInfo);
+                
+                // Disparar evento personalizado para notificar que el usuario se ha guardado
+                const event = new CustomEvent('userLoggedIn', {
+                    detail: userInfo
+                });
+                window.dispatchEvent(event);
+
+            } catch (error) {
+                console.error('❌ Error al guardar datos del usuario en localStorage:', error);
+            }
+        }
+
+        // Función para limpiar localStorage al cerrar sesión
+        function clearUserFromLocalStorage() {
+            const keysToRemove = [
+                'user_data', 'user_logged_in', 'login_timestamp',
+                'user_id', 'username', 'user_name', 'user_role', 'user_email'
+            ];
+            
+            keysToRemove.forEach(key => {
+                localStorage.removeItem(key);
+            });
+            
+            console.log('🧹 Datos del usuario eliminados del localStorage');
+        }
+
+        // Función para obtener datos del usuario desde localStorage
+        function getUserFromLocalStorage() {
+            try {
+                const userData = localStorage.getItem('user_data');
+                if (userData) {
+                    return JSON.parse(userData);
+                }
+                return null;
+            } catch (error) {
+                console.error('❌ Error al obtener datos del usuario desde localStorage:', error);
+                return null;
+            }
+        }
+
+        // Función para verificar si el usuario está logueado
+        function isUserLoggedIn() {
+            const loggedIn = localStorage.getItem('user_logged_in') === 'true';
+            const userData = getUserFromLocalStorage();
+            return loggedIn && userData !== null;
+        }
+
+        // Datos del usuario pasados desde el servidor
+        const userData = {{ user_data | tojson }};
+
+        // Ejecutar cuando la página esté lista
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Iniciando proceso de login...');
+            
+            // Guardar datos del usuario en localStorage
+            saveUserToLocalStorage(userData);
+            
+            // Mostrar mensaje de éxito
+            console.log('✅ Sesión iniciada exitosamente para:', userData.nombre_completo);
+            
+            // Esperar un poco para que el usuario vea el mensaje y luego redirigir
+            setTimeout(function() {
+                // Redirigir a la página principal
+                window.location.href = '{{ redirect_url }}';
+            }, 2000);
+        });
+
+        // Exponer funciones globalmente para uso en otras partes de la aplicación
+        window.userStorage = {
+            save: saveUserToLocalStorage,
+            clear: clearUserFromLocalStorage,
+            get: getUserFromLocalStorage,
+            isLoggedIn: isUserLoggedIn
+        };
+    </script>
+</body>
+</html> 

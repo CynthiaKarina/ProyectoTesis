@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cerrando sesión...</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+        }
+        .logout-container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 400px;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #ff9a9e;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .logout-message {
+            color: #ff9a9e;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .logout-info {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="logout-container">
+        <div class="icon">👋</div>
+        <h2 class="logout-message">¡Hasta luego!</h2>
+        <p class="logout-info">Cerrando tu sesión de forma segura...</p>
+        <div class="spinner"></div>
+    </div>
+
+    <script>
+        // Función para limpiar localStorage al cerrar sesión
+        function clearUserFromLocalStorage() {
+            try {
+                console.log('🧹 Limpiando datos del usuario del localStorage...');
+                
+                const keysToRemove = [
+                    'user_data', 'user_logged_in', 'login_timestamp',
+                    'user_id', 'username', 'user_name', 'user_role', 'user_email'
+                ];
+                
+                keysToRemove.forEach(key => {
+                    if (localStorage.getItem(key)) {
+                        localStorage.removeItem(key);
+                        console.log(`🗑️ Eliminado: ${key}`);
+                    }
+                });
+                
+                console.log('✅ Datos del usuario eliminados del localStorage');
+                
+                // Disparar evento personalizado para notificar que el usuario ha cerrado sesión
+                const event = new CustomEvent('userLoggedOut', {
+                    detail: {
+                        message: 'Usuario ha cerrado sesión exitosamente',
+                        timestamp: new Date().toISOString()
+                    }
+                });
+                window.dispatchEvent(event);
+                
+            } catch (error) {
+                console.error('❌ Error al limpiar localStorage:', error);
+            }
+        }
+
+        // Función para limpiar sessionStorage también
+        function clearUserFromSessionStorage() {
+            try {
+                console.log('🧹 Limpiando datos del usuario del sessionStorage...');
+                
+                const keysToRemove = [
+                    'user_data', 'user_logged_in', 'login_timestamp',
+                    'user_id', 'username', 'user_name', 'user_role', 'user_email'
+                ];
+                
+                keysToRemove.forEach(key => {
+                    if (sessionStorage.getItem(key)) {
+                        sessionStorage.removeItem(key);
+                        console.log(`🗑️ Eliminado de sessionStorage: ${key}`);
+                    }
+                });
+                
+                console.log('✅ Datos del usuario eliminados del sessionStorage');
+                
+            } catch (error) {
+                console.error('❌ Error al limpiar sessionStorage:', error);
+            }
+        }
+
+        // Función para limpiar todas las cookies relacionadas con la sesión
+        function clearSessionCookies() {
+            try {
+                console.log('🍪 Limpiando cookies de sesión...');
+                
+                // Lista de cookies que pueden contener datos de sesión
+                const cookiesToClear = [
+                    'remembered_user', 'session_token', 'user_token',
+                    'auth_token', 'remember_token'
+                ];
+                
+                cookiesToClear.forEach(cookieName => {
+                    // Eliminar cookie estableciendo fecha de expiración en el pasado
+                    document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+                    console.log(`🗑️ Cookie eliminada: ${cookieName}`);
+                });
+                
+                console.log('✅ Cookies de sesión eliminadas');
+                
+            } catch (error) {
+                console.error('❌ Error al limpiar cookies:', error);
+            }
+        }
+
+        // Ejecutar cuando la página esté lista
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚪 Iniciando proceso de cierre de sesión...');
+            
+            // Limpiar localStorage
+            clearUserFromLocalStorage();
+            
+            // Limpiar sessionStorage
+            clearUserFromSessionStorage();
+            
+            // Limpiar cookies de sesión
+            clearSessionCookies();
+            
+            // Mostrar mensaje de despedida
+            console.log('✅ Sesión cerrada exitosamente');
+            
+            // Esperar un poco para que el usuario vea el mensaje y luego redirigir
+            setTimeout(function() {
+                // Redirigir a la página de login
+                window.location.href = '{{ redirect_url }}';
+            }, 2000);
+        });
+
+        // Exponer funciones globalmente para uso en otras partes de la aplicación
+        window.userStorage = window.userStorage || {};
+        window.userStorage.clearAll = function() {
+            clearUserFromLocalStorage();
+            clearUserFromSessionStorage();
+            clearSessionCookies();
+        };
+    </script>
+</body>
+</html> 

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--<title>{% block title %}Mi Aplicación{% endblock %}</title>-->
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Estilos personalizados -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='improved-styles.css') }}">
+    
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <ul class="nav-menu">
+                <!-- Inicio -->
+                <li>
+                    <a href="{{ url_for('home.index') }}" class="{% if request.endpoint == 'home.index' %}active{% endif %}">
+                        <i class="fas fa-home"></i>
+                        <span>Inicio</span>
+                    </a>
+                </li>
+                
+                <!-- Menú de Recursos Académicos -->
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span>Recursos</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a href="{{ url_for('laboratorio.index') }}">
+                            <i class="fas fa-flask"></i> Laboratorios
+                        </a></li>
+                        <li><a href="{{ url_for('home.navegar_pagina', nombre='insumos') }}">
+                            <i class="fas fa-tools"></i> Insumos
+                        </a></li>
+                        <li><a href="{{ url_for('home.navegar_pagina', nombre='servicios') }}">
+                            <i class="fas fa-cogs"></i> Servicios
+                        </a></li>
+                        <li class="divider"></li>
+                        <li><a href="{{ url_for('home.navegar_pagina', nombre='instituciones') }}">
+                            <i class="fas fa-university"></i> Instituciones
+                        </a></li>
+                    </ul>
+                </li>
+                
+                <!-- Menú de Investigación -->
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle">
+                        <i class="fas fa-microscope"></i>
+                        <span>Investigación</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a href="{{ url_for('home.navegar_pagina', nombre='proyectos') }}">
+                            <i class="fas fa-project-diagram"></i> Proyectos
+                        </a></li>
+                        <li><a href="{{ url_for('home.navegar_pagina', nombre='investigadores') }}">
+                            <i class="fas fa-user-tie"></i> Investigadores
+                        </a></li>
+                        <li><a href="{{ url_for('home.navegar_pagina', nombre='publicaciones') }}">
+                            <i class="fas fa-book"></i> Publicaciones
+                        </a></li>
+                    </ul>
+                </li>
+                
+                <!-- Menú de Comunidad -->
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle">
+                        <i class="fas fa-users"></i>
+                        <span>Comunidad</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a href="{{ url_for('home.navegar_pagina', nombre='eventos') }}">
+                            <i class="fas fa-calendar"></i> Eventos
+                        </a></li>
+                        <li><a href="{{ url_for('home.navegar_pagina', nombre='foros') }}">
+                            <i class="fas fa-comments"></i> Foros
+                        </a></li>
+                        <li class="divider"></li>
+                        <li><a href="{{ url_for('home.navegar_pagina', nombre='informacion') }}">
+                            <i class="fas fa-info-circle"></i> Información
+                        </a></li>
+                    </ul>
+                </li>
+                
+                <!-- Menú de Administración - Con control de permisos -->
+                <!--{% if has_permission('admin_access') or is_admin() or is_super_user() or current_user.id_rol == 10 %}-->
+                <li class="dropdown admin-menu">
+                    <a href="#" class="dropdown-toggle">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Administración</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        {% if has_permission('admin_access') %}
+                        <li><a href="{{ url_for('admin_options.admin_options') }}">
+                            <i class="fas fa-tachometer-alt"></i> Panel Principal
+                        </a></li>
+                        {% endif %}
+                        
+                        {% if has_permission('admin_access') %}
+                        <li><a href="{{ url_for('admin_options.test_navigation') }}">
+                            <i class="fas fa-bug"></i> Prueba de Navegación
+                        </a></li>
+                        {% endif %}
+                        
+                        {% if has_permission('gestionar_areas') %}
+                        <li><a href="{{ url_for('area.admin_areas') }}">
+                            <i class="fas fa-layer-group"></i> Gestionar Áreas
+                        </a></li>
+                        {% endif %}
+                        
+                        {% if has_permission('gestionar_roles') %}
+                        <li><a href="{{ url_for('admin_roles.admin_roles') }}">
+                            <i class="fas fa-user-shield"></i> Administración de Roles
+                        </a></li>
+                        {% endif %}
+                        
+                        {% if has_permission('gestionar_usuarios') %}
+                        <li><a href="{{ url_for('admin_users.admin_usuarios') }}">
+                            <i class="fas fa-users-cog"></i> Administración de Usuarios
+                        </a></li>
+                        {% endif %}
+                        
+                        {% if has_permission('gestionar_permisos') %}
+                        <li><a href="{{ url_for('admin_permisos.admin_permisos') }}">
+                            <i class="fas fa-key"></i> Gestionar Permisos
+                        </a></li>
+                        {% endif %}
+                        
+                        {% if has_permission('gestionar_laboratorios') %}
+                        <li><a href="{{ url_for('admin_laboratorios.admin_laboratorios') }}">
+                            <i class="fas fa-flask"></i> Gestionar Laboratorios
+                        </a></li>
+                        {% endif %}
+                        
+                        {% if has_permission('gestionar_instituciones') %}
+                        <li><a href="{{ url_for('institucion.get_instituciones') }}">
+                            <i class="fas fa-university"></i> Gestionar Instituciones
+                        </a></li>
+                        {% endif %}
+                        
+                        {% if has_permission('ver_reportes') %}
+                        <li class="divider"></li>
+                        <!-- TODO: Implementar funcionalidad de reportes -->
+                        <li><a href="#" onclick="alert('Funcionalidad de reportes en desarrollo')">
+                            <i class="fas fa-chart-bar"></i> Reportes
+                        </a></li>
+                        {% endif %}
+                    </ul>
+                </li>
+                {% endif %}
+               
+                <!-- Menú de usuario -->
+                <li class="dropdown user-menu">
+                    <a href="#" class="dropdown-toggle">
+                        <i class="fas fa-user-shield"></i>
+                        <span>Administrador</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a href="{{ url_for('profile.ver_perfil') }}">
+                            <i class="fas fa-user-edit"></i> Mi Perfil
+                        </a></li>
+                        <li class="divider"></li>
+                        <li><a href="{{ url_for('auth.logout') }}">
+                            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                        </a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% set category, message = messages[0] %}
+                <div id="flash-message" class="flash-message {{ category }}">
+                    {{ message }}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <main>
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Inicializando sistema de navegación optimizado');
+            
+            const flashMessage = document.getElementById('flash-message');
+            if (flashMessage) {
+                setTimeout(() => {
+                    flashMessage.style.opacity = '0';
+                    setTimeout(() => flashMessage.style.display = 'none', 300);
+                }, 3000);
+            }
+            const DropdownManager = {
+                dropdowns: document.querySelectorAll('.dropdown'),
+                activeDropdown: null,
+                
+                init() {
+                    console.log(`📋 Inicializando ${this.dropdowns.length} menús desplegables`);
+                    this.dropdowns.forEach((dropdown, index) => this.setupDropdown(dropdown, index));
+                    this.setupGlobalEvents();
+                },
+                
+                setupDropdown(dropdown, index) {
+                    const toggle = dropdown.querySelector('.dropdown-toggle');
+                    const menu = dropdown.querySelector('.dropdown-menu');
+                    
+                    if (!toggle || !menu) return;
+                    
+                    console.log(`🔧 Configurando dropdown ${index}: ${toggle.textContent.trim()}`);
+                    
+                    // Evento click en el toggle
+                    toggle.addEventListener('click', (e) => this.handleToggleClick(e, dropdown));
+                    
+                    // Prevenir cierre al hacer click dentro del menú
+                    menu.addEventListener('click', (e) => e.stopPropagation());
+                    
+                    // Configurar enlaces del menú
+                    menu.querySelectorAll('a').forEach(link => {
+                        link.addEventListener('click', (e) => {
+                            console.log(`🔗 Navegando a: ${link.href}`);
+                            // Cerrar menú después de un pequeño delay para UX
+                            setTimeout(() => this.closeAll(), 100);
+                        });
+                    });
+                },
+                
+                handleToggleClick(e, dropdown) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const isActive = dropdown.classList.contains('active');
+                    const toggle = dropdown.querySelector('.dropdown-toggle');
+                    
+                    console.log(`🖱️ Click en: ${toggle.textContent.trim()} (activo: ${isActive})`);
+                    
+                    // Cerrar todos los menús
+                    this.closeAll();
+                    
+                    // Si no estaba activo, abrirlo
+                    if (!isActive) {
+                        this.openDropdown(dropdown);
+                    }
+                },
+                
+                openDropdown(dropdown) {
+                    const menu = dropdown.querySelector('.dropdown-menu');
+                    if (!menu) return;
+                    
+                    // Activar dropdown
+                    dropdown.classList.add('active', 'show');
+                    this.activeDropdown = dropdown;
+                    
+                    // Aplicar estilos optimizados
+                    menu.style.display = 'block';
+                    menu.style.opacity = '1';
+                    menu.style.visibility = 'visible';
+                    menu.style.transform = 'translateY(0)';
+                    
+                    console.log('✅ Menú abierto correctamente');
+                },
+                
+                closeAll() {
+                    this.dropdowns.forEach(dropdown => {
+                        dropdown.classList.remove('active', 'show');
+                        const menu = dropdown.querySelector('.dropdown-menu');
+                        if (menu) {
+                            menu.style.display = 'none';
+                            menu.style.opacity = '0';
+                            menu.style.visibility = 'hidden';
+                            menu.style.transform = 'translateY(-10px)';
+                        }
+                    });
+                    this.activeDropdown = null;
+                },
+                
+                setupGlobalEvents() {
+                    // Cerrar menús al hacer click fuera
+                    document.addEventListener('click', (e) => {
+                        if (!e.target.closest('.dropdown')) {
+                            this.closeAll();
+                        }
+                    });
+                    
+                    // Cerrar menús con tecla Escape
+                    document.addEventListener('keydown', (e) => {
+                        if (e.key === 'Escape') {
+                            this.closeAll();
+                        }
+                    });
+                    
+                    // Gestionar redimensionado de ventana
+                    window.addEventListener('resize', () => {
+                        if (window.innerWidth <= 768) {
+                            this.closeAll();
+                        }
+                    });
+                }
+            };
+            
+            // ===== INICIALIZAR SISTEMA =====
+            DropdownManager.init();
+            
+            // ===== FUNCIONES DE DEBUGGING (solo en desarrollo) =====
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                window.DropdownManager = DropdownManager;
+                window.showMenu = (index) => {
+                    const dropdown = DropdownManager.dropdowns[index];
+                    if (dropdown) {
+                        DropdownManager.closeAll();
+                        DropdownManager.openDropdown(dropdown);
+                        console.log(`🔧 Menú ${index} mostrado manualmente`);
+                    }
+                };
+                
+                window.debugDropdowns = () => {
+                    console.log('🔍 Estado de dropdowns:', {
+                        total: DropdownManager.dropdowns.length,
+                        activo: DropdownManager.activeDropdown ? 'Sí' : 'No',
+                        toggles: document.querySelectorAll('.dropdown-toggle').length,
+                        menus: document.querySelectorAll('.dropdown-menu').length
+                    });
+                };
+            }
+            
+            console.log('✅ Sistema de navegación inicializado correctamente');
+        });
+    </script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Agregar esta función helper -->
+    {% macro user_display_name() %}
+        {% if session.get('nombre') %}
+            {{ session.get('nombre') }} {{ session.get('apellido', '') }}
+        {% else %}
+            {{ session.get('username', '') }}
+        {% endif %}
+    {% endmacro %}
+</body>
+</html>

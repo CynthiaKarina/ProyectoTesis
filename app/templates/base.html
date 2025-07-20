@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Mi Aplicación{% endblock %}</title>
+    <!-- Agregar Font Awesome para los iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% block extra_css %}{% endblock %}
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <ul class="nav-menu">
+                <!-- Inicio -->
+                <li>
+                    <a href="{{ url_for('home.index') }}" class="{% if request.endpoint == 'home.index' %}active{% endif %}">
+                        <i class="fas fa-home"></i>
+                        <span>Inicio</span>
+                    </a>
+                </li>
+                
+                <!-- Menú de Recursos Académicos -->
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span>Recursos</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a href="{{ url_for('laboratorio.index') }}">
+                            <i class="fas fa-flask"></i> Laboratorios
+                        </a></li>
+                        <li><a href="{{ url_for('home.navegar_pagina', nombre='insumos') }}">
+                            <i class="fas fa-tools"></i> Insumos
+                        </a></li>
+                        <li><a href="{{ url_for('home.navegar_pagina', nombre='servicios') }}">
+                            <i class="fas fa-cogs"></i> Servicios
+                        </a></li>
+                        <li class="divider"></li>
+                        <li><a href="{{ url_for('home.navegar_pagina', nombre='instituciones') }}">
+                            <i class="fas fa-university"></i> Instituciones
+                        </a></li>
+                    </ul>
+                </li>
+                
+                <!-- Menú de Investigación -->
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle">
+                        <i class="fas fa-microscope"></i>
+                        <span>Investigación</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a href="{{ url_for('home.navegar_pagina', nombre='proyectos') }}">
+                            <i class="fas fa-project-diagram"></i> Proyectos
+                        </a></li>
+                        <li><a href="{{ url_for('home.navegar_pagina', nombre='investigadores') }}">
+                            <i class="fas fa-user-tie"></i> Investigadores
+                        </a></li>
+                        <li><a href="{{ url_for('home.navegar_pagina', nombre='publicaciones') }}">
+                            <i class="fas fa-book"></i> Publicaciones
+                        </a></li>
+                    </ul>
+                </li>
+                
+                <!-- Menú de Comunidad -->
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle">
+                        <i class="fas fa-users"></i>
+                        <span>Comunidad</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a href="{{ url_for('home.navegar_pagina', nombre='eventos') }}">
+                            <i class="fas fa-calendar"></i> Eventos
+                        </a></li>
+                        <li><a href="{{ url_for('home.navegar_pagina', nombre='foros') }}">
+                            <i class="fas fa-comments"></i> Foros
+                        </a></li>
+                        <li class="divider"></li>
+                        <li><a href="{{ url_for('home.navegar_pagina', nombre='informacion') }}">
+                            <i class="fas fa-info-circle"></i> Información
+                        </a></li>
+                    </ul>
+                </li>
+                
+                <!-- Menú de usuario -->
+                <li class="dropdown user-menu">
+                    <a href="#" class="dropdown-toggle">
+                        <i class="fas fa-user-circle"></i>
+                        <span>{{ session.get('nombre', session.get('username', 'Usuario')) }}</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a href="{{ url_for('profile.ver_perfil') }}">
+                            <i class="fas fa-user-edit"></i> Mi Perfil
+                        </a></li>
+                        <li class="divider"></li>
+                        <li><a href="{{ url_for('auth.logout') }}">
+                            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                        </a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% set category, message = messages[0] %}
+                <div id="flash-message" class="flash-message {{ category }}">
+                    {{ message }}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <main>
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <script>
+        // Script para los mensajes flash
+        document.addEventListener('DOMContentLoaded', function() {
+            const flashMessage = document.getElementById('flash-message');
+            if (flashMessage) {
+                setTimeout(function() {
+                    flashMessage.style.opacity = '0';
+                    setTimeout(function() {
+                        flashMessage.style.display = 'none';
+                    }, 300);
+                }, 3000);
+            }
+
+            // Script para los menús desplegables
+            const dropdowns = document.querySelectorAll('.dropdown-toggle');
+            dropdowns.forEach(dropdown => {
+                dropdown.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    this.parentElement.classList.toggle('active');
+                });
+            });
+
+            // Cerrar menús desplegables al hacer clic fuera
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.dropdown')) {
+                    document.querySelectorAll('.dropdown').forEach(dropdown => {
+                        dropdown.classList.remove('active');
+                    });
+                }
+            });
+        });
+    </script>
+
+    <!-- Agregar esta función helper -->
+    {% macro user_display_name() %}
+        {% if session.get('nombre') %}
+            {{ session.get('nombre') }} {{ session.get('apellido', '') }}
+        {% else %}
+            {{ session.get('username', '') }}
+        {% endif %}
+    {% endmacro %}
+</body>
+</html>

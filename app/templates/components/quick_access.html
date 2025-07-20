@@ -1,0 +1,35 @@
+{% macro quick_access() %}
+<div class="quick-access-wrapper">
+    <button id="toggleQuickAccess" class="quick-btn">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+    <div id="quickAccessContent" class="quick-access-buttons">
+        <div class="buttons-grid">
+            <a href="{{ url_for('laboratorio.index') }}" class="quick-btn">
+                <i class="fas fa-flask"></i>
+                <span>Laboratorios</span>
+            </a>
+            <a href="{{ url_for('home.navegar_pagina', nombre='insumos') }}" class="quick-btn">
+                <i class="fas fa-tools"></i>
+                <span>Materiales</span>
+            </a>
+            <a href="{{ url_for('home.navegar_pagina', nombre='instituciones') }}" class="quick-btn">
+                <i class="fas fa-building"></i>
+                <span>Instituciones</span>
+            </a>
+            <a href="{{ url_for('home.navegar_pagina', nombre='investigadores') }}" class="quick-btn">
+                <i class="fas fa-user-tie"></i>
+                <span>Investigadores</span>
+            </a>
+            <a href="{{ url_for('home.navegar_pagina', nombre='proyectos') }}" class="quick-btn">
+                <i class="fas fa-project-diagram"></i>
+                <span>Proyectos</span>
+            </a>
+            <a href="{{ url_for('home.navegar_pagina', nombre='servicios') }}" class="quick-btn">
+                <i class="fas fa-cogs"></i>
+                <span>Servicios</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endmacro %} 

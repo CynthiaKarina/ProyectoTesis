@@ -1,0 +1,704 @@
+{% extends "base_Admin.html" if admin_access else "base_home.html" %}
+
+{% block content %}
+<!-- Iconos flotantes de fondo -->
+    <div class="floating-icons-container">
+        <div class="floating-icon icon1">📚</div>
+        <div class="floating-icon icon2">💻</div>
+        <div class="floating-icon icon3">🎓</div>
+        <div class="floating-icon icon4">✏️</div>
+        <div class="floating-icon icon5">📐</div>
+        <div class="floating-icon icon6">🔬</div>
+        <div class="floating-icon icon7">🎨</div>
+        <div class="floating-icon icon8">📝</div>
+        <div class="floating-icon icon9">🔍</div>
+        <div class="floating-icon icon10">📊</div>
+        <div class="floating-icon icon11">💡</div>
+        <div class="floating-icon icon12">⚗️</div>
+        <div class="floating-icon icon13">📓</div>
+        <div class="floating-icon icon14">🧮</div>
+        <div class="floating-icon icon15">📱</div>
+        <div class="floating-icon icon16">🎯</div>
+        <div class="floating-icon icon17">📖</div>
+        <div class="floating-icon icon18">🔖</div>
+        <div class="floating-icon icon19">📏</div>
+        <div class="floating-icon icon20">🎭</div>
+    </div>
+    
+<!-- Contenido principal de la página de inicio -->
+<div class="home-page-container">
+    <!-- Sección Hero Principal -->
+    <div class="home-hero-section">
+        <div class="hero-content">
+            <div class="hero-main">
+                <h1 class="hero-title">
+                    <i class="fas fa-graduation-cap"></i>
+                    Portal Académico de Investigación
+                </h1>
+                <p class="hero-subtitle">
+                    Descubre recursos, conecta con investigadores y accede a laboratorios especializados 
+                    para impulsar tu investigación académica
+                </p>
+                
+                <!-- Búsqueda Global Principal -->
+                <div class="global-search-container">
+                    <form class="global-search-form" id="globalSearchForm">
+                        <div class="search-input-group">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" 
+                                   id="globalSearchInput" 
+                                   class="global-search-input" 
+                                   placeholder="Buscar en laboratorios, proyectos, investigadores, instituciones..."
+                                   autocomplete="off">
+                            <button type="button" class="clear-global-search" id="clearGlobalSearch" style="display: none;">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="search-categories">
+                            <label class="category-chip">
+                                <input type="checkbox" name="categories" value="laboratorios" checked>
+                                <span class="chip-content">
+                                    <i class="fas fa-flask"></i>
+                                    Laboratorios
+                                </span>
+                            </label>
+                            <label class="category-chip">
+                                <input type="checkbox" name="categories" value="proyectos" checked>
+                                <span class="chip-content">
+                                    <i class="fas fa-project-diagram"></i>
+                                    Proyectos
+                                </span>
+                            </label>
+                            <label class="category-chip">
+                                <input type="checkbox" name="categories" value="investigadores" checked>
+                                <span class="chip-content">
+                                    <i class="fas fa-user-tie"></i>
+                                    Investigadores
+                                </span>
+                            </label>
+                            <label class="category-chip">
+                                <input type="checkbox" name="categories" value="instituciones" checked>
+                                <span class="chip-content">
+                                    <i class="fas fa-university"></i>
+                                    Instituciones
+                                </span>
+                            </label>
+                            <label class="category-chip">
+                                <input type="checkbox" name="categories" value="convocatorias">
+                                <span class="chip-content">
+                                    <i class="fas fa-bullhorn"></i>
+                                    Convocatorias
+                                </span>
+                            </label>
+                            <label class="category-chip">
+                                <input type="checkbox" name="categories" value="publicaciones">
+                                <span class="chip-content">
+                                    <i class="fas fa-book"></i>
+                                    Publicaciones
+                                </span>
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="global-search-btn">
+                    <i class="fas fa-search"></i>
+                            <span>Buscar en Todo</span>
+                </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Estadísticas Globales -->
+            <div class="global-stats">
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="fas fa-flask"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-number">150+</div>
+                        <div class="stat-label">Laboratorios</div>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="fas fa-project-diagram"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-number">300+</div>
+                        <div class="stat-label">Proyectos</div>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-number">500+</div>
+                        <div class="stat-label">Investigadores</div>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="fas fa-university"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-number">50+</div>
+                        <div class="stat-label">Instituciones</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acceso Rápido Mejorado -->
+    <div class="quick-access-section">
+        <div class="section-header">
+            <h2>
+                <i class="fas fa-rocket"></i>
+                Acceso Rápido
+            </h2>
+            <p>Navega directamente a las secciones más utilizadas</p>
+        </div>
+        
+        <div class="quick-access-grid">
+            <a href="{{ url_for('laboratorio.index') }}" class="quick-access-card">
+                <div class="card-icon">
+                    <i class="fas fa-flask"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Laboratorios</h3>
+                    <p>Explora laboratorios especializados</p>
+                    <span class="card-badge">150+ disponibles</span>
+                </div>
+                <div class="card-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+            
+            <a href="{{ url_for('home.navegar_pagina', nombre='proyectos') }}" class="quick-access-card">
+                <div class="card-icon">
+                    <i class="fas fa-project-diagram"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Proyectos</h3>
+                    <p>Descubre proyectos de investigación</p>
+                    <span class="card-badge">300+ activos</span>
+                </div>
+                <div class="card-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+            
+            <a href="{{ url_for('home.navegar_pagina', nombre='investigadores') }}" class="quick-access-card">
+                <div class="card-icon">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Investigadores</h3>
+                    <p>Conecta con expertos</p>
+                    <span class="card-badge">500+ perfiles</span>
+                </div>
+                <div class="card-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+            
+            <a href="{{ url_for('home.navegar_pagina', nombre='instituciones') }}" class="quick-access-card">
+                <div class="card-icon">
+                    <i class="fas fa-university"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Instituciones</h3>
+                    <p>Explora centros académicos</p>
+                    <span class="card-badge">50+ instituciones</span>
+                </div>
+                <div class="card-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+            
+            <a href="{{ url_for('home.navegar_pagina', nombre='insumos') }}" class="quick-access-card">
+                <div class="card-icon">
+                    <i class="fas fa-tools"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Materiales</h3>
+                    <p>Encuentra recursos y equipos</p>
+                    <span class="card-badge">1000+ items</span>
+                </div>
+                <div class="card-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+            
+            <a href="{{ url_for('home.navegar_pagina', nombre='servicios') }}" class="quick-access-card">
+                <div class="card-icon">
+                    <i class="fas fa-cogs"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Servicios</h3>
+                    <p>Accede a servicios especializados</p>
+                    <span class="card-badge">100+ servicios</span>
+                </div>
+                <div class="card-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Sección de Categorías Destacadas -->
+    <div class="featured-categories-section">
+        <div class="section-header">
+            <h2>
+                <i class="fas fa-star"></i>
+                Áreas de Investigación Destacadas
+            </h2>
+            <p>Explora las áreas de investigación más activas</p>
+        </div>
+        
+        <div class="categories-grid">
+            <div class="category-card biotecnologia">
+                <div class="category-overlay"></div>
+                <div class="category-content">
+                    <i class="fas fa-dna"></i>
+                    <h3>Biotecnología</h3>
+                    <p>Investigación en ciencias de la vida</p>
+                    <div class="category-stats">
+                        <span>45 Laboratorios</span>
+                        <span>120 Proyectos</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="category-card informatica">
+                <div class="category-overlay"></div>
+                <div class="category-content">
+                    <i class="fas fa-laptop-code"></i>
+                    <h3>Informática</h3>
+                    <p>Tecnología y computación</p>
+                    <div class="category-stats">
+                        <span>30 Laboratorios</span>
+                        <span>80 Proyectos</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="category-card ingenieria">
+                <div class="category-overlay"></div>
+                <div class="category-content">
+                    <i class="fas fa-cogs"></i>
+                    <h3>Ingeniería</h3>
+                    <p>Innovación y desarrollo</p>
+                    <div class="category-stats">
+                        <span>35 Laboratorios</span>
+                        <span>90 Proyectos</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="category-card ciencias">
+                <div class="category-overlay"></div>
+                <div class="category-content">
+                    <i class="fas fa-atom"></i>
+                    <h3>Ciencias Básicas</h3>
+                    <p>Física, química y matemáticas</p>
+                    <div class="category-stats">
+                        <span>40 Laboratorios</span>
+                        <span>100 Proyectos</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resultados de Búsqueda Global -->
+    <div class="global-search-results" id="searchResults" style="display: none;">
+        <div class="results-header">
+            <h3>
+                <i class="fas fa-search"></i>
+                Resultados de Búsqueda
+            </h3>
+            <button type="button" class="close-results" id="closeResults">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="results-tabs">
+            <button class="tab-btn active" data-tab="all">
+                <i class="fas fa-list"></i>
+                Todos los Resultados
+            </button>
+            <button class="tab-btn" data-tab="laboratorios">
+                <i class="fas fa-flask"></i>
+                Laboratorios
+            </button>
+            <button class="tab-btn" data-tab="proyectos">
+                <i class="fas fa-project-diagram"></i>
+                Proyectos
+            </button>
+            <button class="tab-btn" data-tab="investigadores">
+                <i class="fas fa-user-tie"></i>
+                Investigadores
+            </button>
+            <button class="tab-btn" data-tab="instituciones">
+                <i class="fas fa-university"></i>
+                Instituciones
+            </button>
+        </div>
+        
+        <div class="results-content" id="resultsContent">
+            <!-- Los resultados se cargarán aquí dinámicamente -->
+            <div class="loading-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Buscando en todas las categorías...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript para funcionalidad -->
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const globalSearchInput = document.getElementById('globalSearchInput');
+    const clearGlobalSearch = document.getElementById('clearGlobalSearch');
+    const globalSearchForm = document.getElementById('globalSearchForm');
+    const searchResults = document.getElementById('searchResults');
+    const closeResults = document.getElementById('closeResults');
+    const resultsContent = document.getElementById('resultsContent');
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    
+    // Mostrar/ocultar botón de limpiar búsqueda
+    globalSearchInput.addEventListener('input', function() {
+        clearGlobalSearch.style.display = this.value ? 'block' : 'none';
+    });
+    
+    // Limpiar búsqueda
+    clearGlobalSearch.addEventListener('click', function() {
+        globalSearchInput.value = '';
+        this.style.display = 'none';
+        searchResults.style.display = 'none';
+    });
+    
+    // Cerrar resultados
+    closeResults.addEventListener('click', function() {
+        searchResults.style.display = 'none';
+    });
+    
+    // Manejo de tabs
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            tabBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            const tab = this.dataset.tab;
+            filterResults(tab);
+        });
+    });
+    
+    // Envío del formulario de búsqueda
+    globalSearchForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const query = globalSearchInput.value.trim();
+        if (!query) return;
+        
+        const selectedCategories = Array.from(document.querySelectorAll('input[name="categories"]:checked'))
+            .map(cb => cb.value);
+        
+        if (selectedCategories.length === 0) {
+            alert('Por favor selecciona al menos una categoría para buscar.');
+            return;
+        }
+        
+        performGlobalSearch(query, selectedCategories);
+    });
+    
+    // Función para realizar búsqueda global
+    function performGlobalSearch(query, categories) {
+        searchResults.style.display = 'block';
+        resultsContent.innerHTML = `
+            <div class="loading-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Buscando "${query}" en ${categories.join(', ')}...</p>
+            </div>
+        `;
+        
+        // Simular búsqueda (aquí conectarías con tu backend)
+        setTimeout(() => {
+            const mockResults = generateMockResults(query, categories);
+            displayResults(mockResults);
+        }, 1500);
+    }
+    
+    // Función para generar resultados simulados
+    function generateMockResults(query, categories) {
+        const results = {
+            laboratorios: [
+                { id: 1, name: `Laboratorio de ${query}`, type: 'laboratorios', description: 'Laboratorio especializado en investigación avanzada', institution: 'Universidad Nacional' },
+                { id: 2, name: `Centro de ${query} Aplicado`, type: 'laboratorios', description: 'Centro de investigación y desarrollo', institution: 'Instituto Tecnológico' }
+            ],
+            proyectos: [
+                { id: 1, name: `Proyecto de investigación en ${query}`, type: 'proyectos', description: 'Proyecto innovador de investigación', leader: 'Dr. Juan Pérez' },
+                { id: 2, name: `Desarrollo de ${query} sostenible`, type: 'proyectos', description: 'Proyecto enfocado en sostenibilidad', leader: 'Dra. María García' }
+            ],
+            investigadores: [
+                { id: 1, name: 'Dr. Carlos Rodríguez', type: 'investigadores', specialty: `Especialista en ${query}`, institution: 'Universidad Central' },
+                { id: 2, name: 'Dra. Ana López', type: 'investigadores', specialty: `Experta en ${query} avanzado`, institution: 'Instituto de Investigación' }
+            ],
+            instituciones: [
+                { id: 1, name: `Instituto de ${query}`, type: 'instituciones', description: 'Instituto líder en investigación', location: 'Ciudad Capital' },
+                { id: 2, name: `Universidad de ${query}`, type: 'instituciones', description: 'Universidad con programas especializados', location: 'Ciudad Universitaria' }
+            ]
+        };
+        
+        // Filtrar por categorías seleccionadas
+        const filteredResults = {};
+        categories.forEach(cat => {
+            if (results[cat]) {
+                filteredResults[cat] = results[cat];
+            }
+        });
+        
+        return filteredResults;
+    }
+    
+    // Función para mostrar resultados
+    function displayResults(results) {
+        let html = '';
+        
+        Object.keys(results).forEach(category => {
+            if (results[category].length > 0) {
+                html += `
+                    <div class="result-category" data-category="${category}">
+                        <h4 class="category-title">
+                            <i class="fas fa-${getCategoryIcon(category)}"></i>
+                            ${getCategoryName(category)} (${results[category].length})
+                        </h4>
+                        <div class="result-items">
+                `;
+                
+                results[category].forEach(item => {
+                    html += `
+                        <div class="result-item">
+                            <div class="result-icon">
+                                <i class="fas fa-${getCategoryIcon(category)}"></i>
+                            </div>
+                            <div class="result-content">
+                                <h5>${item.name}</h5>
+                                <p>${item.description || item.specialty}</p>
+                                <div class="result-meta">
+                                    ${item.institution ? `<span><i class="fas fa-university"></i> ${item.institution}</span>` : ''}
+                                    ${item.leader ? `<span><i class="fas fa-user"></i> ${item.leader}</span>` : ''}
+                                    ${item.location ? `<span><i class="fas fa-map-marker-alt"></i> ${item.location}</span>` : ''}
+                                </div>
+                            </div>
+                            <div class="result-actions">
+                                <button class="btn-view-result" onclick="viewDetails('${category}', ${item.id})">
+                                    <i class="fas fa-eye"></i>
+                                    Ver
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+        });
+        
+        if (html === '') {
+            html = `
+                <div class="no-results">
+                    <i class="fas fa-search"></i>
+                    <h4>No se encontraron resultados</h4>
+                    <p>Intenta con otros términos de búsqueda o selecciona diferentes categorías.</p>
+                </div>
+            `;
+        }
+        
+        resultsContent.innerHTML = html;
+    }
+    
+    // Función para filtrar resultados por tab
+    function filterResults(tab) {
+        const categories = document.querySelectorAll('.result-category');
+        
+        categories.forEach(category => {
+            if (tab === 'all' || category.dataset.category === tab) {
+                category.style.display = 'block';
+            } else {
+                category.style.display = 'none';
+            }
+        });
+    }
+    
+    // Funciones auxiliares
+    function getCategoryIcon(category) {
+        const icons = {
+            laboratorios: 'flask',
+            proyectos: 'project-diagram',
+            investigadores: 'user-tie',
+            instituciones: 'university',
+            convocatorias: 'bullhorn',
+            publicaciones: 'book'
+        };
+        return icons[category] || 'circle';
+    }
+    
+    function getCategoryName(category) {
+        const names = {
+            laboratorios: 'Laboratorios',
+            proyectos: 'Proyectos',
+            investigadores: 'Investigadores',
+            instituciones: 'Instituciones',
+            convocatorias: 'Convocatorias',
+            publicaciones: 'Publicaciones'
+        };
+        return names[category] || category;
+    }
+    
+    // Función global para ver detalles
+    window.viewDetails = function(category, id) {
+        // Aquí redirigirías a la página de detalles correspondiente
+        if (category === 'laboratorios') {
+            window.location.href = `/laboratorio/${id}`;
+        } else {
+            alert(`Ver detalles de ${category} ID: ${id}`);
+        }
+    };
+        });
+    </script>
+
+    <!-- Script para manejo de localStorage del usuario -->
+    <script src="{{ url_for('static', filename='js/user-storage.js') }}"></script>
+    <script>
+        // Ejemplo de uso del sistema localStorage
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🏠 Página home cargada');
+            
+            // Verificar si el usuario está logueado
+            if (UserStorage.isLoggedIn()) {
+                console.log('✅ Usuario logueado detectado desde localStorage');
+                
+                // Obtener información básica del usuario
+                const userInfo = UserStorage.getBasicInfo();
+                if (userInfo) {
+                    console.log('👤 Usuario:', userInfo.name);
+                    console.log('🏷️ Rol:', userInfo.role);
+                    console.log('📧 Email:', userInfo.email);
+                    console.log('🏢 Institución:', userInfo.institution);
+                    console.log('🎯 Área:', userInfo.area);
+                    
+                    // Actualizar elementos de la página con datos del usuario
+                    updateUserInterface(userInfo);
+                }
+                
+                // Mostrar estadísticas de sesión
+                const stats = UserStorage.getStorageStats();
+                console.log('📊 Estadísticas de sesión:', stats);
+                
+                // Verificar si la sesión ha expirado (8 horas)
+                if (UserStorage.isSessionExpired(480)) {
+                    console.warn('⚠️ Sesión expirada');
+                    // Aquí podrías mostrar un modal o redirigir
+                }
+            } else {
+                console.log('❌ Usuario no está logueado');
+            }
+        });
+        
+        function updateUserInterface(userInfo) {
+            // Actualizar elementos de la página con información del usuario
+            try {
+                // Actualizar nombre del usuario en la interfaz
+                const userNameElements = document.querySelectorAll('.user-name');
+                userNameElements.forEach(element => {
+                    element.textContent = userInfo.name;
+                });
+                
+                // Actualizar rol del usuario
+                const userRoleElements = document.querySelectorAll('.user-role');
+                userRoleElements.forEach(element => {
+                    element.textContent = userInfo.role;
+                });
+                
+                // Actualizar avatar del usuario
+                const userAvatarElements = document.querySelectorAll('.user-avatar');
+                userAvatarElements.forEach(element => {
+                    if (userInfo.avatar) {
+                        element.src = userInfo.avatar;
+                    }
+                });
+                
+                // Mostrar elementos específicos según el rol
+                if (userInfo.role === 'Super Administrador' || userInfo.role === 'Administrador') {
+                    document.body.classList.add('admin-user');
+                    const adminElements = document.querySelectorAll('.admin-only');
+                    adminElements.forEach(element => {
+                        element.style.display = 'block';
+                    });
+                }
+                
+                // Personalizar saludo según la hora
+                const greeting = getGreeting();
+                const greetingElements = document.querySelectorAll('.user-greeting');
+                greetingElements.forEach(element => {
+                    element.textContent = `${greeting}, ${userInfo.name.split(' ')[0]}`;
+                });
+                
+                console.log('✅ Interfaz actualizada con datos del usuario');
+                
+            } catch (error) {
+                console.error('❌ Error actualizando interfaz:', error);
+            }
+        }
+        
+        function getGreeting() {
+            const hour = new Date().getHours();
+            if (hour < 12) return 'Buenos días';
+            if (hour < 18) return 'Buenas tardes';
+            return 'Buenas noches';
+        }
+        
+        // Escuchar eventos del sistema de localStorage
+        window.addEventListener('userLoggedIn', function(e) {
+            console.log('🎉 Usuario logueado:', e.detail);
+            // Recargar página o actualizar interfaz
+        });
+        
+        window.addEventListener('userLoggedOut', function(e) {
+            console.log('👋 Usuario deslogueado:', e.detail);
+            // Limpiar interfaz
+            document.body.classList.remove('admin-user');
+        });
+        
+        window.addEventListener('userDataUpdated', function(e) {
+            console.log('🔄 Datos actualizados:', e.detail.key, '=', e.detail.value);
+            // Actualizar interfaz según el dato modificado
+        });
+        
+        // Función para mostrar información del usuario en consola (para debugging)
+        window.showUserInfo = function() {
+            console.log('📋 INFORMACIÓN DEL USUARIO:');
+            console.log('¿Logueado?', UserStorage.isLoggedIn());
+            console.log('Datos completos:', UserStorage.get());
+            console.log('Info básica:', UserStorage.getBasicInfo());
+            console.log('Estadísticas:', UserStorage.getStorageStats());
+            console.table(UserStorage.getStorageStats());
+        };
+        
+        // Función para limpiar datos del usuario (para debugging)
+        window.clearUserData = function() {
+            UserStorage.clearAll();
+            console.log('🧹 Datos del usuario eliminados');
+        };
+        
+        console.log('✅ Sistema localStorage inicializado en home.html');
+        console.log('💡 Usa showUserInfo() para ver información del usuario');
+        console.log('💡 Usa clearUserData() para limpiar datos de prueba');
+    </script>
+{% endblock %}

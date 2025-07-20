@@ -1,0 +1,296 @@
+{% extends "base-simple.html" %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='improved-styles.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div class="floating-icons-container">
+    <div class="floating-icon icon1">📚</div>
+    <div class="floating-icon icon2">💻</div>
+    <div class="floating-icon icon3">🎓</div>
+    <div class="floating-icon icon4">✏️</div>
+    <div class="floating-icon icon5">📐</div>
+    <div class="floating-icon icon6">🔬</div>
+    <div class="floating-icon icon7">🎨</div>
+    <div class="floating-icon icon8">📝</div>
+    <div class="floating-icon icon9">🔍</div>
+    <div class="floating-icon icon10">📊</div>
+    <div class="floating-icon icon11">💡</div>
+    <div class="floating-icon icon12">⚗️</div>
+    <div class="floating-icon icon13">📓</div>
+    <div class="floating-icon icon14">🧮</div>
+    <div class="floating-icon icon15">📱</div>
+    <div class="floating-icon icon16">🎯</div>
+    <div class="floating-icon icon17">📖</div>
+    <div class="floating-icon icon18">🔖</div>
+    <div class="floating-icon icon19">📏</div>
+    <div class="floating-icon icon20">🎭</div>
+</div>
+
+<!-- Contenedor principal de solicitud -->
+<div class="request-lab-container">
+    <!-- Header de la solicitud -->
+    <div class="request-header">
+        
+        <div class="request-title-section">
+            <div class="request-icon">
+                <i class="fas fa-calendar-plus"></i>
+            </div>
+            <div class="request-title-content">
+                <h1 class="request-title">Solicitar Laboratorio</h1>
+                <p class="request-subtitle">{{ laboratorio.nombre_laboratorio }}</p>
+                <div class="lab-info-quick">
+                    <span class="lab-capacity">
+                        <i class="fas fa-users"></i>
+                        Capacidad: {{ laboratorio.capacidad }} personas
+                    </span>
+                    <span class="lab-area">
+                        <i class="fas fa-layer-group"></i>
+                        {{ laboratorio.area.nombre_area }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido del formulario -->
+    <div class="request-content">
+        <!-- Información del laboratorio -->
+        <div class="lab-summary-card">
+            <div class="summary-header">
+                <h3>
+                    <i class="fas fa-info-circle"></i>
+                    Información del Laboratorio
+                </h3>
+            </div>
+            <div class="summary-content">
+                <div class="summary-item">
+                    <span class="summary-label">Institución:</span>
+                    <span class="summary-value">{{ laboratorio.institucion.nombre_institucion }}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Horario:</span>
+                    <span class="summary-value">{{ laboratorio.horario or 'Consultar disponibilidad' }}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Estado:</span>
+                    <span class="summary-value status-{{ laboratorio.disponibilidad|lower }}">
+                        {{ laboratorio.disponibilidad|title }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulario de solicitud -->
+        <div class="request-form-card">
+            <div class="form-header">
+                <h3>
+                    <i class="fas fa-edit"></i>
+                    Detalles de la Solicitud
+                </h3>
+                <p>Complete todos los campos para procesar su solicitud</p>
+            </div>
+            
+            <form id="solicitudForm" class="request-form" method="POST" action="{{ url_for('solicitud.registrar_solicitud', id_laboratorio=laboratorio.id_laboratorio) }}">
+                <!-- Información básica -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-user"></i>
+                        Información Básica
+                    </h4>
+                    
+                    <div class="form-row">
+
+                        <div class="form-group">
+                            <label for="id_tipo_solicitud" class="form-label">
+                                <i class="fas fa-tags"></i>
+                                Tipo de Solicitud
+                            </label>
+                            <div class="input-wrapper">
+                                <select id="id_tipo_solicitud" name="id_tipo_solicitud" class="form-control" required>
+                                    <option value="">Seleccione un tipo</option>
+                                    <option value="1">Uso de Laboratorio</option>
+                                    <option value="2">Mantenimiento</option>
+                                    <option value="3">Capacitación</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Programación -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-clock"></i>
+                        Programación
+                    </h4>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="fecha" class="form-label">
+                                <i class="fas fa-calendar"></i>
+                                Fecha de Uso
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="date" id="fecha" name="fecha" class="form-control" required>
+                                <i class="fas fa-calendar-alt input-icon"></i>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hora_inicio" class="form-label">
+                                <i class="fas fa-clock"></i>
+                                Hora de Inicio
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="time" id="hora_inicio" name="hora_inicio" class="form-control" required>
+                                <i class="fas fa-clock input-icon"></i>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hora_fin" class="form-label">
+                                <i class="fas fa-clock"></i>
+                                Hora de Fin
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="time" id="hora_fin" name="hora_fin" class="form-control" required>
+                                <i class="fas fa-clock input-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detalles adicionales -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-clipboard-list"></i>
+                        Detalles Adicionales
+                    </h4>
+                    
+                    <div class="form-group">
+                        <label for="razon" class="form-label">
+                            <i class="fas fa-comment-alt"></i>
+                            Razón de la Solicitud
+                        </label>
+                        <div class="input-wrapper">
+                            <textarea id="razon" name="razon" rows="4" class="form-control" 
+                                      placeholder="Describa el propósito y actividades a realizar en el laboratorio..." required></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="num_personas" class="form-label">
+                                <i class="fas fa-users"></i>
+                                Número de Personas
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="number" id="num_personas" name="num_personas" 
+                                       min="1" max="{{ laboratorio.capacidad }}" class="form-control" required>
+                                <i class="fas fa-users input-icon"></i>
+                            </div>
+                            <small class="form-help">Máximo {{ laboratorio.capacidad }} personas</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="prioridad" class="form-label">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Prioridad
+                            </label>
+                            <div class="input-wrapper">
+                                <select id="prioridad" name="prioridad" class="form-control">
+                                    <option value="Normal">Normal</option>
+                                    <option value="Alta">Alta</option>
+                                    <option value="Urgente">Urgente</option>
+                                </select>
+                                <i class="fas fa-chevron-down input-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="history.back()">
+                        <i class="fas fa-times"></i>
+                        <span>Cancelar</span>
+                    </button>
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-paper-plane"></i>
+                        <span>Enviar Solicitud</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Establecer fecha mínima como hoy
+    const fechaInput = document.getElementById('fecha');
+    const today = new Date().toISOString().split('T')[0];
+    fechaInput.min = today;
+    
+    // Validación del formulario
+    document.getElementById('solicitudForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Validación de fechas y horas
+        const fecha = document.getElementById('fecha').value;
+        const horaInicio = document.getElementById('hora_inicio').value;
+        const horaFin = document.getElementById('hora_fin').value;
+        const numPersonas = parseInt(document.getElementById('num_personas').value);
+        const capacidadMax = {{ laboratorio.capacidad }};
+        
+        // Validar que la fecha no sea en el pasado
+        const fechaSeleccionada = new Date(fecha);
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        
+        if (fechaSeleccionada < hoy) {
+            alert('No puede seleccionar una fecha en el pasado');
+            return;
+        }
+        
+        // Validar horas
+        if (new Date(fecha + 'T' + horaInicio) >= new Date(fecha + 'T' + horaFin)) {
+            alert('La hora de inicio debe ser anterior a la hora de fin');
+            return;
+        }
+        
+        // Validar número de personas
+        if (numPersonas > capacidadMax) {
+            alert(`El número de personas no puede exceder la capacidad del laboratorio (${capacidadMax})`);
+            return;
+        }
+        
+        // Mostrar confirmación
+        if (confirm('¿Está seguro de que desea enviar esta solicitud?')) {
+            this.submit();
+        }
+    });
+    
+    // Efectos visuales para los inputs
+    const inputs = document.querySelectorAll('.form-control');
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.closest('.input-wrapper').classList.add('focused');
+        });
+        
+        input.addEventListener('blur', function() {
+            this.closest('.input-wrapper').classList.remove('focused');
+            if (this.value) {
+                this.closest('.input-wrapper').classList.add('has-value');
+            } else {
+                this.closest('.input-wrapper').classList.remove('has-value');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

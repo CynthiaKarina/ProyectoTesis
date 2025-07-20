@@ -1,0 +1,1817 @@
+{% extends "base_Admin.html" %}
+
+{% block title %}Administración de Laboratorios{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <div class="header-content">
+            <div class="title-section">
+                <h1>
+                    <i class="fas fa-flask"></i>
+                    Administración de Laboratorios
+                </h1>
+                <p class="subtitle">Gestión completa de laboratorios del sistema</p>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-flask"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number">{{ total_laboratorios }}</div>
+                        <div class="stat-label">Total Laboratorios</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number">{{ laboratorios_activos }}</div>
+                        <div class="stat-label">Activos</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number">{{ laboratorios_mantenimiento }}</div>
+                        <div class="stat-label">En Mantenimiento</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Estilos base para administración de laboratorios */
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .admin-header {
+            background: rgba(255,255,255,0.1);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .title-section h1 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .title-section .subtitle {
+            color: rgba(255,255,255,0.8);
+            font-size: 1.1rem;
+            margin: 0.5rem 0 0 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            flex: 1;
+            max-width: 600px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.98);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .stat-card:nth-child(1) .stat-icon {
+            background: linear-gradient(135deg, #2E7D32 0%, #4CAF50 100%);
+        }
+
+        .stat-card:nth-child(2) .stat-icon {
+            background: linear-gradient(135deg, #1565C0 0%, #2196F3 100%);
+        }
+
+        .stat-card:nth-child(3) .stat-icon {
+            background: linear-gradient(135deg, #E65100 0%, #FF9800 100%);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #212529;
+        }
+
+        .stat-label {
+            color: #495057;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Controles de administración */
+        .admin-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .controls-left {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-add-lab,
+        .btn-import,
+        .btn-export,
+        .btn-filters,
+        .btn-download-template-main {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-add-lab:hover,
+        .btn-import:hover,
+        .btn-export:hover,
+        .btn-filters:hover,
+        .btn-download-template-main:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-add-lab {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        }
+
+        .btn-export {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+        }
+
+        .btn-download-template-main {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-download-template-main:hover {
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-download-template-main::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-download-template-main:hover::before {
+            left: 100%;
+        }
+
+        .search-box-modern {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: #f8f9fa;
+            border-radius: 2rem;
+            padding: 0.75rem 1.5rem;
+            min-width: 300px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .search-icon {
+            color: #495057;
+            margin-right: 0.75rem;
+        }
+
+        .search-input-modern {
+            border: none;
+            background: transparent;
+            outline: none;
+            flex: 1;
+            font-size: 1rem;
+        }
+
+        .search-input-modern::placeholder {
+            color: #495057;
+        }
+
+        /* Panel de filtros */
+        .filters-panel {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            display: none;
+        }
+
+        .filters-panel.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .filters-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #495057;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-select {
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .filter-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            outline: none;
+        }
+
+        /* Tabla de laboratorios responsiva */
+        .labs-table-container {
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            position: relative;
+        }
+
+        .labs-table {
+            width: 100%;
+            margin-bottom: 0;
+            min-width: 1000px;
+        }
+
+        .labs-table thead th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .labs-table tbody tr {
+            transition: all 0.3s ease;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .labs-table tbody tr:hover {
+            background-color: #f8f9fa;
+            transform: scale(1.01);
+        }
+
+        .labs-table tbody td {
+            padding: 1rem;
+            vertical-align: middle;
+        }
+
+        .lab-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .lab-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .lab-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .lab-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .lab-description {
+            color: #6c757d;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            display: inline-block;
+        }
+
+        .status-activo {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactivo {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-mantenimiento {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-reservado {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .capacity-badge {
+            background: #e9ecef;
+            color: #495057;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .institution-tag,
+        .area-tag,
+        .type-tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            background: #dee2e6;
+            color: #212529;
+            margin: 0.25rem 0;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 150px;
+        }
+
+        .action-buttons-row {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            min-width: 35px;
+            flex-shrink: 0;
+        }
+
+        .btn-view {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+        }
+
+        .btn-edit {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+            color: white;
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        /* Responsividad */
+        @media (max-width: 1200px) {
+            .labs-table {
+                min-width: 900px;
+            }
+            
+            .labs-table thead th,
+            .labs-table tbody td {
+                padding: 0.75rem;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .labs-table {
+                min-width: 800px;
+            }
+            
+            .labs-table thead th,
+            .labs-table tbody td {
+                padding: 0.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .admin-container {
+                padding: 1rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .stats-grid {
+                width: 100%;
+                max-width: none;
+            }
+            
+            .admin-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .controls-left {
+                justify-content: center;
+            }
+            
+            .search-box-modern {
+                min-width: auto;
+                width: 100%;
+            }
+            
+            .labs-table-container {
+                margin: 0 -1rem;
+                border-radius: 0;
+            }
+            
+            .labs-table {
+                min-width: 600px;
+            }
+            
+            .d-none-mobile {
+                display: none !important;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .title-section h1 {
+                font-size: 2rem;
+            }
+            
+            .controls-left {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .btn-add-lab,
+            .btn-import,
+            .btn-export,
+            .btn-filters,
+            .btn-download-template-main {
+                justify-content: center;
+            }
+            
+            .labs-table {
+                min-width: 500px;
+            }
+            
+            .btn-action {
+                width: 30px;
+                height: 30px;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Hint de scroll móvil */
+        .mobile-scroll-hint {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .mobile-scroll-hint i {
+            font-size: 1.1rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @media (max-width: 768px) {
+            .mobile-scroll-hint {
+                margin: 0 -1rem 1rem -1rem;
+                border-radius: 0;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .d-mobile-only {
+                display: none !important;
+            }
+        }
+
+        /* Modales */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-container {
+            background: white;
+            border-radius: 1rem;
+            max-width: 800px;
+            width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 1rem 1rem 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-close-modal {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .btn-close-modal:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #495057;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-control {
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            outline: none;
+        }
+
+        .form-control-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #667eea;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        /* Notificaciones */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 500;
+            z-index: 1100;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: #28a745;
+        }
+
+        .notification.error {
+            background: #dc3545;
+        }
+
+        .notification.warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .notification.info {
+            background: #17a2b8;
+        }
+    </style>
+
+    <!-- Panel de control y filtros -->
+    <div class="admin-controls">
+        <div class="controls-left">
+            {% if has_permission('crear_laboratorio') %}
+            <button class="btn-add-lab" onclick="showAddLabModal()">
+                <i class="fas fa-plus"></i>
+                <span>Nuevo Laboratorio</span>
+            </button>
+            {% endif %}
+            
+            {% if has_permission('crear_laboratorio') %}
+            <button class="btn-import" onclick="showImportModal()">
+                <i class="fas fa-file-excel"></i>
+                <span>Importar Excel</span>
+            </button>
+            {% endif %}
+            
+            {% if has_permission('gestionar_laboratorios') %}
+            <button class="btn-export" onclick="exportLabs()">
+                <i class="fas fa-download"></i>
+                <span>Exportar</span>
+            </button>
+            {% endif %}
+            
+            {% if has_permission('crear_laboratorio') %}
+            <button class="btn-download-template-main" onclick="downloadTemplate()">
+                <i class="fas fa-file-excel"></i>
+                <span>Descargar Plantilla</span>
+            </button>
+            {% endif %}
+        </div>
+        
+        <div class="controls-center">
+            <div class="search-box-modern">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchInput" class="search-input-modern" 
+                       placeholder="Buscar laboratorios..." 
+                       onkeyup="searchLabs()">
+                <button class="search-clear" onclick="clearSearch()" style="display: none;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="controls-right">
+            <button class="btn-filters" onclick="toggleFilters()">
+                <i class="fas fa-filter"></i>
+                <span>Filtros</span>
+                <span class="filter-count" id="filterCount" style="display: none;">0</span>
+            </button>
+            <button class="btn-refresh" onclick="refreshData()">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Panel de filtros avanzados -->
+    <div class="filters-panel" id="filtersPanel">
+        <div class="filters-header">
+            <h3>
+                <i class="fas fa-filter"></i>
+                Filtros Avanzados
+            </h3>
+            <button class="btn-close-filters" onclick="toggleFilters()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="filters-grid">
+            <div class="filter-group">
+                <label for="filterInstitucion">
+                    <i class="fas fa-university"></i>
+                    Institución
+                </label>
+                <select id="filterInstitucion" class="filter-select" onchange="applyFilters()">
+                    <option value="">Todas las instituciones</option>
+                    {% for inst in instituciones %}
+                    <option value="{{ inst.id_institucion }}">{{ inst.nombre_institucion }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="filterArea">
+                    <i class="fas fa-layer-group"></i>
+                    Área
+                </label>
+                <select id="filterArea" class="filter-select" onchange="applyFilters()">
+                    <option value="">Todas las áreas</option>
+                    {% for area in areas %}
+                    <option value="{{ area.id_area }}">{{ area.nombre_area }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="filterTipo">
+                    <i class="fas fa-flask"></i>
+                    Tipo de Laboratorio
+                </label>
+                <select id="filterTipo" class="filter-select" onchange="applyFilters()">
+                    <option value="">Todos los tipos</option>
+                    {% for tipo in tipos_laboratorio %}
+                    <option value="{{ tipo.id_tipo_laboratorio }}">{{ tipo.nombre_tipo_laboratorio }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="filterEstado">
+                    <i class="fas fa-toggle-on"></i>
+                    Estado
+                </label>
+                <select id="filterEstado" class="filter-select" onchange="applyFilters()">
+                    <option value="">Todos los estados</option>
+                    <option value="Activo">Activo</option>
+                    <option value="Inactivo">Inactivo</option>
+                    <option value="Mantenimiento">Mantenimiento</option>
+                    <option value="Reservado">Reservado</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de laboratorios -->
+    <div class="mobile-scroll-hint d-mobile-only">
+        <i class="fas fa-arrows-alt-h"></i>
+        <span>Desliza horizontalmente para ver más columnas</span>
+    </div>
+    
+    <div class="labs-table-container">
+        <table class="labs-table">
+            <thead>
+                <tr>
+                    <th class="checkbox-column">
+                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                    </th>
+                    <th class="id-column d-none-mobile">ID</th>
+                    <th class="lab-column">Laboratorio</th>
+                    <th class="capacity-column">Capacidad</th>
+                    <th class="d-none-mobile">Institución/Área</th>
+                    <th class="d-none-mobile">Tipo</th>
+                    <th class="status-column">Estado</th>
+                    <th class="actions-column">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="labsTableBody">
+                {% for lab in laboratorios %}
+                <tr data-lab-id="{{ lab.id_laboratorio }}" class="lab-row">
+                    <td class="checkbox-column">
+                        <input type="checkbox" class="lab-checkbox" value="{{ lab.id_laboratorio }}" onchange="updateBulkActions()">
+                    </td>
+                    <td class="lab-id d-none-mobile">{{ lab.id_laboratorio }}</td>
+                    <td class="lab-info">
+                        <div class="lab-icon">
+                            <i class="fas fa-flask"></i>
+                        </div>
+                        <div class="lab-details">
+                            <div class="lab-name">{{ lab.nombre_laboratorio }}</div>
+                            <div class="lab-description">{{ lab.descripcion[:50] + '...' if lab.descripcion and lab.descripcion|length > 50 else lab.descripcion or 'Sin descripción' }}</div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="capacity-badge">
+                            <i class="fas fa-users"></i>
+                            {{ lab.capacidad }}
+                        </div>
+                    </td>
+                    <td class="d-none-mobile">
+                        <div>
+                            <span class="institution-tag">
+                                {{ lab.institucion.nombre_institucion if lab.institucion else 'Sin institución' }}
+                            </span>
+                        </div>
+                        <div style="margin-top: 4px;">
+                            <span class="area-tag">
+                                {{ lab.area.nombre_area if lab.area else 'Sin área' }}
+                            </span>
+                        </div>
+                    </td>
+                    <td class="d-none-mobile">
+                        <span class="type-tag">
+                            {{ lab.tipo_laboratorio.nombre_tipo_laboratorio if lab.tipo_laboratorio else 'Sin tipo' }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="status-badge status-{{ lab.disponibilidad.lower() }}">
+                            {{ lab.disponibilidad }}
+                        </span>
+                    </td>
+                    <td class="actions-column">
+                        <div class="action-buttons-row">
+                            {% if has_permission('gestionar_laboratorios') %}
+                            <button class="btn-action btn-view" onclick="mostrarDetallesLab({{ lab.id_laboratorio }})" title="Ver detalles">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            {% endif %}
+                            
+                            {% if has_permission('editar_laboratorio') %}
+                            <button class="btn-action btn-edit" onclick="editLab({{ lab.id_laboratorio }})" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            {% endif %}
+                            
+                            {% if has_permission('eliminar_laboratorio') %}
+                            <button class="btn-action btn-delete" onclick="deleteLab({{ lab.id_laboratorio }})" title="Eliminar">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal para agregar/editar laboratorio -->
+<div class="modal-overlay" id="labModal" style="display: none;">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3 id="modalTitle">
+                <i class="fas fa-flask"></i>
+                Nuevo Laboratorio
+            </h3>
+            <button class="btn-close-modal" onclick="closeLabModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <form id="labForm" class="lab-form">
+                <input type="hidden" id="id_laboratorio" name="id_laboratorio">
+                
+                <!-- Información básica -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-info-circle"></i>
+                        Información Básica
+                    </h4>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nombre_laboratorio" class="form-label">
+                                <i class="fas fa-flask"></i>
+                                Nombre del Laboratorio *
+                            </label>
+                            <input type="text" class="form-control" id="nombre_laboratorio" name="nombre_laboratorio" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="capacidad" class="form-label">
+                                <i class="fas fa-users"></i>
+                                Capacidad *
+                            </label>
+                            <input type="number" class="form-control" id="capacidad" name="capacidad" min="1" value="20" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="descripcion" class="form-label">
+                                <i class="fas fa-align-left"></i>
+                                Descripción
+                            </label>
+                            <textarea class="form-control form-control-textarea" id="descripcion" name="descripcion" placeholder="Descripción detallada del laboratorio..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Ubicación y contacto -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Ubicación y Contacto
+                    </h4>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="ubicacion" class="form-label">
+                                <i class="fas fa-map-marker-alt"></i>
+                                Ubicación
+                            </label>
+                            <input type="text" class="form-control" id="ubicacion" name="ubicacion" placeholder="Edificio, piso, aula...">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="telefono" class="form-label">
+                                <i class="fas fa-phone"></i>
+                                Teléfono
+                            </label>
+                            <input type="tel" class="form-control" id="telefono" name="telefono" placeholder="555-0123">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email_contacto" class="form-label">
+                                <i class="fas fa-envelope"></i>
+                                Email de Contacto
+                            </label>
+                            <input type="email" class="form-control" id="email_contacto" name="email_contacto" placeholder="laboratorio@universidad.edu">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="horario" class="form-label">
+                                <i class="fas fa-clock"></i>
+                                Horario
+                            </label>
+                            <input type="text" class="form-control" id="horario" name="horario" placeholder="Lunes a Viernes 8:00-18:00">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Características técnicas -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-cogs"></i>
+                        Características Técnicas
+                    </h4>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="superficie_m2" class="form-label">
+                                <i class="fas fa-ruler-combined"></i>
+                                Superficie (m²)
+                            </label>
+                            <input type="number" class="form-control" id="superficie_m2" name="superficie_m2" step="0.01" min="0" placeholder="45.5">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="disponibilidad" class="form-label">
+                                <i class="fas fa-toggle-on"></i>
+                                Estado
+                            </label>
+                            <select class="form-control" id="disponibilidad" name="disponibilidad">
+                                <option value="Activo">Activo</option>
+                                <option value="Inactivo">Inactivo</option>
+                                <option value="Mantenimiento">Mantenimiento</option>
+                                <option value="Reservado">Reservado</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="equipamiento" class="form-label">
+                                <i class="fas fa-tools"></i>
+                                Equipamiento
+                            </label>
+                            <textarea class="form-control form-control-textarea" id="equipamiento" name="equipamiento" placeholder="Lista de equipos separados por comas..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="normas_uso" class="form-label">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Normas de Uso
+                            </label>
+                            <textarea class="form-control form-control-textarea" id="normas_uso" name="normas_uso" placeholder="Normas y reglamentos del laboratorio..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="requiere_capacitacion" name="requiere_capacitacion">
+                                <label for="requiere_capacitacion">
+                                    <i class="fas fa-graduation-cap"></i>
+                                    Requiere capacitación previa
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Asignaciones -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-link"></i>
+                        Asignaciones
+                    </h4>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="id_institucion" class="form-label">
+                                <i class="fas fa-university"></i>
+                                Institución *
+                            </label>
+                            <select class="form-control" id="id_institucion" name="id_institucion" required>
+                                <option value="">Seleccionar institución</option>
+                                {% for inst in instituciones %}
+                                <option value="{{ inst.id_institucion }}">{{ inst.nombre_institucion }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_area" class="form-label">
+                                <i class="fas fa-layer-group"></i>
+                                Área
+                            </label>
+                            <select class="form-control" id="id_area" name="id_area">
+                                <option value="">Seleccionar área</option>
+                                {% for area in areas %}
+                                <option value="{{ area.id_area }}">{{ area.nombre_area }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="id_tipo_laboratorio" class="form-label">
+                                <i class="fas fa-flask"></i>
+                                Tipo de Laboratorio *
+                            </label>
+                            <select class="form-control" id="id_tipo_laboratorio" name="id_tipo_laboratorio" required>
+                                <option value="">Seleccionar tipo</option>
+                                {% for tipo in tipos_laboratorio %}
+                                <option value="{{ tipo.id_tipo_laboratorio }}">{{ tipo.nombre_tipo_laboratorio }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_encargado" class="form-label">
+                                <i class="fas fa-user-tie"></i>
+                                Encargado
+                            </label>
+                            <select class="form-control" id="id_encargado" name="id_encargado">
+                                <option value="">Seleccionar encargado</option>
+                                {% for usuario in usuarios %}
+                                <option value="{{ usuario.id_usuario }}">{{ usuario.nombre_completo }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeLabModal()">Cancelar</button>
+            <button type="button" class="btn-primary" onclick="saveLab()">Guardar Laboratorio</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para importar Excel -->
+<div class="modal-overlay" id="importModal" style="display: none;">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3>
+                <i class="fas fa-file-excel"></i>
+                Importar Laboratorios desde Excel
+            </h3>
+            <button class="btn-close-modal" onclick="closeImportModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="import-instructions">
+                <h4>📋 Instrucciones para importar:</h4>
+                <ul>
+                    <li>Descarga la plantilla Excel usando el botón "Descargar Plantilla"</li>
+                    <li>Completa los datos siguiendo las instrucciones de la plantilla</li>
+                    <li>Los campos en rojo son obligatorios</li>
+                    <li>Revisa la hoja "Referencias" para obtener IDs válidos</li>
+                    <li>Guarda el archivo y selecciónalo aquí</li>
+                </ul>
+            </div>
+            
+            <div class="file-upload-area" id="fileUploadArea">
+                <input type="file" id="excelFile" accept=".xlsx,.xls" style="display: none;">
+                <div class="upload-placeholder">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Arrastra tu archivo Excel aquí o haz clic para seleccionar</p>
+                    <small>Formatos soportados: .xlsx, .xls</small>
+                </div>
+            </div>
+            
+            <div class="import-results" id="importResults" style="display: none;"></div>
+        </div>
+        
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeImportModal()">Cancelar</button>
+            <button type="button" class="btn-primary" onclick="importLabs()" disabled id="importBtn">Importar Laboratorios</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Variables globales
+let currentLabId = null;
+let allLabs = [];
+
+// Inicialización
+document.addEventListener('DOMContentLoaded', function() {
+    loadLabs();
+    setupEventListeners();
+});
+
+function setupEventListeners() {
+    // Configurar drag and drop para importar
+    const fileUploadArea = document.getElementById('fileUploadArea');
+    const fileInput = document.getElementById('excelFile');
+    
+    fileUploadArea.addEventListener('click', () => fileInput.click());
+    fileUploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        fileUploadArea.classList.add('drag-over');
+    });
+    
+    fileUploadArea.addEventListener('dragleave', () => {
+        fileUploadArea.classList.remove('drag-over');
+    });
+    
+    fileUploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        fileUploadArea.classList.remove('drag-over');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFileSelect(files[0]);
+        }
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFileSelect(e.target.files[0]);
+        }
+    });
+}
+
+function handleFileSelect(file) {
+    if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+        showNotification('Por favor selecciona un archivo Excel válido (.xlsx o .xls)', 'error');
+        return;
+    }
+    
+    document.getElementById('importBtn').disabled = false;
+    document.querySelector('.upload-placeholder p').textContent = `Archivo seleccionado: ${file.name}`;
+}
+
+// Funciones principales
+function loadLabs() {
+    // Los laboratorios ya están cargados desde el servidor
+    allLabs = Array.from(document.querySelectorAll('.lab-row')).map(row => ({
+        id: row.dataset.labId,
+        element: row
+    }));
+}
+
+function showAddLabModal() {
+    currentLabId = null;
+    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-flask"></i> Nuevo Laboratorio';
+    document.getElementById('labForm').reset();
+    document.getElementById('id_laboratorio').value = '';
+    document.getElementById('labModal').style.display = 'flex';
+}
+
+function closeLabModal() {
+    document.getElementById('labModal').style.display = 'none';
+    currentLabId = null;
+}
+
+function editLab(labId) {
+    currentLabId = labId;
+    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Editar Laboratorio';
+    
+    // Aquí cargarías los datos del laboratorio para editar
+    // Por ahora, solo mostramos el modal
+    document.getElementById('labModal').style.display = 'flex';
+}
+
+function saveLab() {
+    const form = document.getElementById('labForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    
+    // Convertir checkbox a boolean
+    data.requiere_capacitacion = document.getElementById('requiere_capacitacion').checked;
+    
+    const url = currentLabId ? 
+        `/admin/laboratorios/editar/${currentLabId}` : 
+        '/admin/laboratorios/crear';
+    
+    const method = currentLabId ? 'PUT' : 'POST';
+    
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            closeLabModal();
+            location.reload(); // Recargar la página para mostrar los cambios
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('Error al guardar el laboratorio', 'error');
+        console.error('Error:', error);
+    });
+}
+
+function deleteLab(labId) {
+    if (confirm('¿Estás seguro de que deseas eliminar este laboratorio?')) {
+        fetch(`/admin/laboratorios/eliminar/${labId}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                location.reload();
+            } else {
+                showNotification(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('Error al eliminar el laboratorio', 'error');
+            console.error('Error:', error);
+        });
+    }
+}
+
+function mostrarDetallesLab(labId) {
+    // Implementar modal de detalles del laboratorio
+    showNotification('Función de detalles en desarrollo', 'info');
+}
+
+function exportLabs() {
+    showNotification('Exportando laboratorios...', 'info');
+    window.location.href = '/admin/laboratorios/exportar';
+}
+
+function downloadTemplate() {
+    showNotification('Descargando plantilla con ejemplos y campos obligatorios...', 'info');
+    window.location.href = '/admin/laboratorios/plantilla';
+}
+
+function showImportModal() {
+    document.getElementById('importModal').style.display = 'flex';
+    document.getElementById('importResults').style.display = 'none';
+    document.getElementById('importBtn').disabled = true;
+    document.querySelector('.upload-placeholder p').textContent = 'Arrastra tu archivo Excel aquí o haz clic para seleccionar';
+}
+
+function closeImportModal() {
+    document.getElementById('importModal').style.display = 'none';
+    document.getElementById('excelFile').value = '';
+}
+
+function importLabs() {
+    const fileInput = document.getElementById('excelFile');
+    if (!fileInput.files.length) {
+        showNotification('Por favor selecciona un archivo', 'error');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+    
+    document.getElementById('importBtn').disabled = true;
+    document.getElementById('importBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importando...';
+    
+    fetch('/admin/laboratorios/importar', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        const resultsDiv = document.getElementById('importResults');
+        resultsDiv.style.display = 'block';
+        
+        let html = '<h4>Resultados de la importación:</h4>';
+        
+        if (data.success) {
+            html += `<div class="alert alert-success">
+                <strong>✅ Importación exitosa!</strong><br>
+                ${data.message}
+            </div>`;
+            
+            if (data.laboratorios_creados && data.laboratorios_creados.length > 0) {
+                html += '<h5>Laboratorios creados:</h5><ul>';
+                data.laboratorios_creados.forEach(lab => {
+                    html += `<li>${lab}</li>`;
+                });
+                html += '</ul>';
+            }
+            
+            if (data.advertencias && data.advertencias.length > 0) {
+                html += '<h5>Advertencias:</h5><ul>';
+                data.advertencias.forEach(warning => {
+                    html += `<li class="text-warning">${warning}</li>`;
+                });
+                html += '</ul>';
+            }
+            
+            if (data.errores && data.errores.length > 0) {
+                html += '<h5>Errores encontrados:</h5><ul>';
+                data.errores.forEach(error => {
+                    html += `<li class="text-danger">${error}</li>`;
+                });
+                html += '</ul>';
+            }
+            
+            setTimeout(() => {
+                location.reload();
+            }, 3000);
+        } else {
+            html += `<div class="alert alert-danger">
+                <strong>❌ Error en la importación:</strong><br>
+                ${data.message}
+            </div>`;
+        }
+        
+        resultsDiv.innerHTML = html;
+        document.getElementById('importBtn').disabled = false;
+        document.getElementById('importBtn').innerHTML = 'Importar Laboratorios';
+    })
+    .catch(error => {
+        showNotification('Error al importar archivo', 'error');
+        console.error('Error:', error);
+        document.getElementById('importBtn').disabled = false;
+        document.getElementById('importBtn').innerHTML = 'Importar Laboratorios';
+    });
+}
+
+function toggleFilters() {
+    const panel = document.getElementById('filtersPanel');
+    panel.classList.toggle('show');
+}
+
+function applyFilters() {
+    const institucion = document.getElementById('filterInstitucion').value;
+    const area = document.getElementById('filterArea').value;
+    const tipo = document.getElementById('filterTipo').value;
+    const estado = document.getElementById('filterEstado').value;
+    
+    const rows = document.querySelectorAll('.lab-row');
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+        let visible = true;
+        
+        // Aplicar filtros (implementar lógica según los datos de la fila)
+        // Por ahora, mantener todas las filas visibles
+        
+        row.style.display = visible ? '' : 'none';
+        if (visible) visibleCount++;
+    });
+    
+    // Actualizar contador de filtros
+    const activeFilters = [institucion, area, tipo, estado].filter(f => f).length;
+    const filterCount = document.getElementById('filterCount');
+    if (activeFilters > 0) {
+        filterCount.textContent = activeFilters;
+        filterCount.style.display = 'inline';
+    } else {
+        filterCount.style.display = 'none';
+    }
+}
+
+function searchLabs() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const rows = document.querySelectorAll('.lab-row');
+    
+    rows.forEach(row => {
+        const labName = row.querySelector('.lab-name').textContent.toLowerCase();
+        const labDescription = row.querySelector('.lab-description').textContent.toLowerCase();
+        
+        const visible = labName.includes(searchTerm) || labDescription.includes(searchTerm);
+        row.style.display = visible ? '' : 'none';
+    });
+    
+    // Mostrar/ocultar botón de limpiar búsqueda
+    const clearBtn = document.querySelector('.search-clear');
+    clearBtn.style.display = searchTerm ? 'block' : 'none';
+}
+
+function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    document.querySelector('.search-clear').style.display = 'none';
+    searchLabs();
+}
+
+function refreshData() {
+    location.reload();
+}
+
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.lab-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+    });
+    
+    updateBulkActions();
+}
+
+function updateBulkActions() {
+    const checkboxes = document.querySelectorAll('.lab-checkbox:checked');
+    const selectAll = document.getElementById('selectAll');
+    
+    // Actualizar estado del checkbox "Seleccionar todo"
+    const allCheckboxes = document.querySelectorAll('.lab-checkbox');
+    selectAll.checked = checkboxes.length === allCheckboxes.length;
+    selectAll.indeterminate = checkboxes.length > 0 && checkboxes.length < allCheckboxes.length;
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 100);
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 300);
+    }, 3000);
+}
+</script>
+
+<style>
+/* Estilos adicionales para importación */
+.import-instructions {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.import-instructions h4 {
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.import-instructions ul {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.import-instructions li {
+    margin-bottom: 0.5rem;
+    color: #6c757d;
+}
+
+.file-upload-area {
+    border: 2px dashed #dee2e6;
+    border-radius: 0.5rem;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.file-upload-area:hover,
+.file-upload-area.drag-over {
+    border-color: #667eea;
+    background: rgba(102, 126, 234, 0.05);
+}
+
+.upload-placeholder i {
+    font-size: 3rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+}
+
+.upload-placeholder p {
+    font-size: 1.1rem;
+    color: #495057;
+    margin: 0;
+}
+
+.upload-placeholder small {
+    color: #6c757d;
+    display: block;
+    margin-top: 0.5rem;
+}
+
+.alert {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-danger {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.text-warning {
+    color: #856404;
+}
+
+.text-danger {
+    color: #721c24;
+}
+
+.btn-refresh {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-refresh:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+.btn-close-filters {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6c757d;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.btn-close-filters:hover {
+    background: #f8f9fa;
+    color: #495057;
+}
+
+.filter-count {
+    background: #dc3545;
+    color: white;
+    border-radius: 50%;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+}
+</style>
+
+{% endblock %} 

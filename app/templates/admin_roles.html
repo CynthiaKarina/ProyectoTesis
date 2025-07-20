@@ -1,0 +1,1182 @@
+{% extends 'base_Admin.html' %}
+{% block title %}Administrar Roles{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='improved-styles.css') }}">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+/* Estilos mejorados para admin_roles */
+.admin-bg-icons {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    pointer-events: none;
+    z-index: 0;
+}
+.admin-bg-icon {
+    position: absolute;
+    opacity: 0.08;
+    font-size: 8rem;
+    filter: blur(1px);
+    animation: floatIcon 12s ease-in-out infinite;
+    color: #667eea;
+}
+.icon-users-cog { top: 8%; left: 6%; color: #764ba2; animation-delay: 0s;}
+.icon-shield { top: 60%; left: 10%; color: #43e97b; animation-delay: 2s;}
+.icon-key { top: 20%; right: 8%; color: #f093fb; animation-delay: 4s;}
+.icon-user-tag { bottom: 12%; left: 40%; color: #00f2fe; animation-delay: 6s;}
+.icon-lock { top: 70%; right: 12%; color: #fa709a; animation-delay: 8s;}
+.icon-cogs { top: 40%; left: 80%; color: #fed6e3; animation-delay: 10s;}
+.icon-database { bottom: 8%; right: 18%; color: #434343; animation-delay: 12s;}
+
+@keyframes floatIcon {
+    0%, 100% { transform: translateY(0) scale(1) rotate(0deg);}
+    20% { transform: translateY(-20px) scale(1.05) rotate(-5deg);}
+    50% { transform: translateY(20px) scale(1.1) rotate(5deg);}
+    80% { transform: translateY(-10px) scale(1.03) rotate(-3deg);}
+}
+
+@media (max-width: 900px) {
+    .admin-bg-icon { font-size: 4rem; }
+}
+@media (max-width: 600px) {
+    .admin-bg-icon { display: none; }
+}
+
+/* Estilos para cards de estadísticas */
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 2rem;
+    color: white;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.stat-card.roles-total {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.stat-card.permissions-total {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.stat-card.users-with-roles {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.stat-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.9;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.stat-label {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 500;
+}
+
+/* Mejorar el header */
+.admin-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 3rem 2rem;
+    border-radius: 25px;
+    margin-bottom: 3rem;
+    color: white;
+    text-align: center;
+    box-shadow: 0 15px 35px rgba(102, 126, 234, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.admin-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.admin-title-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.admin-icon {
+    font-size: 4rem;
+    opacity: 0.9;
+}
+
+.admin-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.admin-subtitle {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    margin-bottom: 0;
+}
+
+/* Mejorar la tabla */
+.roles-table-container {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.table-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.table-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.btn-modern {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 50px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.btn-modern.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-modern.btn-outline {
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+}
+
+.btn-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.admin-table th {
+    background: linear-gradient(135deg, #f8f9ff 0%, #e9ecff 100%);
+    font-weight: 600;
+    color: #555;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.admin-table tr:hover {
+    background: linear-gradient(135deg, #f8f9ff 0%, #e9ecff 100%);
+    transform: scale(1.002);
+    transition: all 0.3s ease;
+}
+
+/* Mejorar badges */
+.badge {
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge.bg-info {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.badge.bg-secondary {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%) !important;
+}
+
+/* Botones de acción mejorados */
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+}
+
+.btn-action.btn-edit {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    color: white;
+}
+
+.btn-action.btn-delete {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.btn-action:hover {
+    transform: translateY(-2px) scale(1.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .admin-title-section {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .admin-title {
+        font-size: 2rem;
+    }
+    
+    .stats-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .table-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .table-actions {
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Iconos de fondo animados -->
+<div class="admin-bg-icons">
+    <div class="admin-bg-icon icon-users-cog">
+        <i class="fas fa-users-cog"></i>
+    </div>
+    <div class="admin-bg-icon icon-shield">
+        <i class="fas fa-shield-alt"></i>
+    </div>
+    <div class="admin-bg-icon icon-key">
+        <i class="fas fa-key"></i>
+    </div>
+    <div class="admin-bg-icon icon-user-tag">
+        <i class="fas fa-user-tag"></i>
+    </div>
+    <div class="admin-bg-icon icon-lock">
+        <i class="fas fa-lock"></i>
+    </div>
+    <div class="admin-bg-icon icon-cogs">
+        <i class="fas fa-cogs"></i>
+    </div>
+    <div class="admin-bg-icon icon-database">
+        <i class="fas fa-database"></i>
+    </div>
+</div>
+
+<div class="floating-icons-container">
+    <div class="floating-icon icon1">👥</div>
+    <div class="floating-icon icon2">🔧</div>
+    <div class="floating-icon icon3">📊</div>
+    <div class="floating-icon icon4">⚙️</div>
+    <div class="floating-icon icon5">📋</div>
+    <div class="floating-icon icon6">🔍</div>
+    <div class="floating-icon icon7">📈</div>
+    <div class="floating-icon icon8">💼</div>
+    <div class="floating-icon icon9">🎯</div>
+    <div class="floating-icon icon10">📌</div>
+    <div class="floating-icon icon11">🔐</div>
+    <div class="floating-icon icon12">📱</div>
+    <div class="floating-icon icon13">💻</div>
+    <div class="floating-icon icon14">📧</div>
+    <div class="floating-icon icon15">🔑</div>
+    <div class="floating-icon icon16">👤</div>
+    <div class="floating-icon icon17">🔄</div>
+    <div class="floating-icon icon18">📝</div>
+    <div class="floating-icon icon19">🔍</div>
+    <div class="floating-icon icon20">⚡</div>
+</div>
+
+<div class="admin-container">
+    <!-- Header mejorado -->
+    <div class="admin-header">
+        <div class="admin-title-section">
+            <div class="admin-icon">
+                <i class="fas fa-users-cog"></i>
+            </div>
+            <div class="admin-title-content">
+                <h1 class="admin-title">Administración de Roles</h1>
+                <p class="admin-subtitle">Gestiona los roles del sistema de manera sencilla y eficiente</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de roles mejorada -->
+    <div class="roles-table-container">
+        <div class="table-header">
+            <div class="table-title">
+                <i class="fas fa-table"></i>
+                Gestión de Roles
+            </div>
+            <div class="table-actions">
+                <a href="{{ url_for('admin_permisos.admin_permisos') }}" class="btn-modern btn-outline">
+                    <i class="fas fa-key"></i>
+                    <span class="d-none d-sm-inline">Gestionar Permisos</span>
+                </a>
+                <button class="btn-modern btn-primary" onclick="openCreateRoleModal()">
+                    <i class="fas fa-plus"></i>
+                    <span class="d-none d-sm-inline">Nuevo Rol</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Rol</th>
+                        <th class="d-none d-md-table-cell">Descripción</th>
+                        <th>Permisos</th>
+                        <th class="d-none d-sm-table-cell">Usuarios</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rol in roles %}
+                    <tr>
+                        <td class="fw-bold text-primary">
+                            <div class="d-flex flex-column">
+                                <span style="font-size: 1.1rem; font-weight: 600;">{{ rol.nombre_rol }}</span>
+                                <small class="text-muted d-md-none">{{ rol.descripcion or 'Sin descripción' }}</small>
+                            </div>
+                        </td>
+                        <td class="d-none d-md-table-cell">{{ rol.descripcion or 'Sin descripción' }}</td>
+                        <td>
+                            <div class="permissions-count">
+                                <span class="badge bg-info">{{ rol.permisos_rol|length }}</span>
+                                {% if rol.permisos_rol|length > 0 %}
+                                    <button class="btn btn-sm btn-outline-info ms-1 d-none d-sm-inline-block" onclick="openViewPermissionsModal({{ rol.id_rol }}, '{{ rol.nombre_rol|replace("'", "\\'") }}')">
+                                        <i class="fas fa-eye"></i> <span class="d-none d-lg-inline">Ver</span>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="d-none d-sm-table-cell">
+                            <span class="badge bg-secondary">{{ roles_json[loop.index0].usuarios_count }}</span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-action btn-edit" onclick="openEditRoleModal({{ rol.id_rol }}, '{{ rol.nombre_rol|replace("'", "\\'") }}', '{{ (rol.descripcion or '')|replace("'", "\\'") }}')" title="Editar rol">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-action btn-delete" onclick="deleteRole({{ rol.id_rol }}, '{{ rol.nombre_rol|replace("'", "\\'") }}')" title="Eliminar rol">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Resto de los modales se mantienen igual -->
+<!-- Modal para crear nuevo rol -->
+<div class="modal-overlay" id="createRoleModal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3>
+                <i class="fas fa-plus-circle"></i>
+                Crear Nuevo Rol
+            </h3>
+            <div class="modal-subtitle">
+                Agregar un nuevo rol al sistema
+            </div>
+            <button class="btn-close-modal" onclick="closeCreateRoleModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <form method="POST" action="{{ url_for('admin_roles.crear_rol') }}" class="needs-validation" novalidate>
+            <div class="modal-body">
+                <div class="instruction-card">
+                    <div class="instruction-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div class="instruction-content">
+                        <h4>Información</h4>
+                        <p>Una vez creado el rol, podrás asignarle permisos específicos desde la gestión de permisos.</p>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="fas fa-user-tag"></i>
+                        Datos del Rol
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nombre_rol" class="form-label">
+                                <i class="fas fa-tag"></i>
+                                Nombre del rol
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="text" class="form-control" id="nombre_rol" name="nombre_rol" 
+                                       placeholder="Ingrese el nombre del rol" required>
+                                <div class="input-icon">
+                                    <i class="fas fa-tag"></i>
+                                </div>
+                            </div>
+                            <div class="invalid-feedback">
+                                Por favor ingresa un nombre para el rol.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="descripcion" class="form-label">
+                                <i class="fas fa-align-left"></i>
+                                Descripción (opcional)
+                            </label>
+                            <div class="input-wrapper">
+                                <textarea class="form-control" id="descripcion" name="descripcion" 
+                                         placeholder="Describa el propósito y funciones de este rol" rows="4"></textarea>
+                                <div class="input-icon">
+                                    <i class="fas fa-align-left"></i>
+                                </div>
+                            </div>
+                            <div class="form-help">
+                                Una descripción clara ayuda a otros administradores a entender el propósito del rol.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeCreateRoleModal()">
+                        <i class="fas fa-times"></i>
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-save"></i>
+                        Crear Rol
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para editar rol -->
+<div class="modal-overlay" id="editRoleModal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3>
+                <i class="fas fa-edit"></i>
+                Editar Rol
+            </h3>
+            <div class="modal-subtitle">
+                Modificar información del rol existente
+            </div>
+            <button class="btn-close-modal" onclick="closeEditRoleModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <form method="POST" action="{{ url_for('admin_roles.editar_rol') }}" class="needs-validation" novalidate>
+            <div class="modal-body">
+                <div class="instruction-card">
+                    <div class="instruction-icon warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="instruction-content">
+                        <h4>Advertencia</h4>
+                        <p>Los cambios realizados afectarán a todos los usuarios que tengan asignado este rol.</p>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="fas fa-user-edit"></i>
+                        Modificar Datos del Rol
+                    </div>
+                    
+                    <input type="hidden" id="edit_id_rol" name="id_rol">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit_nombre_rol" class="form-label">
+                                <i class="fas fa-tag"></i>
+                                Nombre del rol
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="text" class="form-control" id="edit_nombre_rol" name="nombre_rol" 
+                                       placeholder="Ingrese el nombre del rol" required>
+                                <div class="input-icon">
+                                    <i class="fas fa-tag"></i>
+                                </div>
+                            </div>
+                            <div class="invalid-feedback">
+                                Por favor ingresa un nombre para el rol.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit_descripcion" class="form-label">
+                                <i class="fas fa-align-left"></i>
+                                Descripción (opcional)
+                            </label>
+                            <div class="input-wrapper">
+                                <textarea class="form-control" id="edit_descripcion" name="descripcion" 
+                                         placeholder="Describa el propósito y funciones de este rol" rows="4"></textarea>
+                                <div class="input-icon">
+                                    <i class="fas fa-align-left"></i>
+                                </div>
+                            </div>
+                            <div class="form-help">
+                                Mantén una descripción clara del rol para facilitar su gestión.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeEditRoleModal()">
+                        <i class="fas fa-times"></i>
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-save"></i>
+                        Actualizar Rol
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para ver permisos del rol -->
+<div class="modal-overlay" id="viewPermissionsModal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3>
+                <i class="fas fa-key"></i>
+                Permisos del Rol: <span id="rolNameDisplay" class="role-highlight"></span>
+            </h3>
+            <div class="modal-subtitle">
+                Visualización de permisos asignados
+            </div>
+            <button class="btn-close-modal" onclick="closeViewPermissionsModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="instruction-card">
+                <div class="instruction-icon">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                <div class="instruction-content">
+                    <h4>Información</h4>
+                    <p>Aquí se muestran todos los permisos asignados a este rol. Para modificar los permisos, utiliza la gestión de permisos.</p>
+                </div>
+                <div class="matrix-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalPermissionsCount">0</span>
+                        <span class="stat-label">Permisos</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <div class="section-title">
+                    Permisos Asignados
+                </div>
+                
+                <div id="permissionsDisplay" class="permissions-display">
+                    <!-- Los permisos se cargarán aquí dinámicamente -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal-footer">
+            <div class="form-actions">
+                <button type="button" class="btn-cancel" onclick="closeViewPermissionsModal()">
+                    <i class="fas fa-times"></i>
+                    Cerrar
+                </button>
+                <button type="button" class="btn-submit" onclick="goToPermissionsPage()">
+                    <i class="fas fa-cog"></i>
+                    Gestionar Permisos
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Funciones para manejar los modales modernos
+
+// Función para abrir modal de crear rol
+function openCreateRoleModal() {
+    const modal = document.getElementById('createRoleModal');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    // Animación de entrada
+    setTimeout(() => {
+        modal.classList.add('show');
+    }, 10);
+}
+
+// Función para cerrar modal de crear rol
+function closeCreateRoleModal() {
+    const modal = document.getElementById('createRoleModal');
+    modal.classList.remove('show');
+    
+    setTimeout(() => {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        
+        // Limpiar formulario
+        const form = modal.querySelector('form');
+        form.classList.remove('was-validated');
+        form.reset();
+    }, 300);
+}
+
+// Función para abrir modal de editar rol
+function openEditRoleModal(rolId, rolNombre, rolDescripcion) {
+    document.getElementById('edit_id_rol').value = rolId;
+    document.getElementById('edit_nombre_rol').value = rolNombre;
+    document.getElementById('edit_descripcion').value = rolDescripcion || '';
+    
+    const modal = document.getElementById('editRoleModal');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    // Animación de entrada
+    setTimeout(() => {
+        modal.classList.add('show');
+    }, 10);
+}
+
+// Función para cerrar modal de editar rol
+function closeEditRoleModal() {
+    const modal = document.getElementById('editRoleModal');
+    modal.classList.remove('show');
+    
+    setTimeout(() => {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        
+        // Limpiar validación
+        const form = modal.querySelector('form');
+        form.classList.remove('was-validated');
+    }, 300);
+}
+
+// Función para abrir modal de ver permisos
+function openViewPermissionsModal(rolId, rolNombre) {
+    document.getElementById('rolNameDisplay').textContent = rolNombre;
+    
+    // Cargar permisos del rol
+    var roles = {{ roles_json|tojson }};
+    var rol = roles.find(r => r.id_rol == rolId);
+    var permissionsDisplay = document.getElementById('permissionsDisplay');
+    var totalCount = document.getElementById('totalPermissionsCount');
+    
+    if (rol && rol.permisos_rol && rol.permisos_rol.length > 0) {
+        totalCount.textContent = rol.permisos_rol.length;
+        permissionsDisplay.innerHTML = rol.permisos_rol.map(pr => 
+            `<div class="permission-item">
+                <div class="permission-icon">
+                    <i class="fas fa-key"></i>
+                </div>
+                <div class="permission-content">
+                    <div class="permission-name">${pr.permiso.nombre_permiso.replace(/_/g, ' ')}</div>
+                    ${pr.permiso.descripcion ? `<div class="permission-description">${pr.permiso.descripcion}</div>` : ''}
+                </div>
+            </div>`
+        ).join('');
+    } else {
+        totalCount.textContent = '0';
+        permissionsDisplay.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="fas fa-key"></i>
+                </div>
+                <div class="empty-state-content">
+                    <h3>Sin permisos asignados</h3>
+                    <p>Este rol no tiene permisos asignados actualmente.</p>
+                    <button class="btn-submit" onclick="goToPermissionsPage()">
+                        <i class="fas fa-plus"></i>
+                        Asignar Permisos
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+    
+    const modal = document.getElementById('viewPermissionsModal');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    // Animación de entrada
+    setTimeout(() => {
+        modal.classList.add('show');
+    }, 10);
+}
+
+// Función para cerrar modal de ver permisos
+function closeViewPermissionsModal() {
+    const modal = document.getElementById('viewPermissionsModal');
+    modal.classList.remove('show');
+    
+    setTimeout(() => {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }, 300);
+}
+
+// Configuración de modales cuando el DOM esté cargado
+document.addEventListener('DOMContentLoaded', function() {
+    // Animación de entrada para las estadísticas
+    const statCards = document.querySelectorAll('.stat-card');
+    statCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 200);
+    });
+    
+    // Animación de entrada para la tabla
+    const tableContainer = document.querySelector('.roles-table-container');
+    if (tableContainer) {
+        tableContainer.style.opacity = '0';
+        tableContainer.style.transform = 'translateY(30px)';
+        
+        setTimeout(() => {
+            tableContainer.style.transition = 'all 0.6s ease';
+            tableContainer.style.opacity = '1';
+            tableContainer.style.transform = 'translateY(0)';
+        }, 600);
+    }
+    
+    // Cerrar modales al hacer clic en el overlay
+    document.querySelectorAll('.modal-overlay').forEach(modal => {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                const modalId = this.id;
+                if (modalId === 'createRoleModal') closeCreateRoleModal();
+                else if (modalId === 'editRoleModal') closeEditRoleModal();
+                else if (modalId === 'viewPermissionsModal') closeViewPermissionsModal();
+            }
+        });
+    });
+    
+    // Cerrar modales con tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const openModal = document.querySelector('.modal-overlay.show');
+            if (openModal) {
+                const modalId = openModal.id;
+                if (modalId === 'createRoleModal') closeCreateRoleModal();
+                else if (modalId === 'editRoleModal') closeEditRoleModal();
+                else if (modalId === 'viewPermissionsModal') closeViewPermissionsModal();
+            }
+        }
+    });
+});
+
+function deleteRole(id, nombre) {
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: `¿Deseas eliminar el rol "${nombre}"?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            customClass: {
+                popup: 'modal-container',
+                confirmButton: 'btn-submit',
+                cancelButton: 'btn-cancel'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                performDeleteRole(id, nombre);
+            }
+        });
+    } else {
+        if (confirm(`¿Estás seguro de que deseas eliminar el rol "${nombre}"?`)) {
+            performDeleteRole(id, nombre);
+        }
+    }
+}
+
+function performDeleteRole(id, nombre) {
+    // Mostrar indicador de carga
+    const deleteBtn = event.target.closest('.btn-action');
+    if (deleteBtn) {
+        deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        deleteBtn.disabled = true;
+    }
+    
+    fetch(`/admin/roles/eliminar/${id}`, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Eliminado',
+                    text: data.mensaje,
+                    icon: 'success',
+                    customClass: {
+                        popup: 'modal-container',
+                        confirmButton: 'btn-submit'
+                    }
+                }).then(() => {
+                    location.reload();
+                });
+            } else {
+                alert('Rol eliminado correctamente');
+                location.reload();
+            }
+        } else {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Error',
+                    text: data.error,
+                    icon: 'error',
+                    customClass: {
+                        popup: 'modal-container',
+                        confirmButton: 'btn-submit'
+                    }
+                });
+            } else {
+                alert('Error: ' + data.error);
+            }
+        }
+    })
+    .catch(() => {
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Error',
+                text: 'No se pudo eliminar el rol',
+                icon: 'error',
+                customClass: {
+                    popup: 'modal-container',
+                    confirmButton: 'btn-submit'
+                }
+            });
+        } else {
+            alert('Error: No se pudo eliminar el rol');
+        }
+    })
+    .finally(() => {
+        // Restaurar botón
+        if (deleteBtn) {
+            deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+            deleteBtn.disabled = false;
+        }
+    });
+}
+
+function goToPermissionsPage() {
+    window.location.href = '{{ url_for("admin_permisos.admin_permisos") }}';
+}
+
+// Validación mejorada de formularios
+function setupFormValidation() {
+    const forms = document.querySelectorAll('.needs-validation');
+    
+    forms.forEach(form => {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                // Mostrar primer campo con error
+                const firstInvalid = form.querySelector(':invalid');
+                if (firstInvalid) {
+                    firstInvalid.focus();
+                }
+            } else {
+                // Mostrar indicador de carga en el botón de submit
+                const submitBtn = form.querySelector('.btn-submit');
+                if (submitBtn) {
+                    const originalContent = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+                    submitBtn.disabled = true;
+                    
+                    // Restaurar después de un tiempo en caso de error
+                    setTimeout(() => {
+                        submitBtn.innerHTML = originalContent;
+                        submitBtn.disabled = false;
+                    }, 5000);
+                }
+            }
+            form.classList.add('was-validated');
+        });
+        
+        // Validación en tiempo real
+        const inputs = form.querySelectorAll('input, textarea, select');
+        inputs.forEach(input => {
+            input.addEventListener('blur', function() {
+                if (form.classList.contains('was-validated')) {
+                    this.checkValidity();
+                }
+            });
+            
+            input.addEventListener('input', function() {
+                if (form.classList.contains('was-validated')) {
+                    this.setCustomValidity('');
+                    this.checkValidity();
+                }
+            });
+        });
+    });
+}
+
+// Función para mostrar notificaciones de éxito
+function showSuccessToast(message) {
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: message,
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+        });
+    }
+}
+
+// Función para manejar respuestas del servidor después de crear/editar roles
+function handleFormSuccess(message) {
+    showSuccessToast(message);
+    setTimeout(() => {
+        location.reload();
+    }, 1500);
+}
+
+// Función para interceptar envío de formularios y manejar respuestas
+function setupFormSubmission() {
+    const forms = document.querySelectorAll('.needs-validation');
+    
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            if (form.checkValidity()) {
+                e.preventDefault();
+                
+                const formData = new FormData(form);
+                const submitBtn = form.querySelector('.btn-submit');
+                const originalContent = submitBtn.innerHTML;
+                
+                // Mostrar indicador de carga
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+                submitBtn.disabled = true;
+                
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (response.ok) {
+                        const isCreate = form.closest('#createRoleModal');
+                        const isEdit = form.closest('#editRoleModal');
+                        
+                        if (isCreate) {
+                            handleFormSuccess('✅ Rol creado exitosamente');
+                            closeCreateRoleModal();
+                        } else if (isEdit) {
+                            handleFormSuccess('✅ Rol actualizado exitosamente');
+                            closeEditRoleModal();
+                        }
+                    } else {
+                        throw new Error('Error en la respuesta del servidor');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'No se pudo procesar la solicitud',
+                            icon: 'error',
+                            customClass: {
+                                popup: 'modal-container',
+                                confirmButton: 'btn-submit'
+                            }
+                        });
+                    } else {
+                        alert('Error: No se pudo procesar la solicitud');
+                    }
+                })
+                .finally(() => {
+                    // Restaurar botón
+                    submitBtn.innerHTML = originalContent;
+                    submitBtn.disabled = false;
+                });
+            }
+        });
+    });
+}
+
+// Inicialización cuando el DOM esté cargado
+document.addEventListener('DOMContentLoaded', function() {
+    setupFormValidation();
+    setupFormSubmission();
+    
+    // Configurar tooltips para botones de acción
+    const actionButtons = document.querySelectorAll('.btn-action[title]');
+    actionButtons.forEach(btn => {
+        btn.addEventListener('mouseenter', function() {
+            const tooltip = document.createElement('div');
+            tooltip.className = 'custom-tooltip';
+            tooltip.textContent = this.getAttribute('title');
+            document.body.appendChild(tooltip);
+            
+            const rect = this.getBoundingClientRect();
+            tooltip.style.top = (rect.top - tooltip.offsetHeight - 5) + 'px';
+            tooltip.style.left = (rect.left + (this.offsetWidth / 2) - (tooltip.offsetWidth / 2)) + 'px';
+            
+            this._tooltip = tooltip;
+        });
+        
+        btn.addEventListener('mouseleave', function() {
+            if (this._tooltip) {
+                document.body.removeChild(this._tooltip);
+                this._tooltip = null;
+            }
+        });
+    });
+    
+    // Mostrar notificación si hay mensaje flash del servidor
+    {% for category, message in get_flashed_messages(with_categories=true) %}
+        {% if category == 'success' %}
+            showSuccessToast('{{ message }}');
+        {% elif category == 'error' %}
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Error',
+                    text: '{{ message }}',
+                    icon: 'error',
+                    customClass: {
+                        popup: 'modal-container',
+                        confirmButton: 'btn-submit'
+                    }
+                });
+            } else {
+                alert('Error: {{ message }}');
+            }
+        {% endif %}
+    {% endfor %}
+});
+</script>
+{% endblock %} 

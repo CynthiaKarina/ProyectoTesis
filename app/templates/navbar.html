@@ -1,0 +1,76 @@
+<nav class="navbar">
+    <ul class="nav-menu">
+        <li>
+            <a href="{{ url_for('home.index') }}" {% if request.endpoint == 'home.index' %}class="active"{% endif %}>
+                <i class="fas fa-home"></i> Inicio
+            </a>
+        </li>
+        
+        <!-- Menú desplegable principal -->
+        <li class="dropdown">
+            <a href="#" class="dropdown-toggle">
+                <i class="fas fa-bars"></i>
+            </a>
+            <ul class="dropdown-menu">
+                <li>
+                    <a href="{{ url_for('home.navegar_pagina', nombre='productos') }}">
+                        <i class="fas fa-box"></i> Productos
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('home.navegar_pagina', nombre='contacto') }}">
+                        <i class="fas fa-envelope"></i> Contacto
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('home.navegar_pagina', nombre='acerca') }}">
+                        <i class="fas fa-info-circle"></i> Acerca de
+                    </a>
+                </li>
+            </ul>
+        </li>
+
+        <!-- Menú de usuario -->
+        <li class="dropdown user-menu">
+            <a href="#" class="dropdown-toggle">
+                <i class="fas fa-user"></i> {{ user_display_name() }}
+                <i class="fas fa-caret-down"></i>
+            </a>
+            <ul class="dropdown-menu">
+                <li>
+                    <a href="{{ url_for('profile.ver_perfil') }}" {% if request.endpoint == 'profile.ver_perfil' %}class="active"{% endif %}>
+                        <i class="fas fa-user-circle"></i> Mi Perfil
+                    </a>
+                </li>
+                <li class="divider"></li>
+                <li>
+                    <a href="{{ url_for('auth.logout') }}">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    </a>
+                </li>
+            </ul>
+        </li>
+    </ul>
+</nav>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Manejar los menús desplegables
+    const dropdowns = document.querySelectorAll('.dropdown-toggle');
+    dropdowns.forEach(dropdown => {
+        dropdown.addEventListener('click', function(e) {
+            e.preventDefault();
+            this.parentElement.classList.toggle('active');
+        });
+    });
+
+    // Cerrar menús desplegables al hacer clic fuera
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.dropdown')) {
+            document.querySelectorAll('.dropdown').forEach(dropdown => {
+                dropdown.classList.remove('active');
+            });
+        }
+    });
+});
+</script> 

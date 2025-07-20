@@ -1,0 +1,641 @@
+{% extends 'base_Admin.html' %}
+{% block title %}Administrar Permisos{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='improved-styles.css') }}">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+/* Estilos mejorados para admin_permisos */
+.admin-bg-icons {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    pointer-events: none;
+    z-index: 0;
+}
+.admin-bg-icon {
+    position: absolute;
+    opacity: 0.08;
+    font-size: 8rem;
+    filter: blur(1px);
+    animation: floatIcon 12s ease-in-out infinite;
+}
+.admin-bg-icon:nth-child(1) { top: 10%; left: 5%; animation-delay: 0s; }
+.admin-bg-icon:nth-child(2) { top: 20%; right: 10%; animation-delay: 2s; }
+.admin-bg-icon:nth-child(3) { top: 60%; left: 15%; animation-delay: 4s; }
+.admin-bg-icon:nth-child(4) { top: 70%; right: 20%; animation-delay: 6s; }
+.admin-bg-icon:nth-child(5) { top: 40%; left: 50%; animation-delay: 8s; }
+.admin-bg-icon:nth-child(6) { top: 80%; left: 30%; animation-delay: 10s; }
+.admin-bg-icon:nth-child(7) { top: 30%; right: 30%; animation-delay: 12s; }
+
+@keyframes floatIcon {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(5deg); }
+}
+
+.admin-permisos-container {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 2rem 0;
+}
+
+.admin-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 3rem 0;
+    margin-bottom: 2rem;
+    border-radius: 0 0 2rem 2rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.admin-title-section {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.admin-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    animation: pulse 2s infinite;
+}
+
+.admin-title {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.admin-subtitle {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    font-weight: 300;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Tarjetas de estadísticas */
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+    padding: 0 1rem;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 1rem;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+}
+
+.stat-card.permisos-total {
+    border-color: #4CAF50;
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(76, 175, 80, 0.05));
+}
+
+.stat-card.roles-total {
+    border-color: #2196F3;
+    background: linear-gradient(135deg, rgba(33, 150, 243, 0.1), rgba(33, 150, 243, 0.05));
+}
+
+.stat-card.asignaciones-total {
+    border-color: #FF9800;
+    background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), rgba(255, 152, 0, 0.05));
+}
+
+.stat-card.usuarios-con-permisos {
+    border-color: #9C27B0;
+    background: linear-gradient(135deg, rgba(156, 39, 176, 0.1), rgba(156, 39, 176, 0.05));
+}
+
+.stat-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.8;
+}
+
+.stat-card.permisos-total .stat-icon { color: #4CAF50; }
+.stat-card.roles-total .stat-icon { color: #2196F3; }
+.stat-card.asignaciones-total .stat-icon { color: #FF9800; }
+.stat-card.usuarios-con-permisos .stat-icon { color: #9C27B0; }
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.stat-label {
+    font-size: 1rem;
+    color: #666;
+    font-weight: 500;
+}
+
+/* Contenedor principal */
+.main-content {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    margin: 0 1rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+/* Sección de permisos más utilizados */
+.top-permissions {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.top-permissions h3 {
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+}
+
+.permission-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.permission-item:last-child {
+    border-bottom: none;
+}
+
+.permission-name {
+    font-weight: 500;
+}
+
+.permission-count {
+    background: rgba(255,255,255,0.2);
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.9rem;
+}
+
+/* Tabs mejorados */
+.nav-tabs {
+    border-bottom: 2px solid #e9ecef;
+    margin-bottom: 2rem;
+}
+
+.nav-tabs .nav-link {
+    border: none;
+    color: #6c757d;
+    font-weight: 500;
+    padding: 1rem 1.5rem;
+    border-radius: 0.5rem 0.5rem 0 0;
+    transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover {
+    color: #495057;
+    background-color: #f8f9fa;
+}
+
+.nav-tabs .nav-link.active {
+    color: #667eea;
+    background-color: white;
+    border-bottom: 3px solid #667eea;
+}
+
+/* Tablas mejoradas */
+.table-container {
+    background: white;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+.table thead th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+}
+
+.table tbody tr {
+    transition: all 0.3s ease;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+    transform: scale(1.01);
+}
+
+.table tbody td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-color: #e9ecef;
+}
+
+/* Badges mejorados */
+.badge {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+}
+
+/* Botones mejorados */
+.btn {
+    border-radius: 0.5rem;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+    box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+}
+
+/* Matriz de permisos */
+.permission-matrix {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    max-height: 500px;
+    overflow: auto;
+    position: relative;
+}
+
+.matrix-table {
+    width: 100%;
+    border-collapse: collapse;
+    position: relative;
+}
+
+.matrix-table th,
+.matrix-table td {
+    padding: 0.75rem;
+    text-align: center;
+    border: 1px solid #e9ecef;
+    min-width: 120px;
+}
+
+.matrix-table th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.matrix-table th:first-child {
+    position: sticky;
+    left: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    z-index: 11;
+    min-width: 200px;
+}
+
+.matrix-table td:first-child {
+    position: sticky;
+    left: 0;
+    background: white;
+    z-index: 9;
+    font-weight: 500;
+    min-width: 200px;
+    box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+}
+
+/* Scroll personalizado para la matriz */
+.permission-matrix::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.permission-matrix::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.permission-matrix::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 4px;
+}
+
+.permission-matrix::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+}
+
+/* Scroll horizontal en la parte superior */
+.permission-matrix-horizontal-scroll {
+    background: white;
+    border-radius: 1rem 1rem 0 0;
+    padding: 0.5rem 1.5rem;
+    border-bottom: 2px solid #e9ecef;
+    overflow-x: auto;
+    overflow-y: hidden;
+    max-height: 50px;
+}
+
+.permission-matrix-horizontal-scroll::-webkit-scrollbar {
+    height: 8px;
+}
+
+.permission-matrix-horizontal-scroll::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.permission-matrix-horizontal-scroll::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 4px;
+}
+
+.permission-matrix-horizontal-scroll::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+}
+
+.permission-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #667eea;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .admin-title { font-size: 2rem; }
+    .admin-icon { font-size: 3rem; }
+    .stats-container { grid-template-columns: 1fr; }
+    .main-content { margin: 0 0.5rem; padding: 1rem; }
+}
+                </style>
+{% endblock %}
+
+{% block content %}
+
+<div class="floating-icons-container">
+    <div class="floating-icon icon1">👥</div>
+    <div class="floating-icon icon2">🔧</div>
+    <div class="floating-icon icon3">📊</div>
+    <div class="floating-icon icon4">⚙️</div>
+    <div class="floating-icon icon5">📋</div>
+    <div class="floating-icon icon6">🔍</div>
+    <div class="floating-icon icon7">📈</div>
+    <div class="floating-icon icon8">💼</div>
+    <div class="floating-icon icon9">🎯</div>
+    <div class="floating-icon icon10">📌</div>
+    <div class="floating-icon icon11">🔐</div>
+    <div class="floating-icon icon12">📱</div>
+    <div class="floating-icon icon13">💻</div>
+    <div class="floating-icon icon14">📧</div>
+    <div class="floating-icon icon15">🔑</div>
+    <div class="floating-icon icon16">👤</div>
+    <div class="floating-icon icon17">🔄</div>
+    <div class="floating-icon icon18">📝</div>
+    <div class="floating-icon icon19">🔍</div>
+    <div class="floating-icon icon20">⚡</div>
+                    </div>
+                    
+<!-- Iconos de fondo animados -->
+<div class="admin-bg-icons">
+    <i class="fas fa-shield-alt admin-bg-icon"></i>
+    <i class="fas fa-key admin-bg-icon"></i>
+    <i class="fas fa-user-shield admin-bg-icon"></i>
+    <i class="fas fa-lock admin-bg-icon"></i>
+    <i class="fas fa-unlock admin-bg-icon"></i>
+    <i class="fas fa-user-check admin-bg-icon"></i>
+    <i class="fas fa-user-cog admin-bg-icon"></i>
+                    </div>
+                    
+<div class="admin-permisos-container">
+    <!-- Header principal -->
+    <div class="admin-header">
+        <div class="admin-title-section">
+            <div class="admin-icon">
+                <i class="fas fa-shield-alt"></i>
+                    </div>
+            <h1 class="admin-title">Administrar Permisos</h1>
+            <p class="admin-subtitle">Gestiona los permisos del sistema y su asignación a roles</p>
+                </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="main-content">
+        
+        <!-- Tabs de navegación -->
+        <ul class="nav nav-tabs" id="permisosTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="lista-tab" data-bs-toggle="tab" data-bs-target="#lista" type="button" role="tab">
+                    <i class="fas fa-list me-2"></i>Lista de Permisos
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="matriz-tab" data-bs-toggle="tab" data-bs-target="#matriz" type="button" role="tab">
+                    <i class="fas fa-table me-2"></i>Matriz de Asignación
+                </button>
+            </li>
+        </ul>
+
+        <!-- Contenido de los tabs -->
+        <div class="tab-content" id="permisosTabsContent">
+            <!-- Tab: Lista de Permisos -->
+            <div class="tab-pane fade show active" id="lista" role="tabpanel">
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre del Permiso</th>
+                                <th>Descripción</th>
+                                <th>Roles Asignados</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for permiso in permisos %}
+                            <tr>
+                                <td><span class="badge bg-secondary">{{ permiso.id_permiso }}</span></td>
+                                <td>
+                                    <strong>{{ permiso.nombre_permiso }}</strong>
+                                    {% if permiso.modelo %}
+                                        <br><small class="text-muted">Modelo: {{ permiso.modelo }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>{{ permiso.descripcion or 'Sin descripción' }}</td>
+                                <td>
+                                    <span class="badge bg-info">{{ permiso.roles_count }}</span>
+                                    {% if permiso.roles_asignados %}
+                                        <br><small class="text-muted">
+                                            {% for rol_id in permiso.roles_asignados[:3] %}
+                                                {% set rol = roles|selectattr('id_rol', 'equalto', rol_id)|first %}
+                                                {% if rol %}{{ rol.nombre_rol }}{% if not loop.last %}, {% endif %}{% endif %}
+                                            {% endfor %}
+                                            {% if permiso.roles_asignados|length > 3 %}...{% endif %}
+                                        </small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="text-muted">No disponible</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    </div>
+                        </div>
+
+            <!-- Tab: Matriz de Asignación -->
+            <div class="tab-pane fade" id="matriz" role="tabpanel">
+                
+                <!-- Matriz de permisos con scroll vertical -->
+                <div class="permission-matrix">
+                    <table class="matrix-table">
+                        <thead>
+                            <tr>
+                                <th>Permiso</th>
+                                {% for rol in roles %}
+                                <th>{{ rol.nombre_rol }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for permiso in permisos %}
+                            <tr>
+                                <td>
+                                    <strong>{{ permiso.nombre_permiso }}</strong>
+                                    <br><small class="text-muted">{{ permiso.descripcion or 'Sin descripción' }}</small>
+                                </td>
+                                {% for rol in roles %}
+                                <td>
+                                    <input type="checkbox" 
+                                           class="permission-checkbox"
+                                           data-rol="{{ rol.id_rol }}"
+                                           data-permiso="{{ permiso.id_permiso }}"
+                                           {% if rol.id_rol in permiso.roles_asignados %}checked{% endif %}
+                                           onchange="togglePermiso(this)">
+                                </td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                            </div>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+
+<!-- 
+Modal para editar permiso y scripts de edición/eliminación eliminados porque los permisos no se pueden borrar ni editar 
+-->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function togglePermiso(checkbox) {
+    const rolId = checkbox.dataset.rol;
+    const permisoId = checkbox.dataset.permiso;
+    const asignar = checkbox.checked;
+    
+    fetch('/admin/permisos/asignar', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            rol_id: rolId,
+            permiso_id: permisoId,
+            asignar: asignar
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Mostrar notificación de éxito
+            const toast = document.createElement('div');
+            toast.className = 'alert alert-success position-fixed';
+            toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            toast.innerHTML = `
+                <i class="fas fa-check-circle me-2"></i>
+                ${data.mensaje}
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        } else {
+            alert('Error: ' + data.error);
+            checkbox.checked = !asignar; // Revertir el cambio
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al actualizar el permiso');
+        checkbox.checked = !asignar; // Revertir el cambio
+    });
+}
+
+// Sincronizar scroll horizontal entre la barra superior y la tabla
+document.addEventListener('DOMContentLoaded', function() {
+    const horizontalScroll = document.getElementById('horizontalScroll');
+    const permissionMatrix = document.querySelector('.permission-matrix');
+    
+    if (horizontalScroll && permissionMatrix) {
+        // Sincronizar scroll de la barra superior con la tabla
+        horizontalScroll.addEventListener('scroll', function() {
+            permissionMatrix.scrollLeft = this.scrollLeft;
+        });
+        
+        // Sincronizar scroll de la tabla con la barra superior
+        permissionMatrix.addEventListener('scroll', function() {
+            horizontalScroll.scrollLeft = this.scrollLeft;
+        });
+    }
+});
+</script>
+{% endblock %} 

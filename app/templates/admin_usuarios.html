@@ -1,0 +1,3506 @@
+{% extends 'base_Admin.html' %}
+{% block title %}Administrar Usuarios{% endblock %}
+
+{% block head %}
+{{ super() }}
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link rel="stylesheet" href="{{ url_for('static', filename='improved-styles.css') }}">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+/* Estilos mejorados para admin_usuarios */
+.admin-bg-icons {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    pointer-events: none;
+    z-index: 0;
+}
+.admin-bg-icon {
+    position: absolute;
+    opacity: 0.08;
+    font-size: 8rem;
+    filter: blur(1px);
+    animation: floatIcon 12s ease-in-out infinite;
+}
+.admin-bg-icon:nth-child(1) { top: 10%; left: 5%; animation-delay: 0s; }
+.admin-bg-icon:nth-child(2) { top: 20%; right: 10%; animation-delay: 2s; }
+.admin-bg-icon:nth-child(3) { top: 60%; left: 15%; animation-delay: 4s; }
+.admin-bg-icon:nth-child(4) { top: 70%; right: 20%; animation-delay: 6s; }
+.admin-bg-icon:nth-child(5) { top: 40%; left: 50%; animation-delay: 8s; }
+.admin-bg-icon:nth-child(6) { top: 80%; left: 30%; animation-delay: 10s; }
+.admin-bg-icon:nth-child(7) { top: 30%; right: 30%; animation-delay: 12s; }
+
+@keyframes floatIcon {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(5deg); }
+}
+
+.admin-users-container {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 2rem 0;
+    overflow-x: hidden; /* Prevenir scroll horizontal */
+}
+
+.container-fluid {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.admin-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 3rem 0;
+    margin-bottom: 2rem;
+    border-radius: 0 0 2rem 2rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.admin-title-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.admin-icon {
+    font-size: 4rem;
+    margin-right: 2rem;
+    animation: pulse 2s infinite;
+}
+
+.admin-title {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.admin-subtitle {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    font-weight: 300;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Estadísticas mejoradas */
+.hero-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 2rem auto 0;
+    padding: 0 2rem;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+}
+
+.stat-card:nth-child(1) {
+    border-color: #4CAF50;
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.05), rgba(255, 255, 255, 0.98));
+}
+
+.stat-card:nth-child(2) {
+    border-color: #2196F3;
+    background: linear-gradient(135deg, rgba(33, 150, 243, 0.05), rgba(255, 255, 255, 0.98));
+}
+
+.stat-card:nth-child(3) {
+    border-color: #FF9800;
+    background: linear-gradient(135deg, rgba(255, 152, 0, 0.05), rgba(255, 255, 255, 0.98));
+}
+
+.stat-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.9;
+}
+
+.stat-card:nth-child(1) .stat-icon { color: #2E7D32; }
+.stat-card:nth-child(2) .stat-icon { color: #1565C0; }
+.stat-card:nth-child(3) .stat-icon { color: #E65100; }
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #212529;
+}
+
+.stat-label {
+    font-size: 1rem;
+    color: #495057;
+    font-weight: 500;
+}
+
+/* Contenedor principal */
+.main-content {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    margin: 0 1rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+/* Sección de información de importación mejorada */
+.import-info-section {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border-radius: 1.5rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.info-header h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.btn-toggle-info {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    padding: 0.5rem;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-toggle-info:hover {
+    background: rgba(255,255,255,0.3);
+    transform: scale(1.1);
+}
+
+.info-content {
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.info-card {
+    background: rgba(255,255,255,0.1);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.card-header i {
+    font-size: 1.5rem;
+    margin-right: 0.75rem;
+}
+
+.card-header h4 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+/* Controles de administración mejorados */
+.admin-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.controls-left {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.btn-add-user,
+.btn-import,
+.btn-export,
+.btn-filters,
+.btn-download-institutions {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-add-user:hover,
+.btn-import:hover,
+.btn-export:hover,
+.btn-filters:hover,
+.btn-download-institutions:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-add-user {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+}
+
+.btn-export {
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+}
+
+.btn-download-institutions {
+    background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+}
+
+.btn-download-institutions:hover {
+    box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+}
+
+.btn-download-template-main {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-download-template-main:hover {
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+}
+
+.btn-download-template-main::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn-download-template-main:hover::before {
+    left: 100%;
+}
+
+.search-box-modern {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #f8f9fa;
+    border-radius: 2rem;
+    padding: 0.75rem 1.5rem;
+    min-width: 300px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.search-icon {
+    color: #495057;
+    margin-right: 0.75rem;
+}
+
+.search-input-modern {
+    border: none;
+    background: transparent;
+    outline: none;
+    flex: 1;
+    font-size: 1rem;
+}
+
+.search-input-modern::placeholder {
+    color: #495057;
+}
+
+/* Panel de filtros mejorado */
+.filters-panel {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    display: none;
+}
+
+.filters-panel.show {
+    display: block;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.filters-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-group label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #495057;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filter-select {
+    padding: 0.75rem;
+    border: 2px solid #e9ecef;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.filter-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    outline: none;
+}
+
+/* Tabla de usuarios mejorada con responsividad completa */
+.users-table-container {
+    background: white;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    position: relative;
+}
+
+/* Indicador de scroll horizontal */
+.users-table-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 20px;
+    height: 100%;
+    background: linear-gradient(to left, rgba(255,255,255,0.9), transparent);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .users-table-container::after {
+        opacity: 1;
+    }
+    
+    .users-table-container:hover::after {
+        opacity: 0.5;
+    }
+    
+    /* Mejorar el scroll en dispositivos táctiles */
+    .users-table-container {
+        scrollbar-width: thin;
+        scrollbar-color: #667eea #f1f1f1;
+    }
+    
+    .users-table-container::-webkit-scrollbar {
+        height: 8px;
+    }
+    
+    .users-table-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+    
+    .users-table-container::-webkit-scrollbar-thumb {
+        background: #667eea;
+        border-radius: 4px;
+    }
+    
+    .users-table-container::-webkit-scrollbar-thumb:hover {
+        background: #5a6fd8;
+    }
+}
+
+.users-table {
+    width: 100%;
+    margin-bottom: 0;
+    min-width: 800px;
+}
+
+.users-table thead th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.users-table tbody tr {
+    transition: all 0.3s ease;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.users-table tbody tr:hover {
+    background-color: #f8f9fa;
+    transform: scale(1.01);
+}
+
+.users-table tbody td {
+    padding: 1rem;
+    vertical-align: middle;
+}
+
+/* Responsividad de la tabla */
+@media (max-width: 1200px) {
+    .users-table {
+        min-width: 700px;
+    }
+    
+    .users-table thead th,
+    .users-table tbody td {
+        padding: 0.75rem;
+    }
+    
+    .users-table thead th {
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .users-table {
+        min-width: 600px;
+    }
+    
+    .users-table thead th,
+    .users-table tbody td {
+        padding: 0.5rem;
+    }
+    
+    .users-table thead th {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .users-table-container {
+        margin: 0 -1rem;
+        border-radius: 0;
+    }
+    
+    .users-table {
+        min-width: 500px;
+    }
+    
+    .users-table thead th,
+    .users-table tbody td {
+        padding: 0.5rem 0.25rem;
+    }
+    
+    .users-table thead th {
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .users-table {
+        min-width: 450px;
+    }
+    
+    .users-table thead th,
+    .users-table tbody td {
+        padding: 0.4rem 0.2rem;
+    }
+    
+    .users-table thead th {
+        font-size: 0.7rem;
+    }
+}
+
+/* Estilos específicos para columnas de la tabla */
+.checkbox-column {
+    width: 50px;
+    text-align: center;
+}
+
+.id-column {
+    width: 80px;
+    text-align: center;
+}
+
+.user-column {
+    min-width: 200px;
+}
+
+.role-column {
+    width: 120px;
+    text-align: center;
+}
+
+.status-column {
+    width: 80px;
+    text-align: center;
+}
+
+.actions-column {
+    width: 120px;
+    text-align: center;
+}
+
+/* Columnas ocultas en móvil */
+@media (max-width: 768px) {
+    .d-none-mobile {
+        display: none !important;
+    }
+    
+    .d-mobile-only {
+        display: block !important;
+    }
+    
+    .checkbox-column {
+        width: 40px;
+    }
+    
+    .user-column {
+        min-width: 150px;
+    }
+    
+    .role-column {
+        width: 100px;
+    }
+    
+    .status-column {
+        width: 60px;
+    }
+    
+    .actions-column {
+        width: 80px;
+    }
+}
+
+@media (min-width: 769px) {
+    .d-mobile-only {
+        display: none !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .checkbox-column {
+        width: 35px;
+    }
+    
+    .user-column {
+        min-width: 120px;
+    }
+    
+    .role-column {
+        width: 80px;
+    }
+    
+    .status-column {
+        width: 50px;
+    }
+    
+    .actions-column {
+        width: 70px;
+    }
+}
+
+/* Hint de scroll móvil */
+.mobile-scroll-hint {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.mobile-scroll-hint i {
+    font-size: 1.1rem;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+@media (max-width: 768px) {
+    .mobile-scroll-hint {
+        margin: 0 -1rem 1rem -1rem;
+        border-radius: 0;
+    }
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.user-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: 600;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.user-name {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-username {
+    color: #495057;
+    font-size: 0.9rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-email {
+    font-size: 0.9rem;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-phone {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-email-mobile {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Responsividad de elementos de usuario */
+@media (max-width: 992px) {
+    .user-info {
+        gap: 0.75rem;
+    }
+    
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+    
+    .user-name {
+        font-size: 0.9rem;
+    }
+    
+    .user-username {
+        font-size: 0.8rem;
+    }
+    
+    .user-email {
+        font-size: 0.8rem;
+    }
+    
+    .user-phone {
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .user-info {
+        gap: 0.5rem;
+    }
+    
+    .user-avatar {
+        width: 35px;
+        height: 35px;
+        font-size: 0.9rem;
+    }
+    
+    .user-name {
+        font-size: 0.85rem;
+    }
+    
+    .user-username {
+        font-size: 0.75rem;
+    }
+    
+    .user-email-mobile {
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .user-info {
+        gap: 0.4rem;
+    }
+    
+    .user-avatar {
+        width: 30px;
+        height: 30px;
+        font-size: 0.8rem;
+    }
+    
+    .user-name {
+        font-size: 0.8rem;
+    }
+    
+    .user-username {
+        font-size: 0.7rem;
+    }
+    
+    .user-email-mobile {
+        font-size: 0.65rem;
+    }
+}
+
+.role-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    display: inline-block;
+}
+
+.institution-tag,
+.area-tag {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.8rem;
+    background: #dee2e6;
+    color: #212529;
+    margin: 0.25rem 0;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+
+/* Responsividad de badges y tags */
+@media (max-width: 992px) {
+    .role-badge {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.75rem;
+    }
+    
+    .institution-tag,
+    .area-tag {
+        padding: 0.2rem 0.6rem;
+        font-size: 0.75rem;
+        max-width: 120px;
+    }
+}
+
+@media (max-width: 768px) {
+    .role-badge {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.7rem;
+    }
+    
+    .institution-tag,
+    .area-tag {
+        padding: 0.15rem 0.5rem;
+        font-size: 0.7rem;
+        max-width: 100px;
+    }
+}
+
+@media (max-width: 576px) {
+    .role-badge {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.65rem;
+    }
+    
+    .institution-tag,
+    .area-tag {
+        padding: 0.1rem 0.4rem;
+        font-size: 0.65rem;
+        max-width: 80px;
+    }
+}
+
+.status-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.status-switch {
+    display: none;
+}
+
+.switch-label {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+    background: #ccc;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.switch-slider {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.status-switch:checked + .switch-label {
+    background: #4CAF50;
+}
+
+.status-switch:checked + .switch-label .switch-slider {
+    transform: translateX(26px);
+}
+
+.action-buttons-row {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-action {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    min-width: 35px;
+    flex-shrink: 0;
+}
+
+/* Responsividad de controles de estado y acciones */
+@media (max-width: 992px) {
+    .switch-label {
+        width: 45px;
+        height: 22px;
+    }
+    
+    .switch-slider {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .status-switch:checked + .switch-label .switch-slider {
+        transform: translateX(23px);
+    }
+    
+    .btn-action {
+        width: 32px;
+        height: 32px;
+        font-size: 0.8rem;
+        min-width: 32px;
+    }
+    
+    .action-buttons-row {
+        gap: 0.4rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .switch-label {
+        width: 40px;
+        height: 20px;
+    }
+    
+    .switch-slider {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .status-switch:checked + .switch-label .switch-slider {
+        transform: translateX(20px);
+    }
+    
+    .btn-action {
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
+        min-width: 28px;
+    }
+    
+    .action-buttons-row {
+        gap: 0.3rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .switch-label {
+        width: 35px;
+        height: 18px;
+    }
+    
+    .switch-slider {
+        width: 14px;
+        height: 14px;
+    }
+    
+    .status-switch:checked + .switch-label .switch-slider {
+        transform: translateX(17px);
+    }
+    
+    .btn-action {
+        width: 26px;
+        height: 26px;
+        font-size: 0.7rem;
+        min-width: 26px;
+    }
+    
+    .action-buttons-row {
+        gap: 0.2rem;
+    }
+}
+
+.btn-view {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    color: white;
+}
+
+.btn-edit {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+    color: white;
+}
+
+.btn-delete {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+}
+
+.btn-action:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* Modales mejorados */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+
+.modal-container {
+    background: white;
+    border-radius: 1.5rem;
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from { opacity: 0; transform: scale(0.9) translateY(-50px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 1.5rem 1.5rem 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.btn-close-modal {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    padding: 0.5rem;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-close-modal:hover {
+    background: rgba(255,255,255,0.3);
+    transform: scale(1.1);
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+/* Formularios mejorados */
+.form-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 1rem;
+    border-left: 4px solid #667eea;
+}
+
+.section-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #495057;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-control {
+    padding: 0.75rem;
+    border: 2px solid #e9ecef;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    outline: none;
+}
+
+/* Estilos para la guía de importación mejorada */
+.institution-actions {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.btn-download-institutions-guide,
+.btn-view-institutions {
+    background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.btn-view-institutions {
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+}
+
+.btn-download-institutions-guide:hover,
+.btn-view-institutions:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.institution-example {
+    background: rgba(255,255,255,0.1);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-top: 1rem;
+}
+
+.institution-example h5 {
+    margin-bottom: 0.75rem;
+    color: white;
+    font-size: 1rem;
+}
+
+.example-table-mini {
+    overflow-x: auto;
+}
+
+.example-table-mini table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.example-table-mini th,
+.example-table-mini td {
+    padding: 0.5rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.example-table-mini th {
+    background: rgba(255,255,255,0.1);
+    font-weight: 600;
+    color: white;
+}
+
+.example-table-mini td {
+    color: rgba(255,255,255,0.95);
+    font-weight: 500;
+}
+
+.reference-guide {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.reference-item {
+    background: rgba(255,255,255,0.05);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border-left: 4px solid rgba(255,255,255,0.3);
+}
+
+.reference-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    color: white;
+}
+
+.reference-header i {
+    font-size: 1.1rem;
+}
+
+.reference-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.reference-tag {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.reference-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.btn-mini {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: none;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.25rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.btn-mini:hover {
+    background: rgba(255,255,255,0.3);
+    transform: translateY(-1px);
+}
+
+.field-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.field-item:last-child {
+    border-bottom: none;
+}
+
+.field-name {
+    font-weight: 600;
+    color: white;
+    font-family: 'Courier New', monospace;
+    background: rgba(255,255,255,0.1);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.9rem;
+}
+
+.field-desc {
+    color: rgba(255,255,255,0.95);
+    font-size: 0.9rem;
+    text-align: right;
+    flex: 1;
+    margin-left: 1rem;
+    font-weight: 500;
+}
+
+.required-fields .field-name {
+    background: rgba(255, 87, 87, 0.3);
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.optional-fields .field-name {
+    background: rgba(33, 150, 243, 0.3);
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* Estilos para modales de referencia */
+.institutions-table-container,
+.reference-table {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.search-institutions {
+    margin-bottom: 1rem;
+}
+
+.search-institutions input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e9ecef;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+}
+
+.search-institutions input:focus {
+    border-color: #667eea;
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.institutions-table,
+.reference-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+}
+
+.institutions-table th,
+.institutions-table td,
+.reference-table th,
+.reference-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.institutions-table th,
+.reference-table th {
+    background: #e9ecef;
+    font-weight: 600;
+    color: #212529;
+}
+
+.institutions-table tbody tr:hover,
+.reference-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.id-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.type-badge {
+    background: #dee2e6;
+    color: #212529;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.btn-copy-id {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.25rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-copy-id:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+}
+
+.btn-download-institutions-modal {
+    background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 1rem auto 0;
+}
+
+.btn-download-institutions-modal:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+}
+
+.modal-footer {
+    text-align: center;
+    padding-top: 1rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.loading-content {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+}
+
+.loading-content i {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: #667eea;
+}
+
+.template-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.btn-download-template-main,
+.btn-view-example {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.btn-view-example {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+}
+
+.btn-download-template-main:hover,
+.btn-view-example:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* Estilos para modal de importación */
+.import-instructions {
+    margin-bottom: 2rem;
+}
+
+.alert {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.alert-info {
+    background: #e3f2fd;
+    border-left: 4px solid #2196F3;
+    color: #1565C0;
+}
+
+.alert ul {
+    margin: 0.5rem 0 0 1rem;
+    padding: 0;
+}
+
+.template-section, .upload-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+}
+
+.template-section h4, .upload-section h4 {
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.btn-download-template {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-download-template:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.file-input-container {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.file-input-container input[type="file"] {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.file-input-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 2rem;
+    border: 2px dashed #ccc;
+    border-radius: 0.5rem;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #666;
+}
+
+.file-input-label:hover {
+    border-color: #667eea;
+    background: #f8f9ff;
+    color: #667eea;
+}
+
+.import-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.btn-cancel {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-import-submit {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-cancel:hover, .btn-import-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.import-results {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+}
+
+.import-summary {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.summary-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+}
+
+.summary-item.success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.summary-item.info {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.summary-item.warning {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.summary-item.error {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.warning-details,
+.error-details {
+    margin-top: 1rem;
+}
+
+.warning-details h5 {
+    color: #856404;
+    margin-bottom: 0.5rem;
+}
+
+.warning-details ul {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.warning-details li {
+    color: #856404;
+    margin-bottom: 0.25rem;
+}
+
+.error-details h5 {
+    color: #721c24;
+    margin-bottom: 0.5rem;
+}
+
+.error-details ul {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.error-details li {
+    color: #721c24;
+    margin-bottom: 0.25rem;
+}
+
+/* Responsive Mejorado */
+@media (max-width: 1200px) {
+    .hero-stats { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+    .admin-controls { padding: 1rem; }
+    .search-box-modern { min-width: 250px; }
+}
+
+@media (max-width: 992px) {
+    .admin-header { padding: 2rem 0; }
+    .admin-title { font-size: 2.5rem; }
+    .admin-icon { font-size: 3.5rem; }
+    .hero-stats { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; }
+    .main-content { margin: 0 0.75rem; }
+    .info-grid { grid-template-columns: 1fr; }
+    .filters-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+    .users-table { font-size: 0.95rem; }
+}
+
+@media (max-width: 768px) {
+    .admin-title { font-size: 2rem; }
+    .admin-icon { font-size: 3rem; margin-right: 1rem; }
+    .admin-title-section { flex-direction: column; text-align: center; }
+    .admin-icon { margin-right: 0; margin-bottom: 1rem; }
+    .hero-stats { grid-template-columns: 1fr; gap: 1rem; }
+    .main-content { margin: 0 0.5rem; padding: 1rem; }
+    
+    /* Controles administrativos */
+    .admin-controls { 
+        flex-direction: column; 
+        align-items: stretch; 
+        gap: 1rem;
+        padding: 1rem;
+    }
+    .controls-left { 
+        justify-content: center; 
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+    .controls-center {
+        order: -1; /* Mover búsqueda arriba */
+        margin-bottom: 1rem;
+    }
+    .search-box-modern { 
+        min-width: auto; 
+        width: 100%;
+        padding: 0.75rem 1rem;
+    }
+    .controls-right {
+        justify-content: center;
+        gap: 0.75rem;
+    }
+    
+    /* Botones responsive */
+    .btn-add-user,
+    .btn-import,
+    .btn-export,
+    .btn-filters,
+    .btn-download-institutions,
+    .btn-download-template-main {
+        min-width: 120px;
+        justify-content: center;
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    /* Filtros */
+    .filters-grid { grid-template-columns: 1fr; gap: 1rem; }
+    .filters-panel { padding: 1rem; }
+    
+    /* Tabla responsive */
+    .users-table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .users-table { 
+        font-size: 0.85rem; 
+        min-width: 800px; /* Ancho mínimo para scroll horizontal */
+    }
+    .users-table th,
+    .users-table td {
+        padding: 0.75rem 0.5rem;
+        white-space: nowrap;
+    }
+    
+    /* Ocultar columnas en móvil */
+    .d-none-mobile {
+        display: none !important;
+    }
+    .d-mobile-only {
+        display: block !important;
+    }
+    
+    /* Info cards responsive */
+    .info-card {
+        padding: 1rem;
+    }
+    .card-header h4 {
+        font-size: 1rem;
+    }
+    
+    /* Modales */
+    .modal-container { 
+        width: 95%; 
+        max-height: 85vh;
+        margin: 2rem auto;
+    }
+    .modal-body {
+        padding: 1rem;
+    }
+    
+    /* Acciones responsive */
+    .institution-actions,
+    .reference-actions,
+    .template-actions { 
+        flex-direction: column; 
+        gap: 0.75rem;
+    }
+    .field-item { 
+        flex-direction: column; 
+        align-items: flex-start; 
+        padding: 0.5rem 0;
+    }
+    .field-desc { 
+        text-align: left; 
+        margin-left: 0; 
+        margin-top: 0.5rem; 
+        font-size: 0.85rem;
+    }
+    .import-actions { 
+        flex-direction: column; 
+        gap: 0.75rem;
+    }
+    .import-summary { 
+        flex-direction: column; 
+        gap: 0.5rem;
+    }
+    
+    /* Formularios */
+    .form-row { grid-template-columns: 1fr; gap: 1rem; }
+    .form-section { padding: 1rem; }
+    
+    /* Tablas de referencia */
+    .institutions-table-container,
+    .reference-table {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .institutions-table,
+    .reference-table {
+        min-width: 500px;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .admin-title { font-size: 1.75rem; }
+    .admin-subtitle { font-size: 1rem; }
+    .stat-number { font-size: 2rem; }
+    .stat-label { font-size: 0.9rem; }
+    
+    /* Padding reducido */
+    .admin-header { padding: 1.5rem 0; }
+    .main-content { padding: 0.75rem; }
+    .info-card { padding: 0.75rem; }
+    .form-section { padding: 0.75rem; }
+    
+    /* Botones más pequeños */
+    .btn-add-user,
+    .btn-import,
+    .btn-export,
+    .btn-filters,
+    .btn-download-institutions,
+    .btn-download-template-main {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.85rem;
+        min-width: 100px;
+    }
+    
+    /* Iconos más pequeños */
+    .admin-icon { font-size: 2.5rem; }
+    .stat-icon { font-size: 2.5rem; }
+    
+    /* Formularios compactos */
+    .form-control {
+        padding: 0.6rem;
+        font-size: 0.9rem;
+    }
+    .form-label {
+        font-size: 0.9rem;
+    }
+    
+    /* Modales más pequeños */
+    .modal-container {
+        width: 98%;
+        margin: 1rem auto;
+    }
+    .modal-header {
+        padding: 1rem;
+    }
+    .modal-header h3 {
+        font-size: 1.25rem;
+    }
+    
+    /* Tabla ultra compacta */
+    .users-table {
+        font-size: 0.8rem;
+    }
+    .users-table th,
+    .users-table td {
+        padding: 0.5rem 0.25rem;
+    }
+    .user-avatar {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+    }
+    .btn-action {
+        width: 30px;
+        height: 30px;
+        font-size: 0.8rem;
+    }
+    
+    /* Reference lists compactas */
+    .reference-list { 
+        flex-direction: column; 
+        gap: 0.25rem;
+    }
+    .reference-tag {
+        font-size: 0.75rem;
+        padding: 0.2rem 0.5rem;
+    }
+    
+    /* Import summary compacto */
+    .summary-item {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .admin-title { font-size: 1.5rem; }
+    .admin-users-container { padding: 1rem 0; }
+    .hero-stats { padding: 0 1rem; }
+    .main-content { margin: 0 0.25rem; }
+    
+    /* Controles ultra compactos */
+    .admin-controls {
+        padding: 0.75rem;
+        gap: 0.75rem;
+    }
+    .controls-left {
+        gap: 0.5rem;
+    }
+    .btn-add-user,
+    .btn-import,
+    .btn-export,
+    .btn-filters,
+    .btn-download-institutions,
+    .btn-download-template-main {
+        padding: 0.5rem 0.7rem;
+        font-size: 0.8rem;
+        min-width: 90px;
+    }
+    .btn-add-user span,
+    .btn-import span,
+    .btn-export span,
+    .btn-filters span,
+    .btn-download-institutions span,
+    .btn-download-template-main span {
+        display: none; /* Solo mostrar iconos en pantallas muy pequeñas */
+    }
+    
+    /* Search box compacto */
+    .search-box-modern {
+        padding: 0.6rem 1rem;
+    }
+    .search-input-modern {
+        font-size: 0.9rem;
+    }
+    
+    /* Info section compacta */
+    .import-info-section {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    .info-header h3 {
+        font-size: 1.1rem;
+    }
+}
+
+/* Clases de utilidad responsive */
+@media (max-width: 768px) {
+    .d-none-mobile {
+        display: none !important;
+    }
+    .d-mobile-only {
+        display: block !important;
+    }
+}
+
+@media (min-width: 769px) {
+    .d-mobile-only {
+        display: none !important;
+    }
+}
+
+/* Mejoras para touch */
+@media (hover: none) and (pointer: coarse) {
+    .btn-action {
+        min-width: 44px;
+        min-height: 44px;
+    }
+    .switch-label {
+        min-width: 60px;
+        min-height: 34px;
+    }
+    .btn-close-modal {
+        min-width: 44px;
+        min-height: 44px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="floating-icons-container">
+    <div class="floating-icon icon1">👥</div>
+    <div class="floating-icon icon2">🔧</div>
+    <div class="floating-icon icon3">📊</div>
+    <div class="floating-icon icon4">⚙️</div>
+    <div class="floating-icon icon5">📋</div>
+    <div class="floating-icon icon6">🔍</div>
+    <div class="floating-icon icon7">📈</div>
+    <div class="floating-icon icon8">💼</div>
+    <div class="floating-icon icon9">🎯</div>
+    <div class="floating-icon icon10">📌</div>
+    <div class="floating-icon icon11">🔐</div>
+    <div class="floating-icon icon12">📱</div>
+    <div class="floating-icon icon13">💻</div>
+    <div class="floating-icon icon14">📧</div>
+    <div class="floating-icon icon15">🔑</div>
+    <div class="floating-icon icon16">👤</div>
+    <div class="floating-icon icon17">🔄</div>
+    <div class="floating-icon icon18">📝</div>
+    <div class="floating-icon icon19">🔍</div>
+    <div class="floating-icon icon20">⚡</div>
+ </div>
+           
+<!-- Iconos de fondo animados -->
+<div class="admin-bg-icons">
+    <i class="fas fa-users admin-bg-icon"></i>
+    <i class="fas fa-user-cog admin-bg-icon"></i>
+    <i class="fas fa-user-shield admin-bg-icon"></i>
+    <i class="fas fa-users-cog admin-bg-icon"></i>
+    <i class="fas fa-user-plus admin-bg-icon"></i>
+    <i class="fas fa-user-check admin-bg-icon"></i>
+    <i class="fas fa-user-edit admin-bg-icon"></i>
+</div>
+
+<div class="admin-users-container">
+    <!-- Header principal -->
+    <div class="admin-header">
+        <div class="admin-title-section">
+            <div class="admin-icon">
+                <i class="fas fa-users-cog"></i>
+            </div>
+            <div class="admin-title-content">
+                <h1 class="admin-title">Administración de Usuarios</h1>
+                <p class="admin-subtitle">Gestiona usuarios, roles y permisos del sistema</p>
+            </div>
+        </div>
+        
+        <div class="hero-stats">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number" id="totalUsers">{{ usuarios|length }}</span>
+                    <span class="stat-label">Total Usuarios</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon active">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number" id="activeUsers">0</span>
+                    <span class="stat-label">Usuarios Activos</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon inactive">
+                    <i class="fas fa-user-times"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number" id="inactiveUsers">0</span>
+                    <span class="stat-label">Usuarios Inactivos</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="container-fluid">
+        <div class="main-content">
+        
+    <!-- Sección de información para importación -->
+    <div class="import-info-section">
+        <div class="info-header">
+            <h3>
+                <i class="fas fa-info-circle"></i>
+                Guía de Importación de Usuarios
+            </h3>
+            <button class="btn-toggle-info" onclick="toggleImportInfo()">
+                <i class="fas fa-chevron-down" id="infoToggleIcon"></i>
+            </button>
+        </div>
+        
+        <div class="info-content" id="importInfoContent">
+            <div class="info-grid">
+                <!-- Plantilla y descarga -->
+                <div class="info-card">
+                    <div class="card-header">
+                        <i class="fas fa-download"></i>
+                        <h4>Plantilla de Excel</h4>
+                    </div>
+                    <div class="card-content">
+                        <p>Descarga la plantilla oficial para importar usuarios de manera correcta.</p>
+                        <div class="template-actions">
+                            <button class="btn-download-template-main" onclick="downloadTemplate()">
+                                <i class="fas fa-file-excel"></i>
+                                Descargar Plantilla
+                            </button>
+                            <button class="btn-view-example" onclick="showExampleModal()">
+                                <i class="fas fa-eye"></i>
+                                Ver Ejemplo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Campos requeridos -->
+                <div class="info-card">
+                    <div class="card-header">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h4>Campos Obligatorios</h4>
+                    </div>
+                    <div class="card-content">
+                        <div class="required-fields">
+                            <div class="field-item">
+                                <span class="field-name">nombre</span>
+                                <span class="field-desc">Nombre del usuario</span>
+                            </div>
+                            <div class="field-item">
+                                <span class="field-name">apellido_paterno</span>
+                                <span class="field-desc">Apellido paterno</span>
+                            </div>
+                            <div class="field-item">
+                                <span class="field-name">email</span>
+                                <span class="field-desc">Correo electrónico único</span>
+                            </div>
+                            <div class="field-item">
+                                <span class="field-name">username</span>
+                                <span class="field-desc">Nombre de usuario único</span>
+                            </div>
+                            <div class="field-item">
+                                <span class="field-name">id_institucion</span>
+                                <span class="field-desc">ID de institución (OBLIGATORIO)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                    <!-- IDs de Referencia -->
+                    <div class="info-card">
+                        <div class="card-header">
+                            <i class="fas fa-university"></i>
+                            <h4>IDs de Instituciones</h4>
+                        </div>
+                        <div class="card-content">
+                            <p class="mb-3">Para asignar una institución al usuario, necesitas el ID correspondiente. Usa el botón "Descargar Instituciones" para obtener la lista actualizada.</p>
+                            <div class="institution-actions">
+                                <button class="btn-download-institutions-guide" onclick="downloadInstitutions()">
+                                    <i class="fas fa-university"></i>
+                                    Descargar Lista de Instituciones
+                                </button>
+                                <button class="btn-view-institutions" onclick="showInstitutionsModal()">
+                                    <i class="fas fa-eye"></i>
+                                    Ver IDs Disponibles
+                                </button>
+                            </div>
+                            <div class="institution-example">
+                                <h5><i class="fas fa-lightbulb"></i> Ejemplo de uso:</h5>
+                                <div class="example-table-mini">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Institución</th>
+                                                <th>Tipo</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>1</td>
+                                                <td>Universidad Tecnológica</td>
+                                                <td>Universidad</td>
+                                            </tr>
+                                            <tr>
+                                                <td>2</td>
+                                                <td>Instituto Politécnico</td>
+                                                <td>Instituto</td>
+                                            </tr>
+                                            <tr>
+                                                <td>3</td>
+                                                <td>Colegio de Bachilleres</td>
+                                                <td>Preparatoria</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                <!-- Campos opcionales -->
+                <div class="info-card">
+                    <div class="card-header">
+                        <i class="fas fa-list"></i>
+                        <h4>Campos Opcionales</h4>
+                    </div>
+                    <div class="card-content">
+                        <div class="optional-fields">
+                            <div class="field-item">
+                                <span class="field-name">apellido_materno</span>
+                                    <span class="field-desc">Apellido materno del usuario</span>
+                            </div>
+                            <div class="field-item">
+                                <span class="field-name">telefono</span>
+                                    <span class="field-desc">Número telefónico (10 dígitos)</span>
+                            </div>
+                            <div class="field-item">
+                                <span class="field-name">id_rol</span>
+                                    <span class="field-desc">ID de rol (ver lista de roles disponibles)</span>
+                            </div>
+                            <div class="field-item">
+                                <span class="field-name">id_area</span>
+                                    <span class="field-desc">ID de área académica (ver lista de áreas)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                    <!-- Guía de IDs -->
+                <div class="info-card">
+                    <div class="card-header">
+                            <i class="fas fa-info-circle"></i>
+                            <h4>Guía de IDs de Referencia</h4>
+                    </div>
+                    <div class="card-content">
+                            <div class="reference-guide">
+                                <div class="reference-item">
+                                    <div class="reference-header">
+                                        <i class="fas fa-user-shield"></i>
+                                        <strong>IDs de Roles Comunes:</strong>
+                            </div>
+                                    <div class="reference-list">
+                                        <span class="reference-tag">1 - Administrador</span>
+                                        <span class="reference-tag">2 - Usuario</span>
+                                        <span class="reference-tag">8 - Coordinador</span>
+                                        <span class="reference-tag">9 - Investigador</span>
+                </div>
+            </div>
+
+                                <div class="reference-item">
+                                    <div class="reference-header">
+                                        <i class="fas fa-layer-group"></i>
+                                        <strong>Para obtener IDs actualizados:</strong>
+                </div>
+                                    <div class="reference-actions">
+                                        <button class="btn-mini" onclick="downloadInstitutions()">
+                                            <i class="fas fa-university"></i> Instituciones
+                                        </button>
+                                        <button class="btn-mini" onclick="showRolesReference()">
+                                            <i class="fas fa-user-shield"></i> Roles
+                                        </button>
+                                        <button class="btn-mini" onclick="showAreasReference()">
+                                            <i class="fas fa-layer-group"></i> Áreas
+                                        </button>
+                </div>
+            </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de control y filtros -->
+    <div class="admin-controls">
+        <div class="controls-left">
+            {% if has_permission('crear_usuario') %}
+            <button class="btn-add-user" onclick="showAddUserModal()">
+                <i class="fas fa-user-plus"></i>
+                <span>Nuevo Usuario</span>
+            </button>
+            {% endif %}
+            
+            {% if has_permission('crear_usuario') %}
+            <button class="btn-import" onclick="showImportModal()">
+                <i class="fas fa-file-excel"></i>
+                <span>Importar Excel</span>
+            </button>
+            {% endif %}
+            
+            {% if has_permission('gestionar_usuarios') %}
+            <button class="btn-export" onclick="exportUsers()">
+                <i class="fas fa-download"></i>
+                <span>Exportar</span>
+            </button>
+            {% endif %}
+                
+                {% if has_permission('crear_usuario') %}
+                <button class="btn-download-template-main" onclick="downloadTemplate()">
+                    <i class="fas fa-file-excel"></i>
+                    <span>Descargar Plantilla</span>
+                </button>
+                {% endif %}
+                
+                {% if has_permission('gestionar_usuarios') %}
+                <button class="btn-download-institutions" onclick="downloadInstitutions()">
+                    <i class="fas fa-university"></i>
+                    <span>Descargar Instituciones</span>
+                </button>
+                {% endif %}
+        </div>
+        
+        <div class="controls-center">
+            <div class="search-box-modern">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchInput" class="search-input-modern" 
+                       placeholder="Buscar usuarios..." 
+                       onkeyup="searchUsers()">
+                <button class="search-clear" onclick="clearSearch()" style="display: none;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="controls-right">
+            <button class="btn-filters" onclick="toggleFilters()">
+                <i class="fas fa-filter"></i>
+                <span>Filtros</span>
+                <span class="filter-count" id="filterCount" style="display: none;">0</span>
+            </button>
+            <button class="btn-refresh" onclick="refreshData()">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Panel de filtros avanzados -->
+    <div class="filters-panel" id="filtersPanel">
+        <div class="filters-header">
+            <h3>
+                <i class="fas fa-filter"></i>
+                Filtros Avanzados
+            </h3>
+            <button class="btn-close-filters" onclick="toggleFilters()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+                <div class="filters-grid">
+                    <div class="filter-group">
+                <label for="filterInstitucion">
+                    <i class="fas fa-university"></i>
+                    Institución
+                </label>
+                <select id="filterInstitucion" class="filter-select" onchange="applyFilters()">
+                    <option value="">Todas las instituciones</option>
+                            {% for inst in instituciones %}
+                            <option value="{{ inst.id_institucion }}">{{ inst.nombre_institucion }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+            
+                    <div class="filter-group">
+                <label for="filterRol">
+                        <i class="fas fa-user-shield"></i>
+                    Rol
+                </label>
+                <select id="filterRol" class="filter-select" onchange="applyFilters()">
+                    <option value="">Todos los roles</option>
+                            {% for rol in roles %}
+                            <option value="{{ rol.id_rol }}">{{ rol.nombre_rol }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+            
+                    <div class="filter-group">
+                <label for="filterArea">
+                    <i class="fas fa-layer-group"></i>
+                    Área
+                </label>
+                <select id="filterArea" class="filter-select" onchange="applyFilters()">
+                    <option value="">Todas las áreas</option>
+                            {% for area in areas %}
+                            <option value="{{ area.id_area }}">{{ area.nombre_area }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+            
+                    <div class="filter-group">
+                    <label for="filterEstado">
+                    <i class="fas fa-toggle-on"></i>
+                    Estado
+                </label>
+                    <select id="filterEstado" class="filter-select" onchange="applyFilters()">
+                    <option value="">Todos los estados</option>
+                        <option value="1">Activos</option>
+                        <option value="0">Inactivos</option>
+                        </select>
+                    </div>
+            </div>
+        </div>
+
+    <!-- Tabla de usuarios -->
+    <div class="mobile-scroll-hint d-mobile-only">
+        <i class="fas fa-arrows-alt-h"></i>
+        <span>Desliza horizontalmente para ver más columnas</span>
+    </div>
+    
+    <div class="users-table-container">
+            <table class="users-table">
+                    <thead>
+                        <tr>
+                        <th class="checkbox-column">
+                            <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                        </th>
+                        <th class="id-column d-none-mobile">ID</th>
+                        <th class="user-column">Usuario</th>
+                        <th class="role-column">Rol</th>
+                        <th class="d-none-mobile">Institución/Área</th>
+                        <th class="status-column">Estado</th>
+                        <th class="actions-column">Acciones</th>
+                        </tr>
+                    </thead>
+                <tbody id="usersTableBody">
+                        {% for user in usuarios %}
+                    <tr data-user-id="{{ user.id_usuario }}" class="user-row">
+                        <td class="checkbox-column">
+                            <input type="checkbox" class="user-checkbox" value="{{ user.id_usuario }}" onchange="updateBulkActions()">
+                        </td>
+                        <td class="user-id">{{ user.id_usuario }}</td>
+                        <td class="user-info">
+                            <div class="user-avatar">
+                                {% if user.ruta_imagen %}
+                                    <img src="{{ user.ruta_imagen }}" alt="Avatar">
+                                {% else %}
+                                    <div class="avatar-placeholder">
+                                        {{ user.nombre[0] }}{{ user.apellido_paterno[0] if user.apellido_paterno else '' }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="user-details">
+                                <div class="user-name">{{ user.nombre }} {{ user.apellido_paterno }}</div>
+                                <div class="user-username">@{{ user.username }}</div>
+                                <div class="user-email-mobile d-mobile-only">{{ user.email }}</div>
+                            </div>
+                            </td>
+                        <td class="d-none-mobile user-contact">
+                            <div class="user-email">{{ user.email }}</div>
+                            <div class="user-phone">{{ user.telefono or 'Sin teléfono' }}</div>
+                        </td>
+                        <td>
+                            <span class="role-badge role-{{ user.roles.nombre_rol.lower().replace(' ', '-') if user.roles else 'sin-rol' }}">
+                                {{ user.roles.nombre_rol if user.roles else 'Sin rol' }}
+                            </span>
+                        </td>
+                        <td class="d-none-mobile">
+                            <div>
+                                <span class="institution-tag">
+                                    {{ user.institucion.nombre_institucion if user.institucion else 'Sin institución' }}
+                                </span>
+                            </div>
+                            <div style="margin-top: 4px;">
+                                <span class="area-tag">
+                                    {{ user.area.nombre_area if user.area else 'Sin área' }}
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="status-toggle">
+                                <input type="checkbox" class="status-switch" 
+                                       id="status-{{ user.id_usuario }}" 
+                                       {{ 'checked' if user.activo else '' }}
+                                       onchange="toggleUserStatus({{ user.id_usuario }}, this.checked)">
+                                <label for="status-{{ user.id_usuario }}" class="switch-label">
+                                    <span class="switch-slider"></span>
+                                </label>
+                            </div>
+                        </td>
+                        <td class="actions-column">
+                            <div class="action-buttons-row">
+                                {% if has_permission('gestionar_usuarios') %}
+                                <button class="btn-action btn-view" onclick="mostrarDetallesUsuario({{ user.id_usuario }})" title="Ver detalles">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                {% endif %}
+                                
+                                {% if has_permission('editar_usuario') and user.id_rol != 16 %}
+                                <button class="btn-action btn-edit" onclick="editUser({{ user.id_usuario }})" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                {% elif has_permission('editar_usuario') and user.id_rol == 16 %}
+                                <button class="btn-action btn-edit-disabled" title="No se puede editar Super Administrador" disabled>
+                                    <i class="fas fa-lock"></i>
+                                </button>
+                                {% endif %}
+                                
+                                {% if has_permission('eliminar_usuario') %}
+                                <button class="btn-action btn-delete" onclick="deleteUser({{ user.id_usuario }})" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Mantener todos los modales y scripts existentes aquí -->
+<!-- Modal para agregar/editar usuario -->
+<div class="modal-overlay" id="userModal" style="display: none;">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3 id="modalTitle">
+                <i class="fas fa-user-plus"></i>
+                Nuevo Usuario
+            </h3>
+            <button class="btn-close-modal" onclick="closeUserModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            </div>
+        
+        <div class="modal-body">
+            <form id="userForm" class="user-form">
+                    <input type="hidden" id="id_usuario" name="id_usuario">
+                
+                <!-- Información personal -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-user"></i>
+                        Información Personal
+                    </h4>
+                    
+                    <div class="form-row">
+                    <div class="form-group">
+                            <label for="nombre" class="form-label">
+                                <i class="fas fa-user"></i>
+                                Nombre *
+                            </label>
+                        <input type="text" class="form-control" id="nombre" name="nombre" required>
+                    </div>
+                        
+                    <div class="form-group">
+                            <label for="apellido_paterno" class="form-label">
+                                <i class="fas fa-user"></i>
+                                Apellido Paterno *
+                            </label>
+                        <input type="text" class="form-control" id="apellido_paterno" name="apellido_paterno" required>
+                    </div>
+                    </div>
+                    
+                    <div class="form-row">
+                    <div class="form-group">
+                            <label for="apellido_materno" class="form-label">
+                                <i class="fas fa-user"></i>
+                                Apellido Materno
+                            </label>
+                            <input type="text" class="form-control" id="apellido_materno" name="apellido_materno">
+                    </div>
+                        
+                    <div class="form-group">
+                            <label for="telefono" class="form-label">
+                                <i class="fas fa-phone"></i>
+                                Teléfono *
+                            </label>
+                            <input type="tel" class="form-control" id="telefono" name="telefono" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Información de cuenta -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-key"></i>
+                        Información de Cuenta
+                    </h4>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email" class="form-label">
+                                <i class="fas fa-envelope"></i>
+                                Email *
+                            </label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                        
+                    <div class="form-group">
+                            <label for="username" class="form-label">
+                                <i class="fas fa-at"></i>
+                                Username *
+                            </label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                    </div>
+                    </div>
+                </div>
+                
+                <!-- Asignaciones -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-cogs"></i>
+                        Asignaciones
+                    </h4>
+                    
+                    <div class="form-row">
+                    <div class="form-group">
+                            <label for="id_rol" class="form-label">
+                                <i class="fas fa-user-shield"></i>
+                                Rol *
+                            </label>
+                            <select class="form-control" id="id_rol" name="id_rol" required>
+                                <option value="">Seleccionar rol</option>
+                                {% for rol in roles %}
+                                <option value="{{ rol.id_rol }}">{{ rol.nombre_rol }}</option>
+                                    {% endfor %}
+                                </select>
+                        </div>
+                        
+                    <div class="form-group">
+                            <label for="id_institucion" class="form-label">
+                                <i class="fas fa-university"></i>
+                                Institución
+                            </label>
+                            <select class="form-control" id="id_institucion" name="id_institucion">
+                                <option value="">Seleccionar institución</option>
+                                {% for inst in instituciones %}
+                                <option value="{{ inst.id_institucion }}">{{ inst.nombre_institucion }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    </div>
+                    
+                    <div class="form-row">
+                    <div class="form-group">
+                            <label for="id_area" class="form-label">
+                                <i class="fas fa-layer-group"></i>
+                                Área
+                            </label>
+                            <select class="form-control" id="id_area" name="id_area">
+                                <option value="">Seleccionar área</option>
+                            {% for area in areas %}
+                            <option value="{{ area.id_area }}">{{ area.nombre_area }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                        
+                    <div class="form-group">
+                            <label for="activo" class="form-label">
+                                <i class="fas fa-toggle-on"></i>
+                                Estado
+                            </label>
+                        <select class="form-control" id="activo" name="activo">
+                                <option value="1">Activo</option>
+                                <option value="0">Inactivo</option>
+                        </select>
+                    </div>
+                    </div>
+        </div>
+        
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeUserModal()">
+                <i class="fas fa-times"></i>
+                Cancelar
+                        </button>
+                    <button type="submit" class="btn-primary">
+                <i class="fas fa-save"></i>
+                Guardar Usuario
+                        </button>
+                    </div>
+                </form>
+            </div>
+            </div>
+        </div>
+        
+<script>
+// Funciones JavaScript existentes se mantienen aquí
+function toggleImportInfo() {
+    const content = document.getElementById('importInfoContent');
+    const icon = document.getElementById('infoToggleIcon');
+    
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        icon.classList.remove('fa-chevron-down');
+        icon.classList.add('fa-chevron-up');
+    } else {
+        content.style.display = 'none';
+        icon.classList.remove('fa-chevron-up');
+        icon.classList.add('fa-chevron-down');
+    }
+}
+
+function toggleFilters() {
+    const panel = document.getElementById('filtersPanel');
+    panel.classList.toggle('show');
+}
+
+function showAddUserModal() {
+    document.getElementById('userModal').style.display = 'flex';
+    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-plus"></i> Nuevo Usuario';
+    document.getElementById('userForm').reset();
+}
+
+function closeUserModal() {
+    document.getElementById('userModal').style.display = 'none';
+}
+
+function editUser(userId) {
+    // Implementar lógica de edición
+    console.log('Editando usuario:', userId);
+}
+
+function deleteUser(userId) {
+    if (confirm('¿Estás seguro de que quieres eliminar este usuario?')) {
+        // Implementar lógica de eliminación
+        console.log('Eliminando usuario:', userId);
+    }
+}
+
+function searchUsers() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const rows = document.querySelectorAll('.user-row');
+
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+}
+
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.user-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+    });
+}
+
+function toggleUserStatus(userId, isActive) {
+    // Implementar lógica de cambio de estado
+    console.log('Cambiando estado del usuario:', userId, 'a:', isActive);
+}
+
+function applyFilters() {
+    // Implementar lógica de filtros
+    console.log('Aplicando filtros');
+}
+
+function refreshData() {
+    // Implementar lógica de actualización
+    location.reload();
+}
+
+function exportUsers() {
+    // Mostrar indicador de carga
+    const button = event.target.closest('.btn-export');
+    const originalContent = button.innerHTML;
+    
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Exportando...</span>';
+    button.disabled = true;
+    
+    // Usar fetch para descargar el archivo
+    fetch('/admin/usuarios/exportar', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+        return response.blob();
+    })
+    .then(blob => {
+        // Crear URL temporal para el blob
+        const url = window.URL.createObjectURL(blob);
+        
+        // Crear enlace temporal para descargar
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `usuarios_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.csv`;
+        
+        // Agregar el enlace al DOM, hacer clic y remover
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Limpiar la URL temporal
+        window.URL.revokeObjectURL(url);
+        
+        // Mostrar mensaje de éxito
+        showNotification('Exportación de usuarios completada', 'success');
+            })
+            .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error al exportar usuarios: ' + error.message, 'error');
+    })
+    .finally(() => {
+        // Restaurar botón
+        button.innerHTML = originalContent;
+        button.disabled = false;
+    });
+}
+
+function downloadInstitutions() {
+    // Mostrar indicador de carga
+    const button = event.target.closest('.btn-download-institutions');
+    const originalContent = button.innerHTML;
+    
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Descargando...</span>';
+    button.disabled = true;
+    
+    // Usar fetch para mejor manejo de errores
+    fetch('/admin/usuarios/descargar-instituciones', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+        return response.blob();
+    })
+    .then(blob => {
+        // Crear URL temporal para el blob
+        const url = window.URL.createObjectURL(blob);
+        
+        // Crear enlace temporal para descargar
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `instituciones_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.csv`;
+        
+        // Agregar el enlace al DOM, hacer clic y remover
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Limpiar la URL temporal
+        window.URL.revokeObjectURL(url);
+        
+        // Mostrar mensaje de éxito
+        showNotification('Descarga de instituciones completada', 'success');
+                        })
+                        .catch(error => {
+        console.error('Error al descargar instituciones:', error);
+        showNotification(`Error al descargar instituciones: ${error.message}`, 'error');
+    })
+    .finally(() => {
+        // Restaurar el botón
+        button.innerHTML = originalContent;
+        button.disabled = false;
+    });
+}
+
+function showNotification(message, type = 'info') {
+    // Crear notificación
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    
+    // Determinar ícono y color según el tipo
+    let icon, backgroundColor;
+    switch(type) {
+        case 'success':
+            icon = 'check-circle';
+            backgroundColor = '#4CAF50';
+            break;
+        case 'error':
+            icon = 'exclamation-circle';
+            backgroundColor = '#f44336';
+            break;
+        case 'warning':
+            icon = 'exclamation-triangle';
+            backgroundColor = '#ff9800';
+            break;
+        default:
+            icon = 'info-circle';
+            backgroundColor = '#2196F3';
+    }
+    
+    notification.innerHTML = `
+        <i class="fas fa-${icon}"></i>
+        <span>${message}</span>
+    `;
+    
+    // Estilos para la notificación
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${backgroundColor};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 500;
+        animation: slideInRight 0.3s ease;
+        min-width: 300px;
+        max-width: 500px;
+        word-wrap: break-word;
+    `;
+    
+    // Agregar animación CSS
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Agregar al DOM
+    document.body.appendChild(notification);
+    
+    // Remover después de 3 segundos
+    setTimeout(() => {
+        notification.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(() => {
+            notification.remove();
+            style.remove();
+        }, 300);
+    }, 3000);
+}
+
+function downloadTemplate() {
+    // Mostrar indicador de carga
+    const button = event.target.closest('.btn-download-template, .btn-download-template-main');
+    const originalContent = button.innerHTML;
+    
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Descargando...</span>';
+    button.disabled = true;
+    
+    // Usar fetch para descargar la plantilla
+    fetch('/admin/usuarios/plantilla', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+        return response.blob();
+    })
+    .then(blob => {
+        // Crear URL temporal para el blob
+        const url = window.URL.createObjectURL(blob);
+        
+        // Crear enlace temporal para descargar
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `plantilla_usuarios_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.xlsx`;
+        
+        // Agregar el enlace al DOM, hacer clic y remover
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Limpiar la URL temporal
+        window.URL.revokeObjectURL(url);
+        
+        // Mostrar mensaje de éxito
+        showNotification('✅ Plantilla Excel descargada exitosamente. Revisa las 3 hojas: Datos, Instrucciones e IDs de Referencia', 'success');
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error al descargar plantilla: ' + error.message, 'error');
+    })
+    .finally(() => {
+        // Restaurar botón
+        button.innerHTML = originalContent;
+        button.disabled = false;
+    });
+}
+
+function importUsers() {
+    const form = document.getElementById('importForm');
+    const formData = new FormData(form);
+    const submitButton = form.querySelector('.btn-import-submit');
+    const originalContent = submitButton.innerHTML;
+    
+    // Mostrar indicador de carga
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Importando...</span>';
+    submitButton.disabled = true;
+    
+    // Enviar archivo al servidor
+    fetch('/admin/usuarios/importar', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Mostrar resultados
+        const resultsDiv = document.getElementById('importResults');
+        const resultsContent = document.getElementById('importResultsContent');
+        
+        let html = `
+            <div class="import-summary">
+                <div class="summary-item success">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Usuarios creados: ${data.usuarios_creados}</span>
+                </div>
+                <div class="summary-item info">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Total procesados: ${data.total_procesados}</span>
+                </div>
+        `;
+        
+        if (data.warnings && data.warnings.length > 0) {
+            html += `
+                <div class="summary-item warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Advertencias: ${data.warnings.length}</span>
+                </div>
+            `;
+        }
+        
+        if (data.errores && data.errores.length > 0) {
+            html += `
+                <div class="summary-item error">
+                    <i class="fas fa-times-circle"></i>
+                    <span>Errores: ${data.errores.length}</span>
+                </div>
+            `;
+        }
+        
+        html += `</div>`;
+        
+        // Mostrar advertencias
+        if (data.warnings && data.warnings.length > 0) {
+            html += `
+                <div class="warning-details">
+                    <h5>Advertencias:</h5>
+                    <ul>
+            `;
+            data.warnings.forEach(warning => {
+                html += `<li>${warning}</li>`;
+            });
+            html += `</ul></div>`;
+        }
+        
+        // Mostrar errores
+        if (data.errores && data.errores.length > 0) {
+            html += `
+                <div class="error-details">
+                    <h5>Errores encontrados:</h5>
+                    <ul>
+            `;
+            data.errores.forEach(error => {
+                html += `<li>${error}</li>`;
+            });
+            html += `</ul></div>`;
+        }
+        
+        resultsContent.innerHTML = html;
+        resultsDiv.style.display = 'block';
+        
+        // Mostrar notificación
+        if (data.usuarios_creados > 0) {
+            showNotification(data.mensaje, 'success');
+            // Recargar la página después de un breve delay
+            setTimeout(() => {
+                                location.reload();
+            }, 2000);
+        } else {
+            showNotification('No se pudieron importar usuarios', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error al importar usuarios: ' + error.message, 'error');
+    })
+    .finally(() => {
+        // Restaurar botón
+        submitButton.innerHTML = originalContent;
+        submitButton.disabled = false;
+    });
+}
+
+function showExampleModal() {
+    // Implementar lógica para mostrar ejemplo
+    console.log('Mostrando ejemplo');
+}
+
+function showImportModal() {
+    console.log('🚀 showImportModal() ejecutándose...');
+    
+    try {
+                // Crear modal de importación - versión simplificada
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.innerHTML = `
+            <div class="modal-container">
+                <div class="modal-header">
+                    <h3>Importar Usuarios desde Excel/CSV</h3>
+                    <button class="btn-close-modal" onclick="closeModal(this)">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="template-section">
+                        <h4>Descargar Plantilla</h4>
+                        <button class="btn-download-template" onclick="downloadTemplate()">
+                            <i class="fas fa-file-excel"></i>
+                            Descargar Plantilla Excel
+                        </button>
+                    </div>
+                    
+                    <div class="upload-section">
+                        <h4>Subir Archivo</h4>
+                        <form id="importForm" enctype="multipart/form-data">
+                            <div class="file-input-container">
+                                <input type="file" id="importFile" name="archivo" accept=".csv,.xlsx,.xls" required>
+                                <label for="importFile" class="file-input-label">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    Seleccionar archivo Excel/CSV
+                                </label>
+                            </div>
+                            <div class="import-actions">
+                                <button type="button" class="btn-cancel" onclick="closeModal(this)">
+                                    Cancelar
+                                </button>
+                                <button type="submit" class="btn-import-submit">
+                                    Importar Usuarios
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div id="importResults" class="import-results" style="display: none;">
+                        <h4>Resultados de Importación</h4>
+                        <div id="importResultsContent"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+    
+        console.log('✅ Modal HTML creado, agregando al DOM...');
+        document.body.appendChild(modal);
+        console.log('✅ Modal agregado al DOM');
+    
+        // Agregar event listener para el formulario
+    document.getElementById('importForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        importUsers();
+    });
+    
+    // Agregar event listener para el input de archivo
+    document.getElementById('importFile').addEventListener('change', function(e) {
+        const label = document.querySelector('.file-input-label');
+        if (e.target.files.length > 0) {
+            label.innerHTML = `<i class="fas fa-file-check"></i> ${e.target.files[0].name}`;
+        } else {
+                         label.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Seleccionar archivo CSV/Excel';
+         }
+     });
+     
+        console.log('✅ Modal completamente configurado');
+     
+     } catch (error) {
+         console.error('❌ Error en showImportModal():', error);
+         alert('Error al abrir el modal de importación: ' + error.message);
+     }
+}
+
+function showInstitutionsModal() {
+    // Crear modal con lista de instituciones
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-university"></i>
+                    Lista de Instituciones Disponibles
+                </h3>
+                <button class="btn-close-modal" onclick="closeModal(this)">
+                    <i class="fas fa-times"></i>
+                </button>
+                </div>
+            <div class="modal-body">
+                <div class="loading-content">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Cargando instituciones...</p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Cargar instituciones dinámicamente
+    loadInstitutionsData(modal);
+}
+
+function loadInstitutionsData(modal) {
+    // Simular carga de datos (aquí podrías hacer una llamada AJAX real)
+    setTimeout(() => {
+        const modalBody = modal.querySelector('.modal-body');
+        const institutionsData = [
+            {% for inst in instituciones %}
+            {
+                id: {{ inst.id_institucion }},
+                name: "{{ inst.nombre_institucion }}",
+                type: "{{ inst.tipo_institucion.nombre_tipo_institucion if inst.tipo_institucion else 'Sin tipo' }}"
+            },
+            {% endfor %}
+        ];
+        
+        let tableHTML = `
+            <div class="institutions-table-container">
+                <div class="search-institutions">
+                    <input type="text" placeholder="Buscar institución..." onkeyup="filterInstitutions(this)">
+                </div>
+                <table class="institutions-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre de la Institución</th>
+                            <th>Tipo</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        institutionsData.forEach(inst => {
+            tableHTML += `
+                <tr>
+                    <td><span class="id-badge">${inst.id}</span></td>
+                    <td>${inst.name}</td>
+                    <td><span class="type-badge">${inst.type}</span></td>
+                    <td>
+                        <button class="btn-copy-id" onclick="copyToClipboard('${inst.id}', '${inst.name}')">
+                            <i class="fas fa-copy"></i> Copiar ID
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+        
+        tableHTML += `
+                    </tbody>
+                </table>
+                    </div>
+            <div class="modal-footer">
+                <button class="btn-download-institutions-modal" onclick="downloadInstitutions()">
+                    <i class="fas fa-download"></i>
+                    Descargar CSV Completo
+                </button>
+                    </div>
+        `;
+        
+        modalBody.innerHTML = tableHTML;
+    }, 500);
+}
+
+function filterInstitutions(input) {
+    const filter = input.value.toLowerCase();
+    const table = input.closest('.institutions-table-container').querySelector('table');
+    const rows = table.querySelectorAll('tbody tr');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(filter) ? '' : 'none';
+    });
+}
+
+function copyToClipboard(id, name) {
+    navigator.clipboard.writeText(id).then(() => {
+        showNotification(`ID ${id} copiado al portapapeles (${name})`, 'success');
+    }).catch(() => {
+        // Fallback para navegadores que no soportan clipboard API
+        const textArea = document.createElement('textarea');
+        textArea.value = id;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showNotification(`ID ${id} copiado al portapapeles (${name})`, 'success');
+    });
+}
+
+function showRolesReference() {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-user-shield"></i>
+                    IDs de Roles Disponibles
+                </h3>
+                <button class="btn-close-modal" onclick="closeModal(this)">
+                    <i class="fas fa-times"></i>
+                </button>
+    </div>
+            <div class="modal-body">
+                <table class="reference-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre del Rol</th>
+                            <th>Descripción</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rol in roles %}
+                        <tr>
+                            <td><span class="id-badge">{{ rol.id_rol }}</span></td>
+                            <td>{{ rol.nombre_rol }}</td>
+                            <td>{{ rol.descripcion or 'Sin descripción' }}</td>
+                            <td>
+                                <button class="btn-copy-id" onclick="copyToClipboard('{{ rol.id_rol }}', '{{ rol.nombre_rol }}')">
+                                    <i class="fas fa-copy"></i> Copiar ID
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+function showAreasReference() {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-layer-group"></i>
+                    IDs de Áreas Disponibles
+                </h3>
+                <button class="btn-close-modal" onclick="closeModal(this)">
+                    <i class="fas fa-times"></i>
+                </button>
+</div>
+            <div class="modal-body">
+                <table class="reference-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre del Área</th>
+                            <th>Descripción</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for area in areas %}
+                        <tr>
+                            <td><span class="id-badge">{{ area.id_area }}</span></td>
+                            <td>{{ area.nombre_area }}</td>
+                            <td>{{ area.descripcion or 'Sin descripción' }}</td>
+                            <td>
+                                <button class="btn-copy-id" onclick="copyToClipboard('{{ area.id_area }}', '{{ area.nombre_area }}')">
+                                    <i class="fas fa-copy"></i> Copiar ID
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+function closeModal(button) {
+    const modal = button.closest('.modal-overlay');
+    modal.remove();
+}
+
+function mostrarDetallesUsuario(userId) {
+    // Implementar lógica para mostrar detalles
+    console.log('Mostrando detalles del usuario:', userId);
+}
+
+// Inicializar estadísticas
+document.addEventListener('DOMContentLoaded', function() {
+    // Calcular usuarios activos e inactivos
+    const rows = document.querySelectorAll('.user-row');
+    let activeCount = 0;
+    let inactiveCount = 0;
+    
+    rows.forEach(row => {
+        const statusSwitch = row.querySelector('.status-switch');
+        if (statusSwitch && statusSwitch.checked) {
+            activeCount++;
+    } else {
+            inactiveCount++;
+        }
+    });
+    
+    document.getElementById('activeUsers').textContent = activeCount;
+    document.getElementById('inactiveUsers').textContent = inactiveCount;
+    
+    // Animación de entrada para las tarjetas
+    const cards = document.querySelectorAll('.stat-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(50px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 150);
+    });
+});
+</script>
+{% endblock %} 

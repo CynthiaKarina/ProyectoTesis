@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='improved-styles.css') }}">
+{% endblock %}
+
+{% block content %}
+{% from "components/quick_access.html" import quick_access %}
+{{ quick_access() }}
+
+<script>
+    (function() {
+        console.log('Inicializando Quick Access inline');
+        
+        const toggleBtn = document.getElementById('toggleQuickAccess');
+        const content = document.getElementById('quickAccessContent');
+        
+        if (toggleBtn && content) {
+            console.log('Elementos encontrados inline');
+            
+            // Función para alternar el menú
+            function toggleMenu() {
+                console.log('Toggle menu llamado');
+                content.classList.toggle('hidden');
+                
+                const icon = toggleBtn.querySelector('i');
+                if (content.classList.contains('hidden')) {
+                    console.log('Ocultando menú');
+                    icon.classList.remove('fa-chevron-left');
+                    icon.classList.add('fa-chevron-right');
+                    localStorage.setItem('quickAccessHidden', 'true');
+                } else {
+                    console.log('Mostrando menú');
+                    icon.classList.add('fa-chevron-left');
+                    icon.classList.remove('fa-chevron-right');
+                    localStorage.setItem('quickAccessHidden', 'false');
+                }
+            }
+
+            // Agregar el evento click directamente al botón
+            console.log('Agregando evento click al botón');
+            toggleBtn.onclick = function(e) {
+                console.log('Botón clickeado inline');
+                e.preventDefault();
+                e.stopPropagation();
+                toggleMenu();
+            };
+
+            // Cerrar al hacer clic fuera
+            document.addEventListener('click', function(e) {
+                if (!content.contains(e.target) && 
+                    !toggleBtn.contains(e.target) && 
+                    !content.classList.contains('hidden')) {
+                    console.log('Clic fuera del menú');
+                    toggleMenu();
+                }
+            });
+
+            // Restaurar estado guardado
+            if (localStorage.getItem('quickAccessHidden') === 'true') {
+                console.log('Restaurando estado oculto');
+                content.classList.add('hidden');
+                const icon = toggleBtn.querySelector('i');
+                icon.classList.remove('fa-chevron-left');
+                icon.classList.add('fa-chevron-right');
+            }
+        } else {
+            console.log('No se encontraron los elementos necesarios inline');
+            if (!toggleBtn) console.log('toggleBtn no encontrado');
+            if (!content) console.log('content no encontrado');
+        }
+    })();
+</script>
+
+<div class="search-container">
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Buscar...">
+        <button id="searchButton">
+            <i class="fas fa-search"></i>
+        </button>
+    </div>
+    <div class="filters">
+        <button id="filterButton">
+{% block main_content %}{% endblock %}
+{% endblock %}

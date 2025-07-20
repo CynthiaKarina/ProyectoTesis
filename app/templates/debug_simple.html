@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DEBUG - ¿Funciona el Template?</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background: #f0f0f0;
+        }
+        .debug-box { 
+            background: white; 
+            padding: 20px; 
+            margin: 10px 0; 
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .info { color: #17a2b8; font-weight: bold; }
+        .warning { color: #ffc107; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>🔍 DEBUG - ¿Funciona el Template?</h1>
+    
+    <div class="debug-box">
+        <h2>👤 Usuario Actual</h2>
+        {% if current_user %}
+            {% if current_user.is_authenticated %}
+                <p class="success">✅ Usuario autenticado: {{ current_user.username }}</p>
+                <p class="info">🆔 ID Usuario: {{ current_user.id_usuario }}</p>
+                <p class="info">🎭 Rol ID: {{ current_user.id_rol }}</p>
+            {% else %}
+                <p class="error">❌ Usuario NO autenticado</p>
+            {% endif %}
+        {% else %}
+            <p class="error">❌ No hay usuario</p>
+        {% endif %}
+    </div>
+
+    <div class="debug-box">
+        <h2>🔑 Verificaciones de Permisos</h2>
+        
+        {% if current_user and current_user.is_authenticated %}
+            <!-- Verificar has_permission -->
+            {% if has_permission %}
+                {% set perm_result = has_permission('admin_access') %}
+                <p>has_permission('admin_access'): 
+                    <span class="{% if perm_result %}success{% else %}error{% endif %}">
+                        {{ perm_result }}
+                    </span>
+                </p>
+            {% else %}
+                <p class="warning">⚠️ has_permission no disponible</p>
+            {% endif %}
+            
+            <!-- Verificar is_admin -->
+            {% if is_admin %}
+                {% set admin_result = is_admin() %}
+                <p>is_admin(): 
+                    <span class="{% if admin_result %}success{% else %}error{% endif %}">
+                        {{ admin_result }}
+                    </span>
+                </p>
+            {% else %}
+                <p class="warning">⚠️ is_admin no disponible</p>
+            {% endif %}
+            
+            <!-- Verificar is_super_user -->
+            {% if is_super_user %}
+                {% set super_result = is_super_user() %}
+                <p>is_super_user(): 
+                    <span class="{% if super_result %}success{% else %}error{% endif %}">
+                        {{ super_result }}
+                    </span>
+                </p>
+            {% else %}
+                <p class="warning">⚠️ is_super_user no disponible</p>
+            {% endif %}
+            
+            <!-- Verificar rol por ID -->
+            {% if current_user.id_rol %}
+                <p>Rol ID == 10: 
+                    <span class="{% if current_user.id_rol == 10 %}success{% else %}error{% endif %}">
+                        {{ current_user.id_rol == 10 }}
+                    </span>
+                </p>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <div class="debug-box">
+        <h2>🎯 Lógica del Template</h2>
+        
+        {% set admin_access = false %}
+        <p>admin_access inicial: <span class="error">{{ admin_access }}</span></p>
+        
+        {% if current_user and current_user.is_authenticated %}
+            <!-- LÓGICA ORIGINAL DEL USUARIO (CON CORRECCIÓN) -->
+            {% if (has_permission and has_permission('admin_access')) or (is_admin and is_admin()) or (is_super_user and is_super_user()) or (current_user.id_rol == 10) %}
+                {% set admin_access = true %}
+            {% endif %}
+            
+            <p>admin_access final: 
+                <span class="{% if admin_access %}success{% else %}error{% endif %}">
+                    {{ admin_access }}
+                </span>
+            </p>
+            
+            {% if admin_access %}
+                <p class="success">🎉 <strong>Template debería extender: base_Admin.html</strong></p>
+            {% else %}
+                <p class="error">😞 <strong>Template extiende: base_home.html</strong></p>
+            {% endif %}
+        {% else %}
+            <p class="error">❌ Usuario no autenticado</p>
+        {% endif %}
+    </div>
+    
+    <div class="debug-box">
+        <h2>🔄 Acciones</h2>
+        <p><a href="/home" style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Ir a Home</a></p>
+        <p><a href="/logout" style="background: #dc3545; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Logout</a></p>
+    </div>
+</body>
+</html> 

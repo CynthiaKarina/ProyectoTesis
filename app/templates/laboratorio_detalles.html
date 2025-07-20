@@ -1,0 +1,390 @@
+{% extends "base-simple.html" %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='improved-styles.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="floating-icons-container">
+    <div class="floating-icon icon1">📚</div>
+    <div class="floating-icon icon2">💻</div>
+    <div class="floating-icon icon3">🎓</div>
+    <div class="floating-icon icon4">✏️</div>
+    <div class="floating-icon icon5">📐</div>
+    <div class="floating-icon icon6">🔬</div>
+    <div class="floating-icon icon7">🎨</div>
+    <div class="floating-icon icon8">📝</div>
+    <div class="floating-icon icon9">🔍</div>
+    <div class="floating-icon icon10">📊</div>
+    <div class="floating-icon icon11">💡</div>
+    <div class="floating-icon icon12">⚗️</div>
+    <div class="floating-icon icon13">📓</div>
+    <div class="floating-icon icon14">🧮</div>
+    <div class="floating-icon icon15">📱</div>
+    <div class="floating-icon icon16">🎯</div>
+    <div class="floating-icon icon17">📖</div>
+    <div class="floating-icon icon18">🔖</div>
+    <div class="floating-icon icon19">📏</div>
+    <div class="floating-icon icon20">🎭</div>
+</div>
+
+<!-- Contenedor principal del detalle -->
+<div class="lab-detail-container">
+    <!-- Header del laboratorio -->
+    <div class="lab-detail-header"> 
+        <div class="lab-title-section">
+            <div class="lab-title-content">
+                <h1 class="lab-detail-title">{{ laboratorio.nombre_laboratorio }}</h1>
+                <div class="lab-meta-info">
+                    <span class="lab-institution">
+                        <i class="fas fa-university"></i>
+                        {{ laboratorio.nombre_institucion }}
+                    </span>
+                    <span class="lab-area">
+                        <i class="fas fa-layer-group"></i>
+                        {{ laboratorio.nombre_area }}
+            </span>
+        </div>
+    </div>
+
+            <div class="lab-status-actions">
+                <div class="status-badge-container">
+                    <span class="status-badge status-{{ laboratorio.disponibilidad|lower }}">
+                        {% if laboratorio.disponibilidad|lower == 'activo' %}
+                            <i class="fas fa-check-circle"></i>
+                        {% elif laboratorio.disponibilidad|lower == 'inactivo' %}
+                            <i class="fas fa-times-circle"></i>
+                        {% else %}
+                            <i class="fas fa-exclamation-circle"></i>
+                        {% endif %}
+                        {{ laboratorio.disponibilidad|title }}
+                    </span>
+                </div>
+                
+                {% if laboratorio.disponibilidad|lower == 'activo' %}
+                <button class="btn-request-lab" onclick="solicitarLaboratorio()">
+                    <i class="fas fa-calendar-plus"></i>
+                    <span>Solicitar Uso</span>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="lab-detail-content">
+        <!-- Sección de imágenes -->
+        <div class="lab-images-section">
+            <div class="main-image-container">
+                <div class="main-image-wrapper">
+                    <img id="imagenPrincipal" 
+                         src="{{ url_for('static', filename='uploads/laboratorios/default_lab.jpg') }}" 
+                         alt="Imagen principal del laboratorio" 
+                         class="main-lab-image">
+                    <div class="image-overlay">
+                        <button class="image-fullscreen-btn" onclick="openImageModal()">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </div>
+                </div>
+                    </div>
+                    
+            <div class="gallery-container">
+                <h3 class="gallery-title">
+                    <i class="fas fa-images"></i>
+                    Galería de imágenes
+                </h3>
+                <div id="imagenesContainer" class="images-gallery">
+                            <!-- Las imágenes se cargarán dinámicamente aquí -->
+                        </div>
+                    </div>
+                </div>
+
+        <!-- Información del laboratorio -->
+        <div class="lab-info-section">
+            <!-- Información básica -->
+            <div class="info-card basic-info-card">
+                <div class="card-header">
+                    <h3>
+                        <i class="fas fa-info-circle"></i>
+                        Información Básica
+                    </h3>
+                </div>
+                <div class="card-content">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="info-details">
+                                <span class="info-label">Capacidad</span>
+                                <span class="info-value">{{ laboratorio.capacidad }} personas</span>
+                            </div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="info-details">
+                                <span class="info-label">Horario</span>
+                                <span class="info-value">{{ laboratorio.horario or 'No especificado' }}</span>
+                    </div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div class="info-details">
+                                <span class="info-label">Ubicación</span>
+                                <span class="info-value">{{ laboratorio.ubicacion or 'No especificada' }}</span>
+                    </div>
+                        </div>
+                        
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Descripción -->
+            <div class="info-card description-card">
+                <div class="card-header">
+                    <h3>
+                        <i class="fas fa-file-alt"></i>
+                        Descripción
+                    </h3>
+                </div>
+                <div class="card-content">
+                    <div class="description-content">
+                        <p>{{ laboratorio.descripcion or 'No hay descripción disponible para este laboratorio.' }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Equipamiento -->
+            <div class="info-card equipment-card">
+                <div class="card-header">
+                    <h3>
+                        <i class="fas fa-tools"></i>
+                        Equipamiento
+                    </h3>
+                </div>
+                <div class="card-content">
+                    <div class="equipment-list">
+                        {% if laboratorio.equipamiento_lista %}
+                            {% for equipo in laboratorio.equipamiento_lista %}
+                            <div class="equipment-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span>{{ equipo }}</span>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="equipment-item">
+                                <i class="fas fa-microscope"></i>
+                                <span>Microscopios de alta resolución</span>
+                            </div>
+                            <div class="equipment-item">
+                                <i class="fas fa-desktop"></i>
+                                <span>Computadoras especializadas</span>
+                            </div>
+                            <div class="equipment-item">
+                                <i class="fas fa-flask"></i>
+                                <span>Material de laboratorio</span>
+                            </div>
+                            <div class="equipment-item">
+                                <i class="fas fa-wifi"></i>
+                                <span>Conexión a internet de alta velocidad</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Normas de uso (si están disponibles) -->
+            {% if laboratorio.normas_uso %}
+            <div class="info-card rules-card">
+                <div class="card-header">
+                    <h3>
+                        <i class="fas fa-list-ul"></i>
+                        Normas de Uso
+                    </h3>
+                        </div>
+                <div class="card-content">
+                    <div class="rules-content">
+                        <p>{{ laboratorio.normas_uso }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Contacto y reservas -->
+            <div class="info-card contact-card">
+                <div class="card-header">
+                    <h3>
+                        <i class="fas fa-phone"></i>
+                        Contacto y Reservas
+                    </h3>
+                </div>
+                <div class="card-content">
+                    <div class="contact-info">
+                        {% if laboratorio.email_contacto %}
+                        <div class="contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>{{ laboratorio.email_contacto }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if laboratorio.telefono %}
+                        <div class="contact-item">
+                            <i class="fas fa-phone"></i>
+                            <span>{{ laboratorio.telefono }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if laboratorio.encargado %}
+                        <div class="contact-item">
+                            <i class="fas fa-user-tie"></i>
+                            <span>Encargado: {{ laboratorio.encargado.nombre }} {{ laboratorio.encargado.apellido }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="contact-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Reservas con 24h de anticipación</span>
+                </div>
+
+                        {% if laboratorio.requiere_capacitacion %}
+                        <div class="contact-item warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>Requiere capacitación previa</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para imagen en pantalla completa -->
+<div id="imageModal" class="image-modal">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeImageModal()">&times;</span>
+        <img id="modalImage" src="" alt="Imagen en pantalla completa">
+    </div>
+</div>
+
+<script>
+// Función para cargar las imágenes del laboratorio
+function cargarImagenes() {
+    console.log('Iniciando carga de imágenes...');
+    const url = `/api/laboratorios/{{ laboratorio.id_laboratorio }}/imagenes`;
+    console.log('URL de la petición:', url);
+    
+    fetch(url)
+        .then(response => {
+            console.log('Respuesta recibida:', response.status);
+            if (!response.ok) {
+                throw new Error(`Error HTTP: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Datos recibidos:', data);
+            if (data.success) {
+                const container = document.getElementById('imagenesContainer');
+                container.innerHTML = '';
+                
+                if (data.imagenes && data.imagenes.length > 0) {
+                    console.log('Procesando imágenes:', data.imagenes.length);
+                    data.imagenes.forEach((imagen, index) => {
+                        const div = document.createElement('div');
+                        div.className = 'gallery-image-item';
+                        div.innerHTML = `
+                            <img src="${imagen.imagen_url}" 
+                                 alt="Imagen ${index + 1} del laboratorio" 
+                                 onclick="cambiarImagenPrincipal('${imagen.imagen_url}', ${imagen.id_imagen})"
+                                 class="gallery-image ${imagen.es_principal ? 'active' : ''}"
+                                 onerror="this.src='{{ url_for('static', filename='uploads/laboratorios/default_lab.jpg') }}'">
+                            <div class="image-overlay-mini">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                        `;
+                        container.appendChild(div);
+                    });
+                    
+                    // Establecer la imagen principal
+                    const imagenPrincipal = data.imagenes.find(img => img.es_principal);
+                    if (imagenPrincipal) {
+                        console.log('Estableciendo imagen principal:', imagenPrincipal.imagen_url);
+                        document.getElementById('imagenPrincipal').src = imagenPrincipal.imagen_url;
+                    }
+                } else {
+                    console.log('No hay imágenes disponibles');
+                    container.innerHTML = '<div class="no-images-message"><i class="fas fa-image"></i><span>No hay imágenes disponibles</span></div>';
+                }
+            } else {
+                console.error('Error en la respuesta:', data.message);
+                document.getElementById('imagenesContainer').innerHTML = '<div class="no-images-message"><i class="fas fa-exclamation-triangle"></i><span>Error al cargar imágenes</span></div>';
+            }
+        })
+        .catch(error => {
+            console.error('Error al cargar las imágenes:', error);
+            document.getElementById('imagenesContainer').innerHTML = '<div class="no-images-message"><i class="fas fa-exclamation-triangle"></i><span>Error al cargar imágenes</span></div>';
+        });
+}
+
+// Cargar imágenes al iniciar
+document.addEventListener('DOMContentLoaded', function() {
+    cargarImagenes();
+});
+
+// Función para cambiar la imagen principal en la vista
+function cambiarImagenPrincipal(url, idImagen) {
+    const imagenPrincipal = document.getElementById('imagenPrincipal');
+    imagenPrincipal.src = url;
+    imagenPrincipal.onerror = function() {
+        this.src = '{{ url_for('static', filename='uploads/laboratorios/default_lab.jpg') }}';
+    };
+    
+    // Actualizar clases de las imágenes
+    document.querySelectorAll('.gallery-image').forEach(img => {
+        img.classList.remove('active');
+    });
+    document.querySelector(`.gallery-image[onclick*="${idImagen}"]`).classList.add('active');
+}
+
+// Función para abrir imagen en modal
+function openImageModal() {
+    const mainImage = document.getElementById('imagenPrincipal');
+    const modal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    
+    modalImage.src = mainImage.src;
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+// Función para cerrar modal
+function closeImageModal() {
+    const modal = document.getElementById('imageModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+// Cerrar modal al hacer clic fuera de la imagen
+window.onclick = function(event) {
+    const modal = document.getElementById('imageModal');
+    if (event.target == modal) {
+        closeImageModal();
+    }
+}
+
+// Nueva función para manejar la solicitud del laboratorio
+function solicitarLaboratorio() {
+    window.location.href = "{{ url_for('laboratorio.solicitar', id_laboratorio=laboratorio.id_laboratorio) }}";
+}
+</script>
+{% endblock %}

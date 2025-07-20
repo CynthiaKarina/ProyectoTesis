@@ -1,0 +1,369 @@
+{% extends "base_Admin.html" %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='improved-styles.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='admin-mejoras.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="admin-options-container">
+    <div class="admin-header">
+        <div class="admin-title-section">
+            <div class="admin-icon">
+                <i class="fas fa-cogs"></i>
+            </div>
+            <div class="admin-title-content">
+                <h1>Panel de Administración</h1>
+                <p class="admin-subtitle">Gestiona y configura todas las funcionalidades del sistema</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-grid">
+        <!-- Gestión de Usuarios -->
+        <div class="admin-card" data-category="users">
+            <div class="admin-card-header">
+                <i class="fas fa-users-cog"></i>
+                <h2>Gestión de Usuarios</h2>
+            </div>
+            <div class="admin-card-content">
+                <p>Administra usuarios, roles y permisos del sistema de manera integral</p>
+                <div class="admin-card-actions">
+                    <button class="admin-button" onclick="navigateToSection('{{ url_for('admin_users.admin_usuarios') }}')">
+                        <i class="fas fa-user-cog"></i>
+                        Gestionar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gestión de Roles -->
+        <div class="admin-card" data-category="roles">
+            <div class="admin-card-header">
+                <i class="fas fa-shield-alt"></i>
+                <h2>Gestión de Roles</h2>
+            </div>
+            <div class="admin-card-content">
+                <p>Configura roles del sistema y define niveles de acceso específicos</p>
+                <div class="admin-card-actions">
+                    <button class="admin-button" onclick="navigateToSection('{{ url_for('admin_roles.admin_roles') }}')">
+                        <i class="fas fa-shield-alt"></i>
+                        Configurar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gestión de Permisos -->
+        <div class="admin-card" data-category="permissions">
+            <div class="admin-card-header">
+                <i class="fas fa-key"></i>
+                <h2>Gestión de Permisos</h2>
+            </div>
+            <div class="admin-card-content">
+                <p>Administra permisos específicos y asigna capacidades a roles</p>
+                <div class="admin-card-actions">
+                    <button class="admin-button" onclick="navigateToSection('{{ url_for('admin_permisos.admin_permisos') }}')">
+                        <i class="fas fa-key"></i>
+                        Administrar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gestión de Laboratorios -->
+        <div class="admin-card" data-category="labs">
+            <div class="admin-card-header">
+                <i class="fas fa-flask"></i>
+                <h2>Gestión de Laboratorios</h2>
+            </div>
+            <div class="admin-card-content">
+                <p>Configura laboratorios, equipos y disponibilidad de espacios</p>
+                <div class="admin-card-actions">
+                    <button class="admin-button" onclick="showComingSoon()">
+                        <i class="fas fa-flask"></i>
+                        Configurar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gestión de Áreas -->
+        <div class="admin-card" data-category="areas">
+            <div class="admin-card-header">
+                <i class="fas fa-layer-group"></i>
+                <h2>Gestión de Áreas</h2>
+            </div>
+            <div class="admin-card-content">
+                <p>Organiza y administra las diferentes áreas académicas del sistema</p>
+                <div class="admin-card-actions">
+                    <button class="admin-button" onclick="showComingSoon()">
+                        <i class="fas fa-layer-group"></i>
+                        Organizar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gestión de Instituciones -->
+        <div class="admin-card" data-category="institutions">
+            <div class="admin-card-header">
+                <i class="fas fa-university"></i>
+                <h2>Gestión de Instituciones</h2>
+            </div>
+            <div class="admin-card-content">
+                <p>Administra instituciones educativas y sus configuraciones</p>
+                <div class="admin-card-actions">
+                    <button class="admin-button" onclick="showComingSoon()">
+                        <i class="fas fa-university"></i>
+                        Administrar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuración del Sistema -->
+        <div class="admin-card" data-category="system">
+            <div class="admin-card-header">
+                <i class="fas fa-cog"></i>
+                <h2>Configuración del Sistema</h2>
+            </div>
+            <div class="admin-card-content">
+                <p>Configura parámetros globales y opciones avanzadas del sistema</p>
+                <div class="admin-card-actions">
+                    <button class="admin-button" onclick="showComingSoon()">
+                        <i class="fas fa-cog"></i>
+                        Configurar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reportes y Estadísticas -->
+        <div class="admin-card" data-category="reports">
+            <div class="admin-card-header">
+                <i class="fas fa-chart-line"></i>
+                <h2>Reportes y Estadísticas</h2>
+            </div>
+            <div class="admin-card-content">
+                <p>Visualiza métricas, reportes detallados y análisis del sistema</p>
+                <div class="admin-card-actions">
+                    <button class="admin-button" onclick="showComingSoon()">
+                        <i class="fas fa-chart-line"></i>
+                        Visualizar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Botón flotante para acceso rápido -->
+<div class="fab-menu">
+    <button class="fab-main" onclick="toggleFabMenu()">
+        <i class="fas fa-plus"></i>
+    </button>
+    <div class="fab-options">
+        <button class="fab-option" onclick="navigateToSection('{{ url_for('admin_users.admin_usuarios') }}')">
+            <i class="fas fa-user-plus"></i>
+            <span>Nuevo Usuario</span>
+        </button>
+        <button class="fab-option" onclick="navigateToSection('{{ url_for('admin_roles.admin_roles') }}')">
+            <i class="fas fa-shield-alt"></i>
+            <span>Nuevo Rol</span>
+        </button>
+        <button class="fab-option" onclick="showComingSoon()">
+            <i class="fas fa-flask"></i>
+            <span>Nuevo Lab</span>
+        </button>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/admin-mejoras.js') }}"></script>
+<script>
+// Función para navegar con efecto de loading
+function navigateToSection(url) {
+    const overlay = document.createElement('div');
+    overlay.className = 'loading-overlay';
+    overlay.innerHTML = `
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Cargando...</p>
+        </div>
+    `;
+    
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(102, 126, 234, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        animation: fadeIn 0.3s ease;
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    // Agregar estilos para el spinner
+    const style = document.createElement('style');
+    style.textContent = `
+        .loading-spinner {
+            text-align: center;
+            color: white;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Navegar después de 1 segundo
+    setTimeout(() => {
+        window.location.href = url;
+    }, 1000);
+}
+
+// Menú FAB (Floating Action Button)
+function toggleFabMenu() {
+    const fabOptions = document.querySelector('.fab-options');
+    const fabMain = document.querySelector('.fab-main');
+    
+    if (fabOptions.classList.contains('open')) {
+        fabOptions.classList.remove('open');
+        fabMain.classList.remove('open');
+    } else {
+        fabOptions.classList.add('open');
+        fabMain.classList.add('open');
+    }
+}
+
+// Estilos para FAB
+const fabStyles = document.createElement('style');
+fabStyles.textContent = `
+    .fab-menu {
+        position: fixed;
+        bottom: 30px;
+        left: 30px;
+        z-index: 1000;
+    }
+    
+    .fab-main {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-size: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+    }
+    
+    .fab-main:hover {
+        transform: scale(1.1);
+    }
+    
+    .fab-main.open {
+        transform: rotate(45deg);
+    }
+    
+    .fab-options {
+        position: absolute;
+        bottom: 70px;
+        left: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.3s ease;
+        pointer-events: none;
+    }
+    
+    .fab-options.open {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: all;
+    }
+    
+    .fab-option {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        background: white;
+        border: none;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        transform: scale(0.8);
+    }
+    
+    .fab-options.open .fab-option {
+        transform: scale(1);
+    }
+    
+    .fab-option:hover {
+        background: var(--primary-gradient);
+        color: white;
+        transform: scale(1.05);
+    }
+    
+    .fab-option i {
+        color: var(--primary-color);
+        transition: color 0.3s ease;
+    }
+    
+    .fab-option:hover i {
+        color: white;
+    }
+    
+    .fab-option span {
+        font-weight: 500;
+        white-space: nowrap;
+    }
+`;
+document.head.appendChild(fabStyles);
+
+// Animación de entrada para las tarjetas
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.admin-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(50px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 150);
+    });
+});
+</script>
+{% endblock %} 

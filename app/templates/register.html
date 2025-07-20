@@ -1,0 +1,533 @@
+{% extends "base-simple.html" %}
+
+{% block title %}Registro{% endblock %}
+
+{% block extra_head %}
+    <!-- Estilos de Select2 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+<!-- Iconos flotantes de fondo -->
+<div class="floating-icons-container">
+    {% for i, icon in [
+        (1,'📚'),(2,'💻'),(3,'🎓'),(4,'✏️'),(5,'📐'),(6,'🔬'),(7,'🎨'),(8,'📝'),(9,'🔍'),(10,'📊'),
+        (11,'💡'),(12,'⚗️'),(13,'📓'),(14,'🧮'),(15,'📱'),(16,'🎯'),(17,'📖'),(18,'🔖'),(19,'📏'),(20,'🎭')]
+    %}
+        <div class="floating-icon icon{{i}}">{{ icon }}</div>
+    {% endfor %}
+</div>
+
+<!-- Contenedor principal -->
+<div class="register-container d-flex justify-content-center align-items-center">
+    <div class="login-form-container register-card">
+        <!-- Encabezado -->
+        <div class="login-form-header register-header">
+            <div class="login-icon">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <h2 class="login-title">Crear cuenta</h2>
+            <p class="login-subtitle">Completa los campos para registrarte en el portal</p>
+            
+            <!-- Indicador de progreso -->
+            <div class="form-progress">
+                <div class="progress-bar" id="progressBar"></div>
+                <div class="progress-text" id="progressText">0% completado</div>
+            </div>
+        </div>
+
+        <!-- Mensajes flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages mb-3">
+                {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">
+                            <div class="flash-icon"><i class="fas fa-info-circle"></i></div>
+                            <div class="flash-content"><span>{{ message }}</span></div>
+                            <button type="button" class="flash-close" onclick="closeFlashMessage(this)"><i class="fas fa-times"></i></button>
+                    </div>
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Formulario de registro -->
+        <form action="{{ url_for('auth.register') }}" method="POST" class="login-form" id="registerForm">
+            <!-- Fila 1 -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="nombre" class="form-label"><i class="fas fa-user"></i><span> Nombre</span></label>
+                    <div class="input-wrapper">
+                        <input type="text" id="nombre" name="nombre" class="form-control" placeholder="Ingresa tu nombre" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="apellido_paterno" class="form-label"><i class="fas fa-user"></i><span> Apellido paterno</span></label>
+                    <div class="input-wrapper">
+                        <input type="text" id="apellido_paterno" name="apellido_paterno" class="form-control" placeholder="Ingresa tu apellido paterno" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="apellido_materno" class="form-label"><i class="fas fa-user"></i><span> Apellido materno</span></label>
+                    <div class="input-wrapper">
+                        <input type="text" id="apellido_materno" name="apellido_materno" class="form-control" placeholder="Ingresa tu apellido materno" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fila 2 -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="username" class="form-label"><i class="fas fa-id-card"></i><span> Matrícula</span></label>
+                    <div class="input-wrapper">
+                        <input type="text" id="username" name="username" class="form-control" placeholder="Ingresa tu matrícula" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email" class="form-label"><i class="fas fa-envelope"></i><span> Email</span></label>
+                    <div class="input-wrapper">
+                        <input type="email" id="email" name="email" class="form-control" placeholder="Ingresa tu email" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="telefono" class="form-label"><i class="fas fa-phone"></i><span> Teléfono</span></label>
+                    <div class="input-wrapper">
+                        <input type="tel" id="telefono" name="telefono" class="form-control" placeholder="Ingresa tu teléfono" required>
+                    </div>
+                </div>
+                </div>
+
+            <!-- Fila 3 Selecciones -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="id_area" class="form-label"><i class="fas fa-graduation-cap"></i><span> Área</span></label>
+                    <select id="id_area" name="id_area" required class="form-control"></select>
+                </div>
+
+                <div class="form-group">
+                    <label for="id_institucion" class="form-label"><i class="fas fa-building"></i><span> Institución</span></label>
+                    <div class="input-wrapper">
+                        <select id="id_institucion" name="id_institucion" required class="form-control">
+                            <option value="">Selecciona una institución</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fila 4 contraseñas -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="password" class="form-label"><i class="fas fa-lock"></i><span> Contraseña</span></label>
+                    <div class="input-wrapper">
+                        <input type="password" id="password" name="password" class="form-control" placeholder="Ingresa tu contraseña" required>
+                    </div>
+                    <div class="password-strength" id="passwordStrength"><div class="strength-bar" id="strengthBar"></div></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm_password" class="form-label"><i class="fas fa-lock"></i><span> Confirmar Contraseña</span></label>
+                    <div class="input-wrapper">
+                        <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="Confirma tu contraseña" required>    
+                    </div>
+                </div>
+            </div>
+
+            <!-- Requisitos -->
+            <div class="requirements-card">
+                <h3><i class="fas fa-shield-alt"></i> Requisitos de la cuenta</h3>
+                <ul class="requirements-list">
+                    <li id="matricula-check"><i class="fas fa-check-circle"></i> Matrícula válida (mínimo 6 caracteres alfanuméricos)</li>
+                    <li id="email-check"><i class="fas fa-check-circle"></i> Correo electrónico válido</li>
+                    <li id="phone-check"><i class="fas fa-check-circle"></i> Teléfono válido (10 dígitos)</li>
+                    <li id="password-length"><i class="fas fa-check-circle"></i> Contraseña de al menos 6 caracteres</li>
+                    <li id="password-match"><i class="fas fa-check-circle"></i> Las contraseñas coinciden</li>
+                    <li id="area-check"><i class="fas fa-check-circle"></i> Área seleccionada</li>
+                    <li id="institucion-check"><i class="fas fa-check-circle"></i> Institución seleccionada</li>
+                </ul>
+            </div>
+
+            <!-- Acciones -->
+            <div class="form-actions flex-column-mobile">
+                <button type="submit" class="login-btn" id="submitBtn" disabled>
+                    <span class="btn-text"><i class="fas fa-user-plus"></i> Registrarse</span>
+                </button>
+                <a href="{{ url_for('auth.login') }}" class="register-btn mt-3">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Ya tengo cuenta</span>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+    <!-- Script de Select2 -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+<script>
+    // Variables globales
+    let form, username, email, telefono, password, confirmPassword, area, institucion;
+    let matriculaCheck, emailCheck, phoneCheck, passwordLength, passwordMatch, areaCheck, institucionCheck;
+    let strengthBar, submitBtn;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM cargado - iniciando validaciones');
+        
+        // Obtener elementos del DOM
+        form = document.getElementById('registerForm');
+        username = document.getElementById('username');
+        email = document.getElementById('email');
+        telefono = document.getElementById('telefono');
+        password = document.getElementById('password');
+        confirmPassword = document.getElementById('confirm_password');
+        area = document.getElementById('id_area');
+        institucion = document.getElementById('id_institucion');
+        
+        // Elementos de validación
+        matriculaCheck = document.getElementById('matricula-check');
+        emailCheck = document.getElementById('email-check');
+        phoneCheck = document.getElementById('phone-check');
+        passwordLength = document.getElementById('password-length');
+        passwordMatch = document.getElementById('password-match');
+        areaCheck = document.getElementById('area-check');
+        institucionCheck = document.getElementById('institucion-check');
+        
+        // Barra de fuerza
+        strengthBar = document.getElementById('strengthBar');
+        
+        // Botón de envío
+        submitBtn = document.getElementById('submitBtn');
+
+        // Verificar que todos los elementos existen
+        if (!form || !username || !email || !telefono || !password || !confirmPassword || !submitBtn) {
+            console.error('Error: No se encontraron todos los elementos del formulario');
+            return;
+        }
+
+        console.log('Todos los elementos encontrados, configurando eventos');
+
+        // Configurar eventos de validación
+        username.addEventListener('input', function() {
+            console.log('Validando matrícula:', this.value);
+            validateForm();
+            actualizarProgreso();
+        });
+        
+        email.addEventListener('input', function() {
+            console.log('Validando email:', this.value);
+            validateForm();
+            actualizarProgreso();
+        });
+        
+        telefono.addEventListener('input', function() {
+            console.log('Validando teléfono:', this.value);
+            validateForm();
+            actualizarProgreso();
+        });
+        
+        password.addEventListener('input', function() {
+            console.log('Validando contraseña');
+            validateForm();
+            actualizarFuerza();
+            actualizarProgreso();
+        });
+        
+        confirmPassword.addEventListener('input', function() {
+            console.log('Validando confirmación de contraseña');
+            validateForm();
+            actualizarProgreso();
+        });
+
+        // Eventos para otros campos
+        document.getElementById('nombre').addEventListener('input', actualizarProgreso);
+        document.getElementById('apellido_paterno').addEventListener('input', actualizarProgreso);
+        document.getElementById('apellido_materno').addEventListener('input', actualizarProgreso);
+
+        // Validar antes de enviar
+        form.addEventListener('submit', function(e) {
+            console.log('Enviando formulario, validando...');
+            validateForm();
+            
+            const todosValidos = matriculaCheck.classList.contains('valid') &&
+                emailCheck.classList.contains('valid') &&
+                phoneCheck.classList.contains('valid') &&
+                passwordLength.classList.contains('valid') &&
+                passwordMatch.classList.contains('valid') &&
+                areaCheck.classList.contains('valid') &&
+                institucionCheck.classList.contains('valid');
+                
+            if (!todosValidos) {
+                e.preventDefault();
+                alert('Por favor, completa todos los requisitos antes de registrarte.');
+                console.log('Formulario no válido, enviado cancelado');
+            } else {
+                console.log('Formulario válido, enviando...');
+            }
+        });
+
+        // Cargar datos
+        cargarAreas();
+        cargarInstituciones();
+        
+        // Inicializar progreso
+        actualizarProgreso();
+    });
+
+    function validateForm() {
+        console.log('Ejecutando validateForm');
+        
+        // Validar matrícula
+        const matriculaRegex = /^[A-Z0-9]{6,10}$/i;
+        if (username && matriculaRegex.test(username.value)) {
+            matriculaCheck.classList.add('valid');
+            console.log('Matrícula válida');
+        } else {
+            matriculaCheck.classList.remove('valid');
+            console.log('Matrícula inválida');
+        }
+
+        // Validar email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (email && emailRegex.test(email.value)) {
+            emailCheck.classList.add('valid');
+            console.log('Email válido');
+        } else {
+            emailCheck.classList.remove('valid');
+            console.log('Email inválido');
+        }
+
+        // Validar teléfono
+        const phoneRegex = /^\d{10}$/;
+        if (telefono && phoneRegex.test(telefono.value)) {
+            phoneCheck.classList.add('valid');
+            console.log('Teléfono válido');
+        } else {
+            phoneCheck.classList.remove('valid');
+            console.log('Teléfono inválido');
+        }
+
+        // Validar longitud de contraseña
+        if (password && password.value.length >= 6) {
+            passwordLength.classList.add('valid');
+            console.log('Contraseña válida');
+        } else {
+            passwordLength.classList.remove('valid');
+            console.log('Contraseña muy corta');
+        }
+
+        // Validar coincidencia de contraseñas
+        if (password && confirmPassword && password.value === confirmPassword.value && password.value !== '') {
+            passwordMatch.classList.add('valid');
+            console.log('Contraseñas coinciden');
+        } else {
+            passwordMatch.classList.remove('valid');
+            console.log('Contraseñas no coinciden');
+        }
+
+        // Validar área
+        if (area && area.value !== '') {
+            areaCheck.classList.add('valid');
+            console.log('Área seleccionada');
+        } else {
+            areaCheck.classList.remove('valid');
+            console.log('Área no seleccionada');
+        }
+
+        // Validar institución
+        if (institucion && institucion.value !== '') {
+            institucionCheck.classList.add('valid');
+            console.log('Institución seleccionada');
+        } else {
+            institucionCheck.classList.remove('valid');
+            console.log('Institución no seleccionada');
+        }
+        
+        // Verificar si todos los campos básicos están llenos
+        const camposBasicos = [
+            document.getElementById('nombre'),
+            document.getElementById('apellido_paterno'),
+            document.getElementById('apellido_materno'),
+            username,
+            email,
+            telefono,
+            password,
+            confirmPassword
+        ];
+        
+        const todosLosCamposLlenos = camposBasicos.every(campo => 
+            campo && campo.value.trim() !== ''
+        );
+        
+        // Verificar si todas las validaciones están correctas
+        const todasLasValidacionesCorrectas = 
+            matriculaCheck.classList.contains('valid') &&
+            emailCheck.classList.contains('valid') &&
+            phoneCheck.classList.contains('valid') &&
+            passwordLength.classList.contains('valid') &&
+            passwordMatch.classList.contains('valid') &&
+            areaCheck.classList.contains('valid') &&
+            institucionCheck.classList.contains('valid');
+        
+        // Habilitar/deshabilitar botón
+        const formularioCompleto = todosLosCamposLlenos && todasLasValidacionesCorrectas;
+        
+        if (submitBtn) {
+            submitBtn.disabled = !formularioCompleto;
+            
+            if (formularioCompleto) {
+                submitBtn.classList.remove('disabled');
+                console.log('Formulario completo - botón habilitado');
+            } else {
+                submitBtn.classList.add('disabled');
+                console.log('Formulario incompleto - botón deshabilitado');
+            }
+        }
+    }
+
+    function actualizarFuerza() {
+        if (!password || !strengthBar) return;
+        
+        const val = password.value;
+        let fuerza = 0;
+        if (val.length >= 6) fuerza += 1;
+        if (/[A-Z]/.test(val)) fuerza += 1;
+        if (/[0-9]/.test(val)) fuerza += 1;
+        if (/[^A-Za-z0-9]/.test(val)) fuerza += 1;
+        
+        const porcentajes = [0, 25, 50, 75, 100];
+        strengthBar.style.width = porcentajes[fuerza] + '%';
+        
+        const colores = ['#dc3545', '#ff9800', '#ffc107', '#28a745', '#20c997'];
+        strengthBar.style.background = colores[fuerza];
+        
+        console.log('Fuerza de contraseña:', fuerza, 'Porcentaje:', porcentajes[fuerza]);
+    }
+
+    function actualizarProgreso() {
+        const campos = ['nombre', 'apellido_paterno', 'apellido_materno', 'username', 'email', 'telefono', 'id_area', 'id_institucion', 'password', 'confirm_password'];
+        let completados = 0;
+        
+        campos.forEach(campo => {
+            const elemento = document.getElementById(campo);
+            if (elemento && elemento.value.trim() !== '') {
+                completados++;
+            }
+        });
+        
+        const porcentaje = Math.round((completados / campos.length) * 100);
+        document.documentElement.style.setProperty('--form-progress', porcentaje + '%');
+        
+        const progressText = document.getElementById('progressText');
+        if (progressText) {
+            progressText.textContent = porcentaje + '% completado';
+        }
+        
+        console.log('Progreso actualizado:', porcentaje + '%');
+    }
+
+    // Función para cargar las áreas desde el API
+    async function cargarAreas() {
+        try {
+            console.log('Cargando áreas...');
+            const response = await fetch('/api/area/');
+            const data = await response.json();
+            
+            const select = document.getElementById('id_area');
+                select.innerHTML = '<option value="">Selecciona un área</option>';
+                
+                if (data.success && data.areas) {
+                    data.areas.forEach(area => {
+                        const option = document.createElement('option');
+                    option.value = area.id_area;
+                    option.textContent = area.nombre_area;
+                        select.appendChild(option);
+                    });
+                
+                // Inicializar Select2 después de cargar las opciones
+                $('#id_area').select2({
+                    placeholder: "Selecciona un área",
+                    allowClear: true,
+                    width: '100%'
+                }).on('change', function() {
+                    console.log('Área cambiada:', this.value);
+                    validateForm();
+                    actualizarProgreso();
+                });
+                
+                console.log('Áreas cargadas exitosamente');
+                } else {
+                    select.innerHTML = '<option value="" disabled>No hay áreas disponibles</option>';
+                }
+        } catch (error) {
+                console.error('Error al cargar áreas:', error);
+            const select = document.getElementById('id_area');
+                select.innerHTML = '<option value="" disabled>Error al cargar áreas</option>';
+        }
+    }
+
+    // Función para cargar las instituciones desde el API
+    async function cargarInstituciones() {
+        try {
+            console.log('Cargando instituciones...');
+            const response = await fetch('/api/institucion/');
+            const data = await response.json();
+            
+            const select = document.getElementById('id_institucion');
+                select.innerHTML = '<option value="">Selecciona una institución</option>';
+                
+                if (data.success && data.instituciones) {
+                    data.instituciones.forEach(institucion => {
+                        const option = document.createElement('option');
+                    option.value = institucion.id_institucion;
+                    option.textContent = institucion.nombre_institucion;
+                        select.appendChild(option);
+                    });
+                
+                // Inicializar Select2 después de cargar las opciones
+                $('#id_institucion').select2({
+                    placeholder: "Selecciona una institución",
+                    allowClear: true,
+                    width: '100%'
+                }).on('change', function() {
+                    console.log('Institución cambiada:', this.value);
+                    validateForm();
+                    actualizarProgreso();
+                });
+                
+                console.log('Instituciones cargadas exitosamente');
+                } else {
+                    select.innerHTML = '<option value="" disabled>No hay instituciones disponibles</option>';
+                }
+        } catch (error) {
+                console.error('Error al cargar instituciones:', error);
+            const select = document.getElementById('id_institucion');
+                select.innerHTML = '<option value="" disabled>Error al cargar instituciones</option>';
+        }
+    }
+    
+    // Función para cerrar mensajes flash
+    function closeFlashMessage(button) {
+        const message = button.closest('.flash-message');
+        message.style.opacity = '0';
+        message.style.transform = 'translateY(-10px)';
+        setTimeout(() => {
+            message.style.display = 'none';
+        }, 300);
+    }
+
+    async function descargarCatalogo() {
+        try {
+            window.location.href = '/api/institucion/download';
+        } catch (error) {
+            console.error('Error al descargar el catálogo:', error);
+            alert('Error al descargar el catálogo');
+        }
+    }
+</script>
+{% endblock %}

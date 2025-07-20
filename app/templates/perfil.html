@@ -1,0 +1,819 @@
+﻿{% extends 'base_Admin.html' %}
+
+{% block content %}
+<div class="profile-page-container">
+    <!-- Mensajes Flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">
+                        <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-triangle' if category == 'warning' else 'times-circle' }}"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header del Perfil -->
+    <div class="profile-header">
+        <div class="profile-header-content">
+            <div class="profile-avatar-section">
+                <div class="profile-avatar">
+                    {% if user.ruta_imagen %}
+                        <img src="{{ url_for('static', filename=user.get_imagen_url()) }}" alt="Foto de perfil">
+                    {% else %}
+                        <div class="avatar-placeholder">
+                            {{ user.nombre[0] }}{{ user.apellido_paterno[0] if user.apellido_paterno else '' }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="profile-status">
+                    <div class="status-indicator"></div>
+                    <span>En línea</span>
+                </div>
+            </div>
+            
+            <div class="profile-info-main">
+                <h1 class="profile-name">{{ user.nombre }} {{ user.apellido_paterno }}</h1>
+                <div class="profile-role">
+                    <i class="fas fa-user-tag"></i>
+                    {{ user.roles.nombre_rol if user.roles else 'Usuario' }}
+                </div>
+                
+                <div class="profile-meta">
+                    <div class="meta-item">
+                        <i class="fas fa-envelope"></i>
+                        <span>{{ user.email }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-university"></i>
+                        <span>{{ user.institucion.nombre_institucion if user.institucion else 'Sin institución' }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-id-card"></i>
+                        <span>{{ user.username }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Miembro desde {{ user.fecha_creacion if user.fecha_creacion else 'N/A' }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="profile-actions">
+                <a href="{{ url_for('profile.editar_perfil') }}" class="btn-profile-action">
+                    <i class="fas fa-edit"></i>
+                    Editar Perfil
+                </a>
+                <a href="{{ url_for('profile.cambiar_password') }}" class="btn-profile-action">
+                    <i class="fas fa-key"></i>
+                    Cambiar Contraseña
+                </a>
+                <a href="#" class="btn-profile-action" onclick="exportProfile()">
+                    <i class="fas fa-download"></i>
+                    Exportar Datos
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="profile-content">
+        <div class="profile-main">
+            <!-- Información Personal -->
+            <div class="profile-card">
+                <div class="card-header">
+                    <i class="fas fa-user-circle"></i>
+                    <h3>Información Personal</h3>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-user"></i>
+                            Nombre Completo
+                        </div>
+                        <div class="info-value">
+                            {{ user.nombre }} {{ user.apellido_paterno }} {{ user.apellido_materno or '' }}
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-envelope"></i>
+                            Correo Electrónico
+                        </div>
+                        <div class="info-value">{{ user.email }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-phone"></i>
+                            Teléfono
+                        </div>
+                        <div class="info-value">{{ user.telefono or 'No especificado' }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-id-card"></i>
+                            Nombre de Usuario
+                        </div>
+                        <div class="info-value">{{ user.username }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información Institucional -->
+            <div class="profile-card">
+                <div class="card-header">
+                    <i class="fas fa-university"></i>
+                    <h3>Información Institucional</h3>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-building"></i>
+                            Institución
+                        </div>
+                        <div class="info-value">
+                            {{ user.institucion.nombre_institucion if user.institucion else 'No especificado' }}
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-graduation-cap"></i>
+                            Área de Estudio
+                        </div>
+                        <div class="info-value">
+                            {{ user.area.nombre_area if user.area else 'No especificado' }}
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-user-tag"></i>
+                            Rol en el Sistema
+                        </div>
+                        <div class="info-value">
+                            {{ user.roles.nombre_rol if user.roles else 'Usuario' }}
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-toggle-on"></i>
+                            Estado de la Cuenta
+                        </div>
+                        <div class="info-value">
+                            <span style="color: {{ '#28a745' if user.activo else '#dc3545' }};">
+                                {{ 'Activa' if user.activo else 'Inactiva' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Roles y Permisos -->
+            <div class="profile-card">
+                <div class="card-header">
+                    <i class="fas fa-shield-alt"></i>
+                    <h3>Roles y Permisos del Sistema</h3>
+                </div>
+                <div class="roles-permissions-section">
+                    <!-- Información del Rol -->
+                    <div class="role-info">
+                        <div class="role-badge {{ 'admin-role' if is_user_admin else 'user-role' }}">
+                            <i class="fas fa-{{ 'crown' if is_user_admin else 'user' }}"></i>
+                            <div class="role-details">
+                                <div class="role-name">{{ user_role_name or 'Sin rol asignado' }}</div>
+                                <div class="role-type">
+                                    {% if is_user_admin %}
+                                        <span class="admin-badge">Administrador</span>
+                                    {% else %}
+                                        <span class="user-badge">Usuario Regular</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="permissions-summary">
+                            <div class="summary-item">
+                                <span class="summary-number">{{ user_permissions|length }}</span>
+                                <span class="summary-label">Permisos Totales</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-number">{{ permission_categories|length }}</span>
+                                <span class="summary-label">Categorías</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Permisos por Categorías -->
+                    {% if permission_categories %}
+                        <div class="permissions-container">
+                            <h4 class="permissions-title">
+                                <i class="fas fa-key"></i>
+                                Permisos Asignados
+                            </h4>
+                            
+                            <div class="permissions-grid">
+                                {% for category, permissions in permission_categories.items() %}
+                                <div class="permission-category">
+                                    <div class="category-header" onclick="toggleCategory('{{ loop.index }}')">
+                                        <div class="category-info">
+                                            <i class="fas fa-{{ 
+                                                'cog' if category == 'Administración' else
+                                                'users' if category == 'Usuarios' else
+                                                'user-shield' if category == 'Roles y Permisos' else
+                                                'flask' if category == 'Laboratorios' else
+                                                'building' if category == 'Áreas e Instituciones' else
+                                                'clipboard-list' if category == 'Solicitudes' else
+                                                'user-circle' if category == 'Perfil' else
+                                                'ellipsis-h'
+                                            }}"></i>
+                                            <span class="category-name">{{ category }}</span>
+                                            <span class="permission-count">({{ permissions|length }})</span>
+                                        </div>
+                                        <i class="fas fa-chevron-down toggle-icon" id="toggle-{{ loop.index }}"></i>
+                                    </div>
+                                    
+                                    <div class="category-permissions" id="category-{{ loop.index }}">
+                                        {% for permission in permissions %}
+                                        <div class="permission-item">
+                                            <i class="fas fa-check-circle permission-check"></i>
+                                            <span class="permission-name">{{ permission.replace('_', ' ').title() }}</span>
+                                            <span class="permission-code">{{ permission }}</span>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="no-permissions">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h4>Sin Permisos Asignados</h4>
+                            <p>Este usuario no tiene permisos específicos asignados. Contacta al administrador para obtener acceso a las funcionalidades del sistema.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Estadísticas del Usuario -->
+            <div class="profile-card">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar"></i>
+                    <h3>Estadísticas de Actividad</h3>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number">{{ user.total_solicitudes }}</div>
+                        <div class="stat-label">Solicitudes</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ user.solicitudes_aprobadas }}</div>
+                        <div class="stat-label">Aprobadas</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ "%.1f"|format(user.horas_laboratorio_usadas) }}</div>
+                        <div class="stat-label">Horas de Uso</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ user.laboratorios_utilizados }}</div>
+                        <div class="stat-label">Laboratorios</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-sidebar">
+            <!-- Actividad Reciente -->
+            <div class="profile-card">
+                <div class="card-header">
+                    <i class="fas fa-clock"></i>
+                    <h3>Actividad Reciente</h3>
+                </div>
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-flask"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Solicitud de Laboratorio</div>
+                            <div class="activity-description">Laboratorio de Química - Aprobada</div>
+                            <div class="activity-time">Hace 2 horas</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-edit"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Perfil Actualizado</div>
+                            <div class="activity-description">Información de contacto modificada</div>
+                            <div class="activity-time">Hace 1 día</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-sign-in-alt"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Inicio de Sesión</div>
+                            <div class="activity-description">Acceso desde navegador web</div>
+                            <div class="activity-time">Hace 3 días</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuración Rápida -->
+            <div class="profile-card">
+                <div class="card-header">
+                    <i class="fas fa-cog"></i>
+                    <h3>Configuración Rápida</h3>
+                </div>
+                <div class="quick-settings">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div>
+                                <div class="setting-label">Notificaciones por Email</div>
+                                <div class="setting-description">Recibir actualizaciones por correo</div>
+                            </div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div>
+                                <div class="setting-label">Perfil Público</div>
+                                <div class="setting-description">Visible para otros usuarios</div>
+                            </div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div>
+                                <div class="setting-label">Recordatorios</div>
+                                <div class="setting-description">Alertas de solicitudes pendientes</div>
+                            </div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* ===== ESTILOS PARA ROLES Y PERMISOS ===== */
+.roles-permissions-section {
+    padding: 0;
+}
+
+.role-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 25px;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 12px;
+    border: 1px solid #dee2e6;
+}
+
+.role-badge {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex: 1;
+}
+
+.role-badge i {
+    font-size: 2.5rem;
+    padding: 15px;
+    border-radius: 50%;
+    color: white;
+}
+
+.admin-role i {
+    background: linear-gradient(135deg, #dc3545, #bd2130);
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+}
+
+.user-role i {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+}
+
+.role-details {
+    flex: 1;
+}
+
+.role-name {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 5px;
+}
+
+.role-type {
+    margin-top: 5px;
+}
+
+.admin-badge, .user-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: white;
+}
+
+.admin-badge {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+}
+
+.user-badge {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+}
+
+.permissions-summary {
+    display: flex;
+    gap: 20px;
+}
+
+.summary-item {
+    text-align: center;
+    padding: 15px;
+    background: white;
+    border-radius: 10px;
+    border: 1px solid #e3e6f0;
+    min-width: 100px;
+}
+
+.summary-number {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #5a5c69;
+    line-height: 1;
+}
+
+.summary-label {
+    display: block;
+    font-size: 0.8rem;
+    color: #858796;
+    margin-top: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.permissions-container {
+    margin-top: 25px;
+}
+
+.permissions-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+    color: #5a5c69;
+    border-bottom: 2px solid #e3e6f0;
+    padding-bottom: 10px;
+}
+
+.permissions-grid {
+    display: grid;
+    gap: 15px;
+}
+
+.permission-category {
+    border: 1px solid #e3e6f0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.permission-category:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.category-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 20px;
+    background: #f8f9fa;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.category-header:hover {
+    background: #e9ecef;
+}
+
+.category-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.category-info i {
+    color: #5a5c69;
+    font-size: 1.1rem;
+}
+
+.category-name {
+    font-weight: 600;
+    color: #5a5c69;
+    font-size: 1rem;
+}
+
+.permission-count {
+    color: #858796;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.toggle-icon {
+    color: #858796;
+    transition: transform 0.3s ease;
+}
+
+.toggle-icon.rotated {
+    transform: rotate(180deg);
+}
+
+.category-permissions {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.category-permissions.expanded {
+    max-height: 500px;
+}
+
+.permission-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.permission-item:last-child {
+    border-bottom: none;
+}
+
+.permission-check {
+    color: #28a745;
+    font-size: 0.9rem;
+}
+
+.permission-name {
+    flex: 1;
+    font-weight: 500;
+    color: #5a5c69;
+}
+
+.permission-code {
+    font-family: 'Courier New', monospace;
+    background: #e9ecef;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.no-permissions {
+    text-align: center;
+    padding: 40px 20px;
+    color: #858796;
+}
+
+.no-permissions i {
+    font-size: 3rem;
+    color: #e74a3b;
+    margin-bottom: 15px;
+}
+
+.no-permissions h4 {
+    color: #5a5c69;
+    margin-bottom: 10px;
+}
+
+.no-permissions p {
+    color: #858796;
+    max-width: 400px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .role-info {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+    }
+    
+    .permissions-summary {
+        justify-content: center;
+    }
+    
+    .permission-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .permission-code {
+        align-self: flex-end;
+    }
+}
+</style>
+
+<script>
+// Función para alternar categorías de permisos
+function toggleCategory(categoryId) {
+    const categoryElement = document.getElementById(`category-${categoryId}`);
+    const toggleIcon = document.getElementById(`toggle-${categoryId}`);
+    
+    if (categoryElement.classList.contains('expanded')) {
+        categoryElement.classList.remove('expanded');
+        toggleIcon.classList.remove('rotated');
+    } else {
+        categoryElement.classList.add('expanded');
+        toggleIcon.classList.add('rotated');
+    }
+}
+
+// Función para exportar datos del perfil
+function exportProfile() {
+    // Simular descarga de datos del perfil incluyendo roles y permisos
+    const profileData = {
+        informacion_personal: {
+            nombre: "{{ user.nombre }}",
+            apellido_paterno: "{{ user.apellido_paterno }}",
+            apellido_materno: "{{ user.apellido_materno or '' }}",
+            email: "{{ user.email }}",
+            username: "{{ user.username }}",
+            telefono: "{{ user.telefono or '' }}"
+        },
+        informacion_institucional: {
+            institucion: "{{ user.institucion.nombre_institucion if user.institucion else '' }}",
+            area: "{{ user.area.nombre_area if user.area else '' }}",
+            fecha_creacion: "{{ user.fecha_creacion if user.fecha_creacion else 'N/A' }}"
+        },
+        roles_y_permisos: {
+            rol_principal: "{{ user_role_name or 'Sin rol asignado' }}",
+            es_administrador: {{ 'true' if is_user_admin else 'false' }},
+            total_permisos: {{ user_permissions|length }},
+            permisos_por_categoria: {
+                {% for category, permissions in permission_categories.items() %}
+                "{{ category }}": [
+                    {% for permission in permissions %}
+                    "{{ permission }}"{{ "," if not loop.last }}
+                    {% endfor %}
+                ]{{ "," if not loop.last }}
+                {% endfor %}
+            },
+            todos_los_permisos: [
+                {% for permission in user_permissions %}
+                "{{ permission }}"{{ "," if not loop.last }}
+                {% endfor %}
+            ]
+        },
+        estadisticas: {
+            total_solicitudes: {{ user.total_solicitudes }},
+            solicitudes_aprobadas: {{ user.solicitudes_aprobadas }},
+            horas_laboratorio: {{ user.horas_laboratorio_usadas }},
+            laboratorios_utilizados: {{ user.laboratorios_utilizados }}
+        },
+        fecha_exportacion: new Date().toISOString()
+    };
+    
+    const dataStr = JSON.stringify(profileData, null, 2);
+    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'mi_perfil_{{ user.username }}.json';
+    link.click();
+    URL.revokeObjectURL(url);
+}
+
+// Manejar cambios en configuración
+document.querySelectorAll('.toggle-switch input').forEach(toggle => {
+    toggle.addEventListener('change', function() {
+        const setting = this.closest('.setting-item').querySelector('.setting-label').textContent;
+        console.log(`Configuración "${setting}" ${this.checked ? 'activada' : 'desactivada'}`);
+        // Aquí puedes agregar la lógica para guardar la configuración
+    });
+});
+
+// Inicialización de la página
+document.addEventListener('DOMContentLoaded', function() {
+    // Animación de entrada para las cards
+    const cards = document.querySelectorAll('.profile-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+    
+    // Expandir automáticamente las categorías principales de permisos
+    setTimeout(() => {
+        // Expandir las primeras 2 categorías automáticamente
+        const totalCategories = document.querySelectorAll('.permission-category').length;
+        for (let i = 1; i <= Math.min(2, totalCategories); i++) {
+            toggleCategory(i.toString());
+        }
+    }, 1000);
+    
+    // Agregar tooltips informativos
+    addPermissionTooltips();
+});
+
+// Función para agregar tooltips a los permisos
+function addPermissionTooltips() {
+    const permissionItems = document.querySelectorAll('.permission-item');
+    
+    permissionItems.forEach(item => {
+        const permissionCode = item.querySelector('.permission-code').textContent;
+        let description = getPermissionDescription(permissionCode);
+        
+        if (description) {
+            item.title = description;
+            item.style.cursor = 'help';
+        }
+    });
+}
+
+// Función para obtener descripciones de permisos
+function getPermissionDescription(permissionCode) {
+    const descriptions = {
+        'admin_access': 'Permite acceso completo al panel de administración del sistema',
+        'gestionar_usuarios': 'Permite ver, buscar y administrar la lista de usuarios',
+        'crear_usuario': 'Permite crear nuevos usuarios en el sistema',
+        'editar_usuario': 'Permite modificar información de usuarios existentes',
+        'eliminar_usuario': 'Permite eliminar usuarios del sistema',
+        'gestionar_roles': 'Permite administrar roles del sistema',
+        'crear_rol': 'Permite crear nuevos roles',
+        'editar_rol': 'Permite modificar roles existentes',
+        'eliminar_rol': 'Permite eliminar roles del sistema',
+        'gestionar_permisos': 'Permite administrar permisos del sistema',
+        'crear_permiso': 'Permite crear nuevos permisos',
+        'editar_permiso': 'Permite modificar permisos existentes',
+        'eliminar_permiso': 'Permite eliminar permisos del sistema',
+        'asignar_permisos': 'Permite asignar y desasignar permisos a roles',
+        'gestionar_laboratorios': 'Permite administrar laboratorios',
+        'crear_laboratorio': 'Permite crear nuevos laboratorios',
+        'editar_laboratorio': 'Permite modificar información de laboratorios',
+        'eliminar_laboratorio': 'Permite eliminar laboratorios del sistema',
+        'gestionar_areas': 'Permite administrar áreas académicas',
+        'crear_area': 'Permite crear nuevas áreas académicas',
+        'editar_area': 'Permite modificar áreas existentes',
+        'eliminar_area': 'Permite eliminar áreas del sistema',
+        'gestionar_instituciones': 'Permite administrar instituciones',
+        'crear_institucion': 'Permite crear nuevas instituciones',
+        'editar_institucion': 'Permite modificar información de instituciones',
+        'eliminar_institucion': 'Permite eliminar instituciones del sistema',
+        'ver_solicitudes': 'Permite ver las solicitudes propias',
+        'crear_solicitud': 'Permite crear nuevas solicitudes de laboratorio',
+        'editar_solicitud': 'Permite modificar solicitudes propias',
+        'eliminar_solicitud': 'Permite eliminar solicitudes',
+        'aprobar_solicitud': 'Permite aprobar solicitudes de laboratorio',
+        'rechazar_solicitud': 'Permite rechazar solicitudes de laboratorio',
+        'ver_todas_solicitudes': 'Permite ver solicitudes de todos los usuarios',
+        'ver_perfil': 'Permite acceder al perfil personal',
+        'editar_perfil': 'Permite modificar información del perfil propio',
+        'cambiar_password': 'Permite cambiar la contraseña propia',
+        'ver_reportes': 'Permite acceder a reportes del sistema',
+        'generar_reportes': 'Permite generar reportes personalizados',
+        'ver_dashboard': 'Permite acceso al panel principal del sistema',
+        'acceso_total': 'Acceso completo a todas las funcionalidades (Super Admin)'
+    };
+    
+    return descriptions[permissionCode] || 'Permiso del sistema';
+}
+</script>
+{% endblock %}

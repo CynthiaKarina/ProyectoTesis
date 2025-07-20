@@ -1,0 +1,736 @@
+{% extends "base-simple.html" %}
+
+{% block title %}Editar Perfil{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='improved-styles.css') }}">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="floating-icons-container">
+    <div class="floating-icon icon1">👤</div>
+    <div class="floating-icon icon2">✏️</div>
+    <div class="floating-icon icon3">📝</div>
+    <div class="floating-icon icon4">🎯</div>
+    <div class="floating-icon icon5">📊</div>
+    <div class="floating-icon icon6">🔧</div>
+    <div class="floating-icon icon7">⚙️</div>
+    <div class="floating-icon icon8">💼</div>
+    <div class="floating-icon icon9">📱</div>
+    <div class="floating-icon icon10">💻</div>
+    <div class="floating-icon icon11">🎨</div>
+    <div class="floating-icon icon12">📈</div>
+    <div class="floating-icon icon13">🚀</div>
+    <div class="floating-icon icon14">⭐</div>
+    <div class="floating-icon icon15">✨</div>
+    <div class="floating-icon icon16">🎭</div>
+    <div class="floating-icon icon17">🎪</div>
+    <div class="floating-icon icon18">🎨</div>
+    <div class="floating-icon icon19">🎯</div>
+    <div class="floating-icon icon20">🎊</div>
+</div>
+
+<div class="password-change-container">
+    <div class="password-change-card">
+        <div class="password-change-header">
+            <h1>
+                <i class="fas fa-user-edit"></i>
+                Editar Perfil
+            </h1>
+            <p style="margin: 0.5rem 0 0 0; opacity: 0.9; font-size: 0.95rem;">
+                Actualiza tu información personal y profesional
+            </p>
+        </div>
+
+        <div class="password-change-form">
+            <!-- Mensajes Flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                    <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">
+                                {% if category == 'success' %}
+                                    <i class="fas fa-check-circle"></i>
+                                {% elif category == 'error' %}
+                                    <i class="fas fa-exclamation-circle"></i>
+                                {% elif category == 'warning' %}
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                {% else %}
+                                    <i class="fas fa-info-circle"></i>
+                                {% endif %}
+                        {{ message }}
+                    </div>
+                {% endfor %}
+                    </div>
+            {% endif %}
+        {% endwith %}
+
+            <form action="{{ url_for('profile.editar_perfil') }}" method="POST" enctype="multipart/form-data" id="profileForm">
+                
+                <!-- Sección de Imagen de Perfil -->
+                <div class="form-group" style="text-align: center; margin-bottom: 2rem; padding: 2rem; background: linear-gradient(135deg, #f8f9fa, #e9ecef); border-radius: 16px; border: 2px dashed #dee2e6;">
+                    <div style="position: relative; display: inline-block; margin-bottom: 1.5rem;">
+                        <div style="width: 120px; height: 120px; border-radius: 50%; overflow: hidden; border: 4px solid white; box-shadow: 0 8px 25px rgba(114, 47, 55, 0.2); display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); position: relative;" id="preview-container">
+                        {% if user.ruta_imagen %}
+                            <img src="{{ url_for('static', filename=user.get_imagen_url()) }}" 
+                                     alt="Imagen de perfil actual" id="preview-image" style="width: 100%; height: 100%; object-fit: cover;">
+                        {% else %}
+                                <i class="fas fa-user-circle" id="default-avatar" style="font-size: 3rem; color: white;"></i>
+                        {% endif %}
+                        </div>
+                    </div>
+                    <button type="button" onclick="document.getElementById('ruta_imagen').click();" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 25px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-upload"></i>
+                        Cambiar Imagen
+                    </button>
+                    <input type="file" id="ruta_imagen" name="ruta_imagen" accept="image/*" onchange="previewImage(this);" style="display: none;">
+                    <div style="font-size: 0.875rem; color: #6c757d; margin-top: 0.5rem;">
+                        <i class="fas fa-info-circle"></i>
+                        Formatos permitidos: JPG, PNG, GIF. Tamaño máximo: 5MB
+                    </div>
+                </div>
+
+                <!-- Información Personal -->
+                <div style="margin-bottom: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 12px; border-left: 4px solid var(--primary-color);">
+                    <h3 style="margin: 0 0 1.5rem 0; font-size: 1.2rem; font-weight: 600; color: var(--primary-color); display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-user-circle"></i>
+                        Información Personal
+                    </h3>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+                        <div class="form-group">
+                            <label for="nombre" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-dark);">
+                                <i class="fas fa-user"></i>
+                                Nombre <span style="color: #dc3545; font-weight: bold;">*</span>
+                            </label>
+                            <input type="text" 
+                                   id="nombre" 
+                                   name="nombre" 
+                                   style="width: 100%; padding: 0.75rem 1rem; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 1rem; transition: all 0.3s ease; background: white;"
+                                   value="{{ user.nombre or '' }}" 
+                                   placeholder="Tu nombre"
+                                   required>
+            </div>
+
+                    <div class="form-group">
+                            <label for="apellido_paterno" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-dark);">
+                                <i class="fas fa-user"></i>
+                                Apellido Paterno <span style="color: #dc3545; font-weight: bold;">*</span>
+                        </label>
+                            <input type="text" 
+                                   id="apellido_paterno" 
+                                   name="apellido_paterno" 
+                                   style="width: 100%; padding: 0.75rem 1rem; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 1rem; transition: all 0.3s ease; background: white;"
+                                   value="{{ user.apellido_paterno or '' }}"
+                                   placeholder="Tu apellido paterno"
+                                   required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="apellido_materno" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-dark);">
+                            <i class="fas fa-user"></i>
+                            Apellido Materno
+                        </label>
+                        <input type="text" 
+                               id="apellido_materno" 
+                               name="apellido_materno" 
+                               style="width: 100%; padding: 0.75rem 1rem; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 1rem; transition: all 0.3s ease; background: white;"
+                               value="{{ user.apellido_materno or '' }}"
+                               placeholder="Tu apellido materno">
+                    </div>
+                </div>
+
+                <!-- Información de Cuenta -->
+                <div style="margin-bottom: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 12px; border-left: 4px solid var(--primary-color);">
+                    <h3 style="margin: 0 0 1.5rem 0; font-size: 1.2rem; font-weight: 600; color: var(--primary-color); display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-id-card"></i>
+                        Información de Cuenta
+                    </h3>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                    <div class="form-group">
+                            <label for="username" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-dark);">
+                                <i class="fas fa-user-tag"></i>
+                                Nombre de Usuario
+                        </label>
+                            <input type="text" 
+                                   id="username" 
+                                   name="username" 
+                                   style="width: 100%; padding: 0.75rem 1rem; border: 2px solid #dee2e6; border-radius: 8px; font-size: 1rem; background: #f8f9fa; color: #6c757d; cursor: not-allowed;"
+                                   value="{{ user.username }}" 
+                                   readonly>
+                            <div style="font-size: 0.875rem; color: #6c757d; margin-top: 0.25rem; display: flex; align-items: center; gap: 0.25rem;">
+                                <i class="fas fa-lock" style="color: #17a2b8;"></i>
+                                El nombre de usuario no se puede modificar
+                    </div>
+                </div>
+
+                        <div class="form-group">
+                            <label for="email" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-dark);">
+                                <i class="fas fa-envelope"></i>
+                                Correo Electrónico
+                            </label>
+                            <input type="email" 
+                                   id="email" 
+                                   name="email" 
+                                   style="width: 100%; padding: 0.75rem 1rem; border: 2px solid #dee2e6; border-radius: 8px; font-size: 1rem; background: #f8f9fa; color: #6c757d; cursor: not-allowed;"
+                                   value="{{ user.email }}" 
+                                   readonly>
+                            <div style="font-size: 0.875rem; color: #6c757d; margin-top: 0.25rem; display: flex; align-items: center; gap: 0.25rem;">
+                                <i class="fas fa-lock" style="color: #17a2b8;"></i>
+                                Contacta al administrador para cambiar tu email
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información Institucional -->
+                <div style="margin-bottom: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 12px; border-left: 4px solid var(--primary-color);">
+                    <h3 style="margin: 0 0 1.5rem 0; font-size: 1.2rem; font-weight: 600; color: var(--primary-color); display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-university"></i>
+                        Información Institucional
+                    </h3>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                        <div class="form-group">
+                            <label for="id_institucion" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-dark);">
+                                <i class="fas fa-building"></i>
+                                Institución
+                            </label>
+                            <select id="id_institucion" 
+                                    name="id_institucion" 
+                                    style="width: 100%; padding: 0.75rem 1rem; border: 2px solid #dee2e6; border-radius: 8px; font-size: 1rem; background: #f8f9fa; color: #6c757d; cursor: not-allowed;"
+                                    disabled>
+                                {% if user.institucion %}
+                                    <option value="{{ user.institucion.id_institucion }}">
+                                        {{ user.institucion.nombre_institucion }}
+                                    </option>
+                                {% else %}
+                                    <option value="">Sin institución asignada</option>
+                                {% endif %}
+                            </select>
+                            <div style="font-size: 0.875rem; color: #6c757d; margin-top: 0.25rem; display: flex; align-items: center; gap: 0.25rem;">
+                                <i class="fas fa-lock" style="color: #17a2b8;"></i>
+                                La institución es asignada por el administrador
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_area" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-dark);">
+                                <i class="fas fa-graduation-cap"></i>
+                                Área de Especialización <span style="color: #dc3545; font-weight: bold;">*</span>
+                            </label>
+                            
+                            <!-- Contenedor del select mejorado -->
+                            <div style="position: relative; overflow: hidden;">
+                                <script>
+                                    $(document).ready(function() {
+                                        $('#id_area').select2({
+                                            placeholder: "🔍 Busca y selecciona tu área...",
+                                            allowClear: true
+                                        });
+                                    });
+                                </script>
+                                
+                                <select id="id_area" 
+                                        name="id_area" 
+                                        style="width: 100%; 
+                                               padding: 0.75rem 1rem; 
+                                               border: 2px solid #e1e5e9; 
+                                               border-radius: 8px; 
+                                               font-size: 1rem; 
+                                               transition: all 0.3s ease; 
+                                               background: white; 
+                                               appearance: none;
+                                               max-height: 200px;
+                                               overflow-y: auto;
+                                               margin: 0;">
+                                    <option value="">🔍 Busca y selecciona tu área...</option>
+                            </select>
+                                
+                                <!-- Icono de dropdown personalizado -->
+                                <div style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); pointer-events: none; color: #6c757d; z-index: 1;">
+                                    <i class="fas fa-chevron-down" id="area-dropdown-icon" style="font-size: 0.875rem; color: transparent;"></i>
+                                </div>
+                                
+                                <!-- Indicador de carga -->
+                                <div id="area-loading" style="position: absolute; right: 2.25rem; top: 50%; transform: translateY(-50%); display: none; z-index: 2;">
+                                    <i class="fas fa-spinner fa-spin" style="color: var(--primary-color); font-size: 0.875rem;"></i>
+                                </div>
+                                
+                                <!-- Indicador de validación -->
+                                <div id="area-validation" style="position: absolute; right: 2.25rem; top: 50%; transform: translateY(-50%); display: none; z-index: 2;">
+                                    <i class="fas fa-check-circle" style="color: #28a745; font-size: 0.875rem;"></i>
+                                </div>
+                            </div>
+                            
+                            <!-- Información del área seleccionada -->
+                            <div id="area-info" style="margin-top: 0.75rem; padding: 0.75rem; background: linear-gradient(135deg, #e3f2fd, #f3e5f5); border-radius: 8px; border-left: 4px solid var(--primary-color); display: none;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                    <i class="fas fa-info-circle" style="color: var(--primary-color);"></i>
+                                    <strong id="area-selected-name" style="color: var(--primary-color);"></strong>
+                                </div>
+                                <p id="area-description" style="margin: 0; font-size: 0.875rem; color: #495057; line-height: 1.4;"></p>
+                                <div id="area-stats" style="margin-top: 0.5rem; display: flex; gap: 1rem; font-size: 0.8rem; color: #6c757d;">
+                                    <span id="area-users-count"></span>
+                                    <span id="area-projects-count"></span>
+                                </div>
+                            </div>
+                            
+                            <!-- Mensaje de ayuda -->
+                            <div style="font-size: 0.875rem; color: #6c757d; margin-top: 0.5rem; display: flex; align-items: center; gap: 0.25rem;">
+                                <i class="fas fa-lightbulb" style="color: #ffc107;"></i>
+                                <span id="area-help-text">Selecciona el área que mejor describa tu especialización académica o profesional</span>
+                            </div>
+                            
+                            <!-- Feedback de validación -->
+                            <div id="area-feedback" style="margin-top: 0.5rem; font-size: 0.875rem; display: none;">
+                                <div id="area-error" style="color: #dc3545; display: none;">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    <span></span>
+                                </div>
+                                <div id="area-success" style="color: #28a745; display: none;">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span></span>
+                                </div>
+                            </div>
+                            
+                            <!-- Sugerencias de áreas populares -->
+                            <div id="area-suggestions" style="margin-top: 1rem; display: none;">
+                                <div style="font-size: 0.875rem; color: #6c757d; margin-bottom: 0.5rem; font-weight: 500;">
+                                    <i class="fas fa-star" style="color: #ffc107;"></i>
+                                    Áreas más populares:
+                                </div>
+                                <div id="popular-areas" style="display: flex; flex-wrap: wrap; gap: 0.5rem;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información de Contacto -->
+                <div style="margin-bottom: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 12px; border-left: 4px solid var(--primary-color);">
+                    <h3 style="margin: 0 0 1.5rem 0; font-size: 1.2rem; font-weight: 600; color: var(--primary-color); display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-address-card"></i>
+                        Información de Contacto
+                    </h3>
+                    
+                    <div class="form-group">
+                        <label for="telefono" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-dark);">
+                            <i class="fas fa-phone"></i>
+                            Teléfono <span style="color: #dc3545; font-weight: bold;">*</span>
+                        </label>
+                        <input type="tel" 
+                               id="telefono" 
+                               name="telefono" 
+                               style="width: 100%; padding: 0.75rem 1rem; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 1rem; transition: all 0.3s ease; background: white;"
+                               value="{{ user.telefono or '' }}"
+                               pattern="[0-9]{10}"
+                               maxlength="10"
+                               placeholder="1234567890"
+                               required>
+                        <div style="font-size: 0.875rem; color: #6c757d; margin-top: 0.25rem; display: flex; align-items: center; gap: 0.25rem;">
+                            <i class="fas fa-info-circle" style="color: #17a2b8;"></i>
+                            Ingresa 10 dígitos sin espacios ni guiones
+                    </div>
+                </div>
+            </div>
+
+                <!-- Botones de Acción -->
+            <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="saveButton">
+                        <i class="fas fa-save"></i>
+                        Guardar Cambios
+                </button>
+                    {% if user.ruta_imagen %}
+                    <a href="{{ url_for('profile.eliminar_imagen_perfil') }}" 
+                       class="btn btn-danger" 
+                       onclick="return confirm('¿Estás seguro de que quieres eliminar tu imagen de perfil?')"
+                       style="background: linear-gradient(135deg, #dc3545, #c82333); color: white;">
+                        <i class="fas fa-trash"></i>
+                        Eliminar Imagen
+                </a>
+                    {% endif %}
+            </div>
+        </form>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+
+<script>
+// Función para previsualizar imagen
+function previewImage(input) {
+    const previewContainer = document.getElementById('preview-container');
+    const previewImage = document.getElementById('preview-image');
+    const defaultAvatar = document.getElementById('default-avatar');
+
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        
+        // Validar tipo de archivo
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        if (!allowedTypes.includes(file.type)) {
+            alert('Por favor selecciona una imagen válida (JPEG, PNG o GIF)');
+            input.value = '';
+            return;
+        }
+
+        // Validar tamaño
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxSize) {
+            alert('La imagen es demasiado grande. El tamaño máximo es 5MB');
+            input.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            // Crear nueva imagen si no existe
+            if (!previewImage) {
+                const img = document.createElement('img');
+                img.id = 'preview-image';
+                img.alt = 'Imagen de perfil';
+                img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+                previewContainer.appendChild(img);
+            }
+            
+            // Actualizar src de la imagen
+            const imgElement = document.getElementById('preview-image');
+            imgElement.src = e.target.result;
+            imgElement.style.display = 'block';
+            
+            // Ocultar ícono por defecto si existe
+            if (defaultAvatar) {
+                defaultAvatar.style.display = 'none';
+            }
+        };
+        
+        reader.readAsDataURL(file);
+    }
+}
+
+// Variables globales para áreas
+let areasData = [];
+let selectedAreaData = null;
+
+// Función mejorada para cargar las áreas
+function cargarAreas() {
+    const select = document.getElementById('id_area');
+    const loading = document.getElementById('area-loading');
+    const dropdownIcon = document.getElementById('area-dropdown-icon');
+    
+    // Mostrar indicador de carga
+    loading.style.display = 'block';
+    dropdownIcon.style.display = 'none';
+    
+        fetch('/api/area/')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.areas) {
+                areasData = data.areas;
+                populateAreaSelect(areasData);
+                mostrarSugerenciasPopulares();
+                
+                // Si hay un área preseleccionada, mostrar su información
+                const currentAreaId = {{ user.id_area|default('null') }};
+                if (currentAreaId) {
+                    const currentArea = areasData.find(area => area.id_area === currentAreaId);
+                    if (currentArea) {
+                        select.value = currentAreaId;
+                        mostrarInformacionArea(currentArea);
+                        validarSeleccionArea(true);
+                    }
+                }
+                } else {
+                mostrarError('No hay áreas disponibles en este momento');
+                }
+            })
+            .catch(error => {
+                    console.error('Error al cargar las áreas:', error);
+            mostrarError('Error al cargar las áreas. Por favor, recarga la página.');
+        })
+        .finally(() => {
+            // Ocultar indicador de carga
+            loading.style.display = 'none';
+            dropdownIcon.style.display = 'block';
+        });
+}
+
+// Función para poblar el select con las áreas
+function populateAreaSelect(areas) {
+                    const select = document.getElementById('id_area');
+    select.innerHTML = '<option value="">🔍 Busca y selecciona tu área...</option>';
+    
+    areas.forEach(area => {
+        const option = document.createElement('option');
+        option.value = area.id_area;
+        option.textContent = `${getAreaIcon(area.nombre_area)} ${area.nombre_area}`;
+        option.dataset.description = area.descripcion || 'Área de especialización académica';
+        select.appendChild(option);
+            });
+    }
+    
+// Función para obtener icono según el área
+function getAreaIcon(nombreArea) {
+    const area = nombreArea.toLowerCase();
+    if (area.includes('ingeniería') || area.includes('ingenieria')) return '⚙️';
+    if (area.includes('medicina') || area.includes('salud')) return '🏥';
+    if (area.includes('ciencias') || area.includes('biología')) return '🔬';
+    if (area.includes('matemáticas') || area.includes('matematicas')) return '📐';
+    if (area.includes('física') || area.includes('fisica')) return '⚛️';
+    if (area.includes('química') || area.includes('quimica')) return '🧪';
+    if (area.includes('informática') || area.includes('computación')) return '💻';
+    if (area.includes('arte') || area.includes('diseño')) return '🎨';
+    if (area.includes('educación') || area.includes('pedagogía')) return '📚';
+    if (area.includes('psicología') || area.includes('psicologia')) return '🧠';
+    if (area.includes('derecho') || area.includes('legal')) return '⚖️';
+    if (area.includes('economía') || area.includes('economia')) return '📊';
+    if (area.includes('administración') || area.includes('gestión')) return '💼';
+    if (area.includes('comunicación') || area.includes('periodismo')) return '📢';
+    if (area.includes('arquitectura')) return '🏗️';
+    return '🎓'; // Icono por defecto
+}
+
+// Función para mostrar información del área seleccionada
+function mostrarInformacionArea(area) {
+    const infoDiv = document.getElementById('area-info');
+    const nameSpan = document.getElementById('area-selected-name');
+    const descriptionP = document.getElementById('area-description');
+    const statsDiv = document.getElementById('area-stats');
+    const usersCount = document.getElementById('area-users-count');
+    const projectsCount = document.getElementById('area-projects-count');
+    
+    nameSpan.textContent = `${getAreaIcon(area.nombre_area)} ${area.nombre_area}`;
+    descriptionP.textContent = area.descripcion || 'Área de especialización académica y profesional.';
+
+    // Simular estadísticas (en una implementación real, estas vendrían del API)
+    const randomUsers = Math.floor(Math.random() * 50) + 10;
+    const randomProjects = Math.floor(Math.random() * 20) + 5;
+    
+    usersCount.innerHTML = `<i class="fas fa-users"></i> ${randomUsers} usuarios`;
+    projectsCount.innerHTML = `<i class="fas fa-project-diagram"></i> ${randomProjects} proyectos`;
+    
+    infoDiv.style.display = 'block';
+    selectedAreaData = area;
+}
+
+// Función para ocultar información del área
+function ocultarInformacionArea() {
+    const infoDiv = document.getElementById('area-info');
+    infoDiv.style.display = 'none';
+    selectedAreaData = null;
+}
+
+// Función para mostrar sugerencias de áreas populares
+function mostrarSugerenciasPopulares() {
+    const suggestionsDiv = document.getElementById('area-suggestions');
+    const popularAreasDiv = document.getElementById('popular-areas');
+    
+    // Obtener las primeras 5 áreas como "populares"
+    const popularAreas = areasData.slice(0, 5);
+    
+    popularAreasDiv.innerHTML = '';
+    popularAreas.forEach(area => {
+        const chip = document.createElement('span');
+        chip.style.cssText = `
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        `;
+        chip.innerHTML = `${getAreaIcon(area.nombre_area)} ${area.nombre_area}`;
+        chip.onclick = () => seleccionarAreaPopular(area);
+        
+        chip.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 4px 12px rgba(114, 47, 55, 0.3)';
+        });
+        
+        chip.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = 'none';
+        });
+        
+        popularAreasDiv.appendChild(chip);
+    });
+    
+    suggestionsDiv.style.display = 'block';
+}
+
+// Función para seleccionar un área popular
+function seleccionarAreaPopular(area) {
+    const select = document.getElementById('id_area');
+    select.value = area.id_area;
+    mostrarInformacionArea(area);
+    validarSeleccionArea(true);
+                
+    // Trigger change event para Select2
+    $(select).trigger('change');
+}
+
+// Función para validar la selección del área
+function validarSeleccionArea(isValid, message = '') {
+    const select = document.getElementById('id_area');
+    const validation = document.getElementById('area-validation');
+    const feedback = document.getElementById('area-feedback');
+    const errorDiv = document.getElementById('area-error');
+    const successDiv = document.getElementById('area-success');
+    const helpText = document.getElementById('area-help-text');
+    
+    // Limpiar estados anteriores
+    select.style.borderColor = '#e1e5e9';
+    validation.style.display = 'none';
+    feedback.style.display = 'none';
+    errorDiv.style.display = 'none';
+    successDiv.style.display = 'none';
+    
+    if (isValid) {
+        select.style.borderColor = '#28a745';
+        select.style.boxShadow = '0 0 0 3px rgba(40, 167, 69, 0.1)';
+        validation.style.display = 'block';
+        feedback.style.display = 'block';
+        successDiv.style.display = 'block';
+        successDiv.querySelector('span').textContent = message || 'Área seleccionada correctamente.';
+        helpText.textContent = 'Tu área de especialización ha sido confirmada.';
+    } else if (message) {
+        select.style.borderColor = '#dc3545';
+        select.style.boxShadow = '0 0 0 3px rgba(220, 53, 69, 0.1)';
+        feedback.style.display = 'block';
+        errorDiv.style.display = 'block';
+        errorDiv.querySelector('span').textContent = message;
+        helpText.textContent = 'Por favor, selecciona un área válida.';
+    } else {
+        // Estado neutral
+        helpText.textContent = 'Selecciona el área que mejor describa tu especialización académica o profesional';
+    }
+}
+
+// Función para mostrar errores
+function mostrarError(mensaje) {
+    const select = document.getElementById('id_area');
+    select.innerHTML = `<option value="" disabled>${mensaje}</option>`;
+    validarSeleccionArea(false, mensaje);
+}
+
+// Inicialización cuando se carga la página
+document.addEventListener('DOMContentLoaded', function() {
+    // Cargar áreas
+    cargarAreas();
+    
+    // Inicializar Select2 con configuración avanzada
+    $('#id_area').select2({
+        placeholder: "🔍 Busca y selecciona tu área...",
+        allowClear: true,
+        width: '100%',
+        templateResult: formatAreaOption,
+        templateSelection: formatAreaSelection,
+        escapeMarkup: function(markup) { return markup; }
+    });
+    
+    // Event listeners para el campo de área
+    $('#id_area').on('change', function() {
+        const selectedValue = this.value;
+        
+        if (selectedValue) {
+            const selectedArea = areasData.find(area => area.id_area == selectedValue);
+            if (selectedArea) {
+                mostrarInformacionArea(selectedArea);
+                validarSeleccionArea(true);
+            }
+                    } else {
+            ocultarInformacionArea();
+            validarSeleccionArea(false);
+                    }
+    });
+    
+    // Animación del icono dropdown
+    $('#id_area').on('select2:open', function() {
+        const icon = document.getElementById('area-dropdown-icon');
+        icon.style.transform = 'translateY(-50%) rotate(180deg)';
+                });
+    
+    $('#id_area').on('select2:close', function() {
+        const icon = document.getElementById('area-dropdown-icon');
+        icon.style.transform = 'translateY(-50%) rotate(0deg)';
+    });
+    
+    // Validación del formulario
+    const form = document.getElementById('profileForm');
+    form.addEventListener('submit', function(e) {
+        // Validar que se haya seleccionado un área
+        const areaSelect = document.getElementById('id_area');
+        if (!areaSelect.value) {
+            e.preventDefault();
+            validarSeleccionArea(false, 'Debes seleccionar un área de especialización');
+            areaSelect.focus();
+            return;
+        }
+        
+        const saveButton = document.getElementById('saveButton');
+        saveButton.disabled = true;
+        saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+                    });
+                        
+    // Ocultar mensajes flash después de 5 segundos
+    const flashMessages = document.querySelectorAll('.flash-message');
+    flashMessages.forEach(message => {
+        setTimeout(() => {
+            message.style.opacity = '0';
+            message.style.transform = 'translateY(-10px)';
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 300);
+        }, 5000);
+    });
+});
+
+// Función para formatear las opciones en Select2
+function formatAreaOption(area) {
+    if (!area.id) {
+        return area.text;
+                }
+    
+    const areaData = areasData.find(a => a.id_area == area.id);
+    if (!areaData) return area.text;
+    
+    const icon = getAreaIcon(areaData.nombre_area);
+    const description = areaData.descripcion || 'Área de especialización';
+    
+    return $(`
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="font-size: 1.2rem;">${icon}</span>
+            <div>
+                <div style="font-weight: 500;">${areaData.nombre_area}</div>
+                <div style="font-size: 0.8rem; color: #6c757d; margin-top: 0.2rem;">${description}</div>
+            </div>
+        </div>
+    `);
+    }
+    
+// Función para formatear la selección en Select2
+function formatAreaSelection(area) {
+    if (!area.id) {
+        return area.text;
+    }
+    
+    const areaData = areasData.find(a => a.id_area == area.id);
+    if (!areaData) return area.text;
+    
+    const icon = getAreaIcon(areaData.nombre_area);
+    return `${icon} ${areaData.nombre_area}`;
+}
+</script>
+{% endblock %}
