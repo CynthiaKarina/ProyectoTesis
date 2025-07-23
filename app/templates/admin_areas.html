@@ -4,13 +4,17 @@
 {% block head %}
 {{ super() }}
 <link rel="stylesheet" href="{{ url_for('static', filename='improved-styles.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='admin-mejoras.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 {% endblock %}
 
 {% block content %}
+
+<!-- Iconos flotantes de fondo -->
 <div class="floating-icons-container">
     <div class="floating-icon icon1">📚</div>
-    <div class="floating-icon icon2">💻</div>
+    <div class="floating-icon icon2">🏢</div>
     <div class="floating-icon icon3">🎓</div>
     <div class="floating-icon icon4">✏️</div>
     <div class="floating-icon icon5">📐</div>
@@ -31,150 +35,212 @@
     <div class="floating-icon icon20">🎭</div>
 </div>
 
-<div class="content">
-    <h2> Administrar Áreas</h2>
-    <br>
-    <div class="admin-areas-container">
-        <!-- Contenedor Principal Izquierdo -->
-        <div class="izquierda">
-            <!-- Primera fila izquierda -->
-            <div class="table-responsive">
-                <table class="table table-striped" >
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th class="nombre-area-col">Nombre del Área</th>
-                            <th class="text-center">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for area in areas %}
-                        <tr>
-                            <td>{{ area.id_area }}</td>
-                            <td class="nombre-area-col">{{ area.nombre_area }}</td>
-                            <td class="text-center">
-                                <button class="btn btn-warning btn-sm" onclick="editArea({{ area.id_area }})">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteArea({{ area.id_area }})">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+<div class="areas-admin-container">
+    <!-- Header principal -->
+    <div class="areas-admin-header">
+        <div class="admin-title-section">
+            <div class="admin-icon">
+                <i class="fas fa-layer-group"></i>
             </div>
-            <br>
-            <!-- Segunda fila izquierda -->
-            <div class="card">
-                <div class="card-header">
-                    <h2>Estadísticas</h2>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-6">
-                            <div class="card bg-light">
-                                <div class="card-body text-center">
-                                    <h5>Total Áreas</h5>
-                                    <h3>{{ areas|length }}</h3>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            <div class="admin-title-content">
+                <h1>Administración de Áreas</h1>
+                <p class="admin-subtitle">Organiza y gestiona las áreas académicas del sistema</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido principal en grid -->
+    <div class="areas-content-grid">
+        
+        <!-- Panel izquierdo - Lista de áreas -->
+        <div class="areas-list-panel">
+            <div class="panel-header">
+                <h2><i class="fas fa-list"></i> Lista de Áreas</h2>
+            </div>
+            
+            <div class="areas-table-container">
+                <div class="table-wrapper">
+                    <table class="areas-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre del Área</th>
+                                <th>Creada por</th>
+                                <th>Fecha</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if areas %}
+                                {% for area in areas %}
+                                <tr class="area-row" data-area-id="{{ area.id_area }}">
+                                    <td class="area-id">{{ area.id_area }}</td>
+                                    <td class="area-name">
+                                        <div class="name-with-icon">
+                                            <i class="fas fa-building area-icon"></i>
+                                            <span>{{ area.nombre_area }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="area-creator">{{ area.creado_por or 'Sistema' }}</td>
+                                    <td class="area-date">
+                                        {% if area.fecha_creacion %}
+                                            {{ area.fecha_creacion.strftime('%d/%m/%Y') }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td class="area-actions">
+                                        <button class="action-btn btn-edit" onclick="editArea({{ area.id_area }})" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="action-btn btn-delete" onclick="deleteArea({{ area.id_area }})" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        <button class="action-btn btn-info" onclick="showAreaDetails({{ area.id_area }})" title="Detalles">
+                                            <i class="fas fa-info-circle"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="no-data">
+                                        <div class="no-data-message">
+                                            <i class="fas fa-layer-group"></i>
+                                            <p>No hay áreas registradas</p>
+                                            <button class="btn-primary" onclick="showAddForm()">
+                                                <i class="fas fa-plus"></i>
+                                                Crear Primera Área
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
 
-        <!-- Contenedor Principal Derecho -->
-        <div class="derecha">
-            <!-- Primera fila derecha -->
-            <div class="card">
+        <!-- Panel derecho - Formulario y detalles -->
+        <div class="areas-form-panel">
+            
+            <!-- Formulario de área -->
+            <div class="form-card" id="areaFormCard">
                 <div class="card-header">
-                    <h2>Datos del Área</h2>
+                    <h3 id="formTitle"><i class="fas fa-plus-circle"></i> Nueva Área</h3>
+                    <button class="btn-minimize" onclick="toggleFormCard()">
+                        <i class="fas fa-minus"></i>
+                    </button>
                 </div>
-                <div class="card-body">
+                <div class="card-content" id="formContent">
                     <form id="areaForm">
                         <input type="hidden" id="area_id" name="area_id">
-                        <div class="mb-3">
-                            <label for="nombre_area" class="form-label">Nombre del Área</label>
-                            <input type="text" class="form-control" id="nombre_area" name="nombre_area" required>
+                        
+                        <div class="form-group">
+                            <label for="nombre_area" class="form-label">
+                                <i class="fas fa-building"></i>
+                                Nombre del Área
+                            </label>
+                            <input type="text" class="form-control" id="nombre_area" name="nombre_area" 
+                                   placeholder="Ingrese el nombre del área..." required>
                         </div>
-                        <div class="d-grid gap-2">
-                            <button type="button" class="btn btn-success" onclick="saveArea()">
-                                <i class="fas fa-save"></i> Guardar
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn-primary" onclick="saveArea()">
+                                <i class="fas fa-save"></i>
+                                <span id="saveButtonText">Guardar Área</span>
                             </button>
-                            <button type="button" class="btn btn-secondary" onclick="resetForm()">
-                                <i class="fas fa-undo"></i> Limpiar
+                            <button type="button" class="btn-secondary" onclick="resetForm()">
+                                <i class="fas fa-undo"></i>
+                                Limpiar
                             </button>
                         </div>
                     </form>
                 </div>
             </div>
-            <br>
-            <br>
-            <!-- Segunda fila derecha -->
-            <div class="card">
+
+            <!-- Detalles del área -->
+            <div class="details-card" id="areaDetailsCard">
                 <div class="card-header">
-                    <h2>Detalles del Área</h2>
+                    <h3><i class="fas fa-info-circle"></i> Detalles del Área</h3>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-12">
-                            <div id="areaDetails">
-                                <div class="alert alert-info" id="noAreaSelected">
-                                    <i class="fas fa-info-circle"></i> Seleccione un área para ver sus detalles
+                <div class="card-content">
+                    <div id="areaDetails">
+                        <div class="no-selection" id="noAreaSelected">
+                            <div class="no-selection-content">
+                                <i class="fas fa-hand-pointer"></i>
+                                <p>Selecciona un área de la lista para ver sus detalles</p>
+                                <small>Haz clic en el botón de información de cualquier área</small>
+                            </div>
+                        </div>
+                        
+                        <div id="areaInfo" style="display: none;">
+                            <div class="detail-header">
+                                <div class="area-name-display">
+                                    <i class="fas fa-building"></i>
+                                    <h4 id="displayAreaName">Nombre del Área</h4>
                                 </div>
-                                <div id="areaInfo" style="display: none;" class="area-details-container">
-                                    <div class="area-header">
-                                        <h3 class="area-title">
-                                            <i class="fas fa-building"></i> <span id="areaName" class="area-name"></span>
-                                        </h3>
+                            </div>
+                            
+                            <div class="detail-grid">
+                                <div class="detail-item">
+                                    <div class="detail-icon">
+                                        <i class="fas fa-hashtag"></i>
                                     </div>
-                                    <hr class="area-divider">
-                                    <div class="row area-info-grid">
-                                        <div class="col-md-6 info-card">
-                                            <div class="info-item">
-                                                <i class="fas fa-hashtag info-icon"></i> <div class="info-content">
-                                                    <label>ID del Área</label>
-                                                    <span id="areaId" class="info-value"></span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6 info-card">
-                                            <div class="info-item">
-                                                <i class="fas fa-user info-icon"></i> <div class="info-content">
-                                                    <label>Creado por</label>
-                                                    <span id="areaCreatedBy" class="info-value"></span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6 info-card">
-                                            <div class="info-item">
-                                                <i class="fas fa-calendar-plus info-icon"></i> <div class="info-content">
-                                                    <label>Fecha de creación</label>
-                                                    <span id="areaCreationDate" class="info-value"></span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6 info-card">
-                                            <div class="info-item">
-                                                <i class="fas fa-calendar-check info-icon"></i> <div class="info-content">
-                                                    <label>Última modificación</label>
-                                                    <span id="areaLastModified" class="info-value"></span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6 info-card">
-                                            <div class="info-item">
-                                                <i class="fas fa-user-edit info-icon"></i> <div class="info-content">
-                                                    <label>Modificado por</label>
-                                                    <span id="areaModifiedBy" class="info-value"></span>
-                                                </div>
-                                            </div>
-                                        </div>
+                                    <div class="detail-content">
+                                        <label>ID del Área</label>
+                                        <span id="displayAreaId">-</span>
                                     </div>
                                 </div>
+                                
+                                <div class="detail-item">
+                                    <div class="detail-icon">
+                                        <i class="fas fa-user-plus"></i>
+                                    </div>
+                                    <div class="detail-content">
+                                        <label>Creado por</label>
+                                        <span id="displayAreaCreator">-</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="detail-item">
+                                    <div class="detail-icon">
+                                        <i class="fas fa-calendar-plus"></i>
+                                    </div>
+                                    <div class="detail-content">
+                                        <label>Fecha de Creación</label>
+                                        <span id="displayAreaCreationDate">-</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="detail-item">
+                                    <div class="detail-icon">
+                                        <i class="fas fa-calendar-check"></i>
+                                    </div>
+                                    <div class="detail-content">
+                                        <label>Última Modificación</label>
+                                        <span id="displayAreaModificationDate">-</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="detail-item">
+                                    <div class="detail-icon">
+                                        <i class="fas fa-user-edit"></i>
+                                    </div>
+                                    <div class="detail-content">
+                                        <label>Modificado por</label>
+                                        <span id="displayAreaModifier">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="detail-actions">
+                                <button class="btn-primary" onclick="editAreaFromDetails()">
+                                    <i class="fas fa-edit"></i>
+                                    Editar Área
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -182,64 +248,142 @@
         </div>
     </div>
 </div>
+
+<!-- Script mejorado -->
 <script>
-function resetForm() {
-    document.getElementById('areaForm').reset();
-    document.getElementById('area_id').value = '';
+// Variables globales
+let currentAreaId = null;
+let isFormMinimized = false;
+
+// Inicialización
+document.addEventListener('DOMContentLoaded', function() {
+    // Hacer la primera fila seleccionable por defecto si hay áreas
+    const firstRow = document.querySelector('.area-row');
+    if (firstRow) {
+        const areaId = firstRow.dataset.areaId;
+        showAreaDetails(areaId);
+    }
+});
+
+// Mostrar formulario para nueva área
+function showAddForm() {
+    resetForm();
+    document.getElementById('formTitle').innerHTML = '<i class="fas fa-plus-circle"></i> Nueva Área';
+    document.getElementById('saveButtonText').textContent = 'Guardar Área';
+    document.getElementById('areaFormCard').scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('nombre_area').focus();
 }
 
+// Editar área desde la tabla
 function editArea(id) {
-    // Mostrar detalles del área
-    document.getElementById('noAreaSelected').style.display = 'none';
-    document.getElementById('areaInfo').style.display = 'block';
-
-    // Limpiar el formulario
-    document.getElementById('areaForm').reset();
-    document.getElementById('area_id').value = id;
-
-    // Obtener los detalles completos del área
+    currentAreaId = id;
+    
+    // Cambiar título del formulario
+    document.getElementById('formTitle').innerHTML = '<i class="fas fa-edit"></i> Editar Área';
+    document.getElementById('saveButtonText').textContent = 'Actualizar Área';
+    
+    // Cargar datos del área
     fetch(`/admin/areas/${id}`)
         .then(response => response.json())
         .then(data => {
+            document.getElementById('area_id').value = data.id_area;
             document.getElementById('nombre_area').value = data.nombre_area || '';
-            document.getElementById('areaId').textContent = data.id_area || '';
-            document.getElementById('areaName').textContent = data.nombre_area || '';
-            document.getElementById('areaCreatedBy').textContent = data.creado_por || '';
-            document.getElementById('areaModifiedBy').textContent = data.modificado_por || '';
+            
+            // Scroll al formulario
+            document.getElementById('areaFormCard').scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('nombre_area').focus();
+        })
+        .catch(error => {
+            console.error('Error al obtener datos del área:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error al cargar los datos del área'
+            });
+        });
+    
+    // También mostrar detalles
+    showAreaDetails(id);
+}
+
+// Editar desde panel de detalles
+function editAreaFromDetails() {
+    if (currentAreaId) {
+        editArea(currentAreaId);
+    }
+}
+
+// Mostrar detalles del área
+function showAreaDetails(id) {
+    currentAreaId = id;
+    
+    // Destacar fila seleccionada
+    document.querySelectorAll('.area-row').forEach(row => {
+        row.classList.remove('selected');
+    });
+    document.querySelector(`[data-area-id="${id}"]`).classList.add('selected');
+    
+    // Mostrar detalles
+    document.getElementById('noAreaSelected').style.display = 'none';
+    document.getElementById('areaInfo').style.display = 'block';
+    
+    // Cargar datos
+    fetch(`/admin/areas/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('displayAreaName').textContent = data.nombre_area || '-';
+            document.getElementById('displayAreaId').textContent = data.id_area || '-';
+            document.getElementById('displayAreaCreator').textContent = data.creado_por || 'Sistema';
+            document.getElementById('displayAreaModifier').textContent = data.modificado_por || 'Sistema';
+            
             if (data.fecha_creacion) {
                 const fecha = new Date(data.fecha_creacion);
-                document.getElementById('areaCreationDate').textContent = fecha.toLocaleDateString('es-ES', {
-                    year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                });
+                document.getElementById('displayAreaCreationDate').textContent = 
+                    fecha.toLocaleDateString('es-ES', {
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
             } else {
-                document.getElementById('areaCreationDate').textContent = '';
+                document.getElementById('displayAreaCreationDate').textContent = '-';
             }
+            
             if (data.ultima_modificacion) {
-                const mod = new Date(data.ultima_modificacion);
-                document.getElementById('areaLastModified').textContent = mod.toLocaleDateString('es-ES', {
-                    year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                });
+                const fechaMod = new Date(data.ultima_modificacion);
+                document.getElementById('displayAreaModificationDate').textContent = 
+                    fechaMod.toLocaleDateString('es-ES', {
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
             } else {
-                document.getElementById('areaLastModified').textContent = '';
+                document.getElementById('displayAreaModificationDate').textContent = '-';
             }
         })
         .catch(error => {
             console.error('Error al obtener detalles del área:', error);
-            document.getElementById('areaCreationDate').textContent = 'No disponible';
-            document.getElementById('areaLastModified').textContent = 'No disponible';
         });
 }
 
+// Eliminar área
 function deleteArea(id) {
+    // Obtener nombre del área para la confirmación
+    const areaName = document.querySelector(`[data-area-id="${id}"] .area-name span`).textContent;
+    
     Swal.fire({
-        title: '¿Está seguro?',
+        title: '¿Estás seguro?',
+        html: `Se eliminará el área:<br><strong>"${areaName}"</strong>`,
         text: "Esta acción no se puede deshacer",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#d33',
         cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Sí',
-        cancelButtonText: 'Cancelar'
+        confirmButtonText: '<i class="fas fa-trash"></i> Sí, eliminar',
+        cancelButtonText: '<i class="fas fa-times"></i> Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
             fetch(`/admin/areas/eliminar/${id}`, {
@@ -250,8 +394,9 @@ function deleteArea(id) {
                 if (data.mensaje) {
                     Swal.fire({
                         icon: 'success',
-                        title: '¡Éxito!',
-                        text: data.mensaje
+                        title: '¡Eliminada!',
+                        text: data.mensaje,
+                        timer: 2000
                     }).then(() => {
                         location.reload();
                     });
@@ -259,7 +404,7 @@ function deleteArea(id) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: data.error
+                        text: data.error || 'Error al eliminar el área'
                     });
                 }
             })
@@ -275,10 +420,23 @@ function deleteArea(id) {
     });
 }
 
+// Guardar área
 function saveArea() {
     const form = document.getElementById('areaForm');
     const formData = new FormData(form);
     const area_id = formData.get('area_id');
+    
+    // Validar campo requerido
+    const nombreArea = formData.get('nombre_area').trim();
+    if (!nombreArea) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Campo requerido',
+            text: 'El nombre del área es obligatorio'
+        });
+        document.getElementById('nombre_area').focus();
+        return;
+    }
     
     let url = '/admin/areas/agregar';
     let method = 'POST';
@@ -292,6 +450,12 @@ function saveArea() {
         body = JSON.stringify(jsonData);
     }
     
+    // Mostrar loading
+    const saveBtn = document.querySelector('[onclick="saveArea()"]');
+    const originalText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+    saveBtn.disabled = true;
+    
     fetch(url, {
         method: method,
         body: body,
@@ -303,7 +467,8 @@ function saveArea() {
             Swal.fire({
                 icon: 'success',
                 title: '¡Éxito!',
-                text: data.mensaje
+                text: data.mensaje,
+                timer: 2000
             }).then(() => {
                 location.reload();
             });
@@ -311,7 +476,7 @@ function saveArea() {
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: data.error
+                text: data.error || 'Error al guardar el área'
             });
         }
     })
@@ -322,7 +487,760 @@ function saveArea() {
             title: 'Error',
             text: 'Error al guardar el área'
         });
+    })
+    .finally(() => {
+        // Restaurar botón
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
     });
 }
+
+// Limpiar formulario
+function resetForm() {
+    document.getElementById('areaForm').reset();
+    document.getElementById('area_id').value = '';
+    currentAreaId = null;
+    
+    // Resetear título del formulario
+    document.getElementById('formTitle').innerHTML = '<i class="fas fa-plus-circle"></i> Nueva Área';
+    document.getElementById('saveButtonText').textContent = 'Guardar Área';
+    
+    // Quitar selección de filas
+    document.querySelectorAll('.area-row').forEach(row => {
+        row.classList.remove('selected');
+    });
+    
+    // Ocultar detalles
+    document.getElementById('noAreaSelected').style.display = 'block';
+    document.getElementById('areaInfo').style.display = 'none';
+}
+
+// Minimizar/maximizar formulario
+function toggleFormCard() {
+    const content = document.getElementById('formContent');
+    const btn = document.querySelector('.btn-minimize i');
+    
+    if (isFormMinimized) {
+        content.style.display = 'block';
+        btn.className = 'fas fa-minus';
+        isFormMinimized = false;
+    } else {
+        content.style.display = 'none';
+        btn.className = 'fas fa-plus';
+        isFormMinimized = true;
+    }
+}
 </script>
+
+<style>
+/* Estilos específicos para admin areas - Layout moderno */
+.areas-admin-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--spacing-lg);
+    min-height: 100vh;
+}
+
+/* Header principal */
+.areas-admin-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    border-radius: 20px;
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+    color: var(--text-white);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+.areas-admin-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    pointer-events: none;
+}
+
+.admin-title-section {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+    position: relative;
+    z-index: 1;
+}
+
+.admin-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    font-size: 2rem;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.admin-title-content h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0 0 var(--spacing-sm) 0;
+    line-height: 1.2;
+}
+
+.admin-subtitle {
+    font-size: 1.2rem;
+    margin: 0;
+    opacity: 0.9;
+    font-weight: 400;
+}
+
+/* Estadísticas */
+.areas-stats {
+    display: flex;
+    gap: var(--spacing-xl);
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    background: rgba(255, 255, 255, 0.15);
+    padding: var(--spacing-lg);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    min-width: 180px;
+}
+
+.stat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    font-size: 1.3rem;
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    font-weight: 500;
+}
+
+/* Grid de contenido */
+.areas-content-grid {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: var(--spacing-xl);
+    align-items: start;
+}
+
+/* Panel de lista */
+.areas-list-panel {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.panel-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: var(--spacing-xl);
+    border-bottom: 2px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel-header h2 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.3rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.btn-add-area {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-add-area:hover {
+    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+}
+
+/* Tabla de áreas */
+.areas-table-container {
+    padding: var(--spacing-lg);
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.areas-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.areas-table thead {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+    color: white;
+}
+
+.areas-table th {
+    padding: var(--spacing-md) var(--spacing-lg);
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.areas-table td {
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-bottom: 1px solid #f1f3f4;
+    font-size: 0.95rem;
+}
+
+.area-row {
+    transition: all var(--transition);
+    cursor: pointer;
+}
+
+.area-row:hover {
+    background: #f8f9ff;
+    transform: scale(1.01);
+}
+
+.area-row.selected {
+    background: linear-gradient(135deg, rgba(44, 90, 160, 0.1) 0%, rgba(116, 75, 162, 0.05) 100%);
+    border-left: 4px solid var(--primary-color);
+}
+
+.area-id {
+    font-weight: 600;
+    color: var(--primary-color);
+    font-family: 'Courier New', monospace;
+}
+
+.name-with-icon {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-weight: 600;
+}
+
+.area-icon {
+    color: var(--primary-color);
+    font-size: 1rem;
+}
+
+.area-creator, .area-date {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* Botones de acción */
+.area-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all var(--transition);
+    font-size: 0.9rem;
+}
+
+.btn-edit {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+}
+
+.btn-edit:hover {
+    background: #ffc107;
+    color: white;
+    transform: scale(1.1);
+}
+
+.btn-delete {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+.btn-delete:hover {
+    background: #dc3545;
+    color: white;
+    transform: scale(1.1);
+}
+
+.btn-info {
+    background: rgba(23, 162, 184, 0.1);
+    color: #17a2b8;
+}
+
+.btn-info:hover {
+    background: #17a2b8;
+    color: white;
+    transform: scale(1.1);
+}
+
+/* Panel de formulario */
+.areas-form-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+/* Tarjetas del panel derecho */
+.form-card, .details-card, .help-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all var(--transition);
+}
+
+.form-card:hover, .details-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.12);
+}
+
+.card-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+    padding: var(--spacing-lg);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.btn-minimize {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.btn-minimize:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.card-content {
+    padding: var(--spacing-xl);
+}
+
+/* Formulario */
+.form-group {
+    margin-bottom: var(--spacing-lg);
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-sm);
+    font-size: 0.95rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: var(--spacing-md);
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all var(--transition);
+    background: white;
+    box-sizing: border-box;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(44, 90, 160, 0.1);
+}
+
+.form-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-xl);
+}
+
+.btn-primary, .btn-secondary {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md) var(--spacing-xl);
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition);
+    text-decoration: none;
+    font-size: 0.95rem;
+    flex: 1;
+    justify-content: center;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+    box-shadow: 0 4px 12px rgba(44, 90, 160, 0.3);
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(44, 90, 160, 0.4);
+}
+
+.btn-secondary {
+    background: #f8f9fa;
+    color: var(--text-primary);
+    border: 1px solid #dee2e6;
+}
+
+.btn-secondary:hover {
+    background: #e9ecef;
+    transform: translateY(-1px);
+}
+
+/* Detalles del área */
+.no-selection {
+    text-align: center;
+    padding: var(--spacing-xl);
+    color: var(--text-secondary);
+}
+
+.no-selection-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.no-selection-content i {
+    font-size: 3rem;
+    opacity: 0.5;
+}
+
+.detail-header {
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 2px solid #f8f9fa;
+}
+
+.area-name-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    color: var(--primary-color);
+}
+
+.area-name-display h4 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.03);
+    transition: all var(--transition);
+}
+
+.detail-item:hover {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.detail-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 50%;
+    font-size: 1rem;
+}
+
+.detail-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.detail-content label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+.detail-content span {
+    font-size: 1rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.detail-actions {
+    text-align: center;
+}
+
+/* Tarjeta de ayuda */
+.help-card .card-header {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.help-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-sm) 0;
+    font-size: 0.9rem;
+}
+
+.help-item i {
+    width: 20px;
+    text-align: center;
+}
+
+/* Mensaje sin datos */
+.no-data {
+    text-align: center;
+    padding: var(--spacing-xl) !important;
+}
+
+.no-data-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-lg);
+    color: var(--text-secondary);
+}
+
+.no-data-message i {
+    font-size: 3rem;
+    opacity: 0.5;
+}
+
+.no-data-message p {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+/* Ayuda de teclado */
+/* .keyboard-help {
+    position: absolute;
+    bottom: var(--spacing-md);
+    right: var(--spacing-md);
+    background: rgba(255, 255, 255, 0.1);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: 8px;
+    font-size: 0.8rem;
+    opacity: 0.7;
+} */
+
+/* Responsive Design */
+@media (max-width: 1199px) {
+    .areas-content-grid {
+        grid-template-columns: 1fr 350px;
+        gap: var(--spacing-lg);
+    }
+}
+
+@media (max-width: 991px) {
+    .areas-admin-container {
+        padding: var(--spacing-md);
+    }
+    
+    .areas-content-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+    }
+    
+    .admin-title-section {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--spacing-md);
+    }
+    
+    .areas-stats {
+        flex-direction: column;
+        align-items: center;
+        gap: var(--spacing-md);
+    }
+    
+    .stat-item {
+        width: 100%;
+        max-width: 300px;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 767px) {
+    .areas-admin-container {
+        padding: var(--spacing-sm);
+    }
+    
+    .areas-admin-header {
+        padding: var(--spacing-lg);
+    }
+    
+    .admin-title-content h1 {
+        font-size: 2rem;
+    }
+    
+    .admin-subtitle {
+        font-size: 1rem;
+    }
+    
+    .panel-header {
+        flex-direction: column;
+        gap: var(--spacing-md);
+        text-align: center;
+    }
+    
+    .areas-table {
+        font-size: 0.85rem;
+    }
+    
+    .areas-table th,
+    .areas-table td {
+        padding: var(--spacing-sm);
+    }
+    
+    .card-content {
+        padding: var(--spacing-lg);
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    /* .keyboard-help {
+        position: static;
+        margin-top: var(--spacing-md);
+        text-align: center;
+    } */
+}
+
+@media (max-width: 575px) {
+    .admin-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+    
+    .admin-title-content h1 {
+        font-size: 1.8rem;
+    }
+    
+    .stat-item {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--spacing-sm);
+    }
+    
+    .table-wrapper {
+        overflow-x: auto;
+    }
+    
+    .areas-table {
+        min-width: 500px;
+    }
+}
+
+/* Colores de utilidad */
+.text-success { color: #28a745 !important; }
+.text-warning { color: #ffc107 !important; }
+.text-danger { color: #dc3545 !important; }
+.text-info { color: #17a2b8 !important; }
+</style>
+
 {% endblock %}

@@ -160,7 +160,7 @@
             <div class="admin-card-content">
                 <p>Organiza y administra las diferentes áreas académicas del sistema</p>
                 <div class="admin-card-actions">
-                    <button class="admin-button" onclick="showComingSoon()">
+                    <button class="admin-button" onclick="navigateToSection('{{ url_for('admin_areas.index') }}')">
                         <i class="fas fa-layer-group"></i>
                         Organizar
                     </button>
@@ -238,6 +238,10 @@
         <button class="fab-option" onclick="navigateToSection('{{ url_for('admin_laboratorios.admin_laboratorios') }}')">
             <i class="fas fa-flask"></i>
             <span>Nuevo Lab</span>
+        </button>
+        <button class="fab-option" onclick="navigateToSection('{{ url_for('admin_areas.index') }}')">
+            <i class="fas fa-layer-group"></i>
+            <span>Gestionar Áreas</span>
         </button>
     </div>
 </div>

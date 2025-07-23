@@ -63,6 +63,7 @@ def create_app():
     from app.controllers.admin_roles_controller import admin_roles_bp
     from app.controllers.admin_permisos_controller import admin_permisos_bp
     from app.controllers.admin_laboratorios_controller import admin_laboratorios_bp
+    from app.controllers.admin_instituciones_controller import admin_instituciones_bp
 
     #API
     from app.apis.user_api import user_api_bp
@@ -88,6 +89,7 @@ def create_app():
     app.register_blueprint(admin_roles_bp)
     app.register_blueprint(admin_permisos_bp)
     app.register_blueprint(admin_laboratorios_bp)
+    app.register_blueprint(admin_instituciones_bp)
 
     @app.context_processor
     def utility_processor():

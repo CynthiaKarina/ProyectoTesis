@@ -1,0 +1,1865 @@
+{% extends "base_Admin.html" %}
+
+{% block title %}Administración de Instituciones{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='improved-styles.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='admin-mejoras.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<!-- DEFINIR FUNCIONES INMEDIATAMENTE PARA EVITAR ERRORES -->
+<script>
+console.log('🚀 DEFINIENDO FUNCIONES CRÍTICAS EN HEAD...');
+
+// FUNCIONES PRINCIPALES DEFINIDAS INMEDIATAMENTE
+function editarInstitucion(id) {
+    console.log('✅ FUNCIÓN editarInstitucion EJECUTADA - ID: ' + id);
+    console.log('🔗 Intentando conectar a: /admin/instituciones/' + id);
+    
+    fetch('/admin/instituciones/' + id, {
+        method: 'GET',
+        credentials: 'same-origin',  // ✨ CLAVE: Incluir cookies de sesión
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'  // ✨ Identificar como AJAX
+        }
+    })
+    .then(function(response) {
+        console.log('📡 Respuesta del servidor:', response.status, response.statusText);
+        console.log('📡 URL solicitada:', response.url);
+        console.log('📡 Content-Type:', response.headers.get('content-type'));
+            
+            // Verificar si la respuesta es HTML (error de redireccionamiento)
+            var contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('text/html')) {
+                console.error('❌ ERROR: El servidor devolvió HTML en lugar de JSON');
+                console.error('❌ Esto indica que probablemente hay un error de permisos o autenticación');
+                alert('❌ ERROR: No tienes permisos para acceder a esta función o no estás autenticado correctamente.');
+                return null;
+            }
+            
+            if (!response.ok) {
+                throw new Error('Error HTTP: ' + response.status + ' - ' + response.statusText);
+            }
+            
+            return response.json();
+        })
+        .then(function(data) {
+            if (!data) {
+                return; // Ya se manejó el error arriba
+            }
+            
+            if (data.error) {
+                alert('Error del servidor: ' + data.error);
+                return;
+            }
+            
+            console.log('✅ Datos recibidos correctamente:', data);
+            
+            // Abrir modal
+            var modal = document.getElementById('modalOverlay');
+            if (modal) {
+                modal.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+            
+            // Llenar formulario
+            document.getElementById('id_institucion').value = data.id_institucion || '';
+            document.getElementById('nombre_institucion').value = data.nombre_institucion || '';
+            document.getElementById('id_tipo_institucion').value = data.id_tipo_institucion || '';
+            document.getElementById('email').value = data.email || '';
+            document.getElementById('telefono').value = data.telefono || '';
+            document.getElementById('calle').value = data.calle || '';
+            document.getElementById('colonia').value = data.colonia || '';
+            document.getElementById('municipio').value = data.municipio || '';
+            document.getElementById('estado').value = data.estado || '';
+            document.getElementById('codigo_postal').value = data.codigo_postal || '';
+            document.getElementById('activo').checked = data.activo || false;
+            
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Editar Institución';
+            document.getElementById('submitBtn').innerHTML = '<i class="fas fa-save"></i> Actualizar Institución';
+            
+            console.log('✅ Modal abierto y formulario llenado correctamente');
+        })
+        .catch(function(error) {
+            console.error('❌ ERROR en editarInstitucion:', error);
+            console.error('❌ Detalles del error:', error.message);
+            alert('❌ ERROR: ' + error.message + '\n\nRevisa la consola del navegador para más detalles.');
+        });
+}
+
+function eliminarInstitucion(id) {
+    console.log('✅ FUNCIÓN eliminarInstitucion EJECUTADA - ID: ' + id);
+    
+    if (confirm('¿Estás seguro de eliminar esta institución?')) {
+        fetch('/admin/instituciones/eliminar/' + id, { 
+            method: 'DELETE',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                } else {
+                    alert('Institución eliminada exitosamente');
+                    location.reload();
+                }
+            })
+            .catch(function(error) {
+                console.error('Error:', error);
+                alert('Error al eliminar la institución');
+            });
+    }
+}
+
+function toggleStatus(id) {
+    console.log('✅ FUNCIÓN toggleStatus EJECUTADA - ID: ' + id);
+    
+    if (confirm('¿Cambiar el estado de esta institución?')) {
+        fetch('/admin/instituciones/toggle-status/' + id, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.error) {
+                alert('Error: ' + data.error);
+            } else {
+                alert('Estado cambiado exitosamente');
+                location.reload();
+            }
+        })
+        .catch(function(error) {
+            console.error('Error:', error);
+            alert('Error al cambiar el estado');
+        });
+    }
+}
+
+function openModal() {
+    var modal = document.getElementById('modalOverlay');
+    if (modal) {
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeModal() {
+    var modal = document.getElementById('modalOverlay');
+    if (modal) {
+        modal.classList.remove('show');
+        document.body.style.overflow = 'auto';
+    }
+}
+
+function toggleFabMenu() {
+    var fabOptions = document.querySelector('.fab-options');
+    var fabMain = document.querySelector('.fab-main');
+    
+    if (fabOptions && fabOptions.classList.contains('open')) {
+        fabOptions.classList.remove('open');
+        fabMain.classList.remove('open');
+    } else if (fabOptions && fabMain) {
+        fabOptions.classList.add('open');
+        fabMain.classList.add('open');
+    }
+}
+
+function exportarInstituciones() {
+    var formato = prompt('Exportar a: 1=Excel, 2=CSV');
+    if (formato === '1') {
+        window.open('/admin/instituciones/exportar', '_blank');
+    } else if (formato === '2') {
+        window.open('/admin/instituciones/exportar-csv', '_blank');
+    }
+}
+
+// Asegurar disponibilidad global
+window.editarInstitucion = editarInstitucion;
+window.eliminarInstitucion = eliminarInstitucion;
+window.toggleStatus = toggleStatus;
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.toggleFabMenu = toggleFabMenu;
+window.exportarInstituciones = exportarInstituciones;
+
+console.log('🎉 TODAS LAS FUNCIONES CRÍTICAS DEFINIDAS EN HEAD');
+console.log('✅ editarInstitucion disponible:', typeof editarInstitucion !== 'undefined');
+console.log('✅ eliminarInstitucion disponible:', typeof eliminarInstitucion !== 'undefined');
+console.log('✅ toggleStatus disponible:', typeof toggleStatus !== 'undefined');
+</script>
+<style>
+/* ===================== ICONOS FLOTANTES DE FONDO ===================== */
+.admin-bg-icons {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    pointer-events: none;
+    z-index: 0;
+}
+.admin-bg-icon {
+    position: absolute;
+    opacity: 0.08;
+    font-size: 8rem;
+    filter: blur(1px);
+    animation: floatIcon 12s ease-in-out infinite;
+    color: #667eea;
+}
+.icon-university { top: 8%; left: 6%; color: #764ba2; animation-delay: 0s;}
+.icon-building { top: 60%; left: 10%; color: #43e97b; animation-delay: 2s;}
+.icon-graduation { top: 20%; right: 8%; color: #f093fb; animation-delay: 4s;}
+.icon-school { bottom: 12%; left: 40%; color: #00f2fe; animation-delay: 6s;}
+.icon-landmark { top: 70%; right: 12%; color: #fa709a; animation-delay: 8s;}
+.icon-institution { top: 40%; left: 80%; color: #fed6e3; animation-delay: 10s;}
+.icon-campus { bottom: 8%; right: 18%; color: #434343; animation-delay: 12s;}
+
+@keyframes floatIcon {
+    0%, 100% { transform: translateY(0) scale(1) rotate(0deg);}
+    20% { transform: translateY(-20px) scale(1.05) rotate(-5deg);}
+    50% { transform: translateY(20px) scale(1.1) rotate(5deg);}
+    80% { transform: translateY(-10px) scale(1.03) rotate(-3deg);}
+}
+@media (max-width: 900px) {
+    .admin-bg-icon { font-size: 4rem; }
+}
+@media (max-width: 600px) {
+    .admin-bg-icon { display: none; }
+}
+
+/* ===================== CONTENEDOR PRINCIPAL ===================== */
+.admin-instituciones-container {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 2rem 0;
+    overflow-x: hidden;
+}
+
+/* ===================== HEADER MEJORADO ===================== */
+.admin-header {
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 2rem;
+    padding: 3rem 2rem;
+    margin: 2rem auto;
+    max-width: 1200px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    color: white;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.admin-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
+    pointer-events: none;
+}
+
+.admin-title-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.admin-icon {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: white;
+    border: 2px solid rgba(255,255,255,0.3);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+.admin-title-content h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    background: linear-gradient(45deg, #fff, #e8e8e8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.admin-subtitle {
+    font-size: 1.3rem;
+    opacity: 0.9;
+    margin: 0.5rem 0 1.5rem 0;
+    font-weight: 300;
+}
+
+/* ===================== ESTADÍSTICAS MEJORADAS ===================== */
+.stats-showcase {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    margin: 2rem auto;
+    max-width: 1200px;
+    padding: 0 2rem;
+}
+
+.stat-card-enhanced {
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    text-align: center;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    cursor: pointer;
+}
+
+.stat-card-enhanced:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    border-color: rgba(255,255,255,0.4);
+}
+
+.stat-card-enhanced::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+}
+
+.stat-card-enhanced:hover::before {
+    transform: translateX(100%);
+}
+
+.stat-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin: 0 auto 1rem;
+    border: 2px solid rgba(255,255,255,0.3);
+}
+
+.stat-number {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.stat-label {
+    font-size: 1.1rem;
+    font-weight: 500;
+    opacity: 0.9;
+}
+
+/* ===================== SECCIÓN PRINCIPAL ===================== */
+.main-content-section {
+    background: rgba(255,255,255,0.95);
+    border-radius: 2rem 2rem 0 0;
+    margin: 3rem auto 0;
+    max-width: 1400px;
+    min-height: 70vh;
+    box-shadow: 0 -10px 30px rgba(0,0,0,0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.content-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+    position: relative;
+}
+
+.content-header h2 {
+    font-size: 2rem;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+/* ===================== CONTENEDOR DE TABLA ÚNICO ===================== */
+.main-table-section {
+    padding: 2rem;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* ===================== PANEL DE BÚSQUEDA ===================== */
+.search-panel {
+    background: white;
+    border-radius: 1.5rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 1px solid #f0f0f0;
+    position: relative;
+    overflow: hidden;
+}
+
+.search-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.search-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.search-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #333;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.search-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.btn-new-institution {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.btn-new-institution:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+}
+
+.search-input-container {
+    position: relative;
+    max-width: 400px;
+    width: 100%;
+}
+
+.search-input {
+    width: 100%;
+    padding: 1rem 1rem 1rem 3rem;
+    border: 2px solid #e9ecef;
+    border-radius: 1rem;
+    font-size: 1rem;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-sizing: border-box;
+    background: #fafbfc;
+}
+
+.search-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    outline: none;
+    background: white;
+    transform: translateY(-2px);
+}
+
+.search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    font-size: 1.1rem;
+    pointer-events: none;
+}
+
+.clear-search-btn {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    display: none;
+}
+
+.clear-search-btn:hover {
+    background: #f8f9fa;
+    color: #dc3545;
+}
+
+.search-results-info {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, #e8f4fd 0%, #f8f9ff 100%);
+    border-radius: 0.75rem;
+    border-left: 4px solid #667eea;
+    font-size: 0.9rem;
+    color: #495057;
+    display: none;
+}
+
+/* ===================== TABLA MEJORADA ===================== */
+.instituciones-table-container {
+    background: white;
+    border-radius: 1.5rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    overflow: hidden;
+    border: 1px solid #f0f0f0;
+}
+
+.table-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    text-align: center;
+    position: relative;
+}
+
+.table-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 2px;
+}
+
+.instituciones-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.instituciones-table th {
+    background: linear-gradient(135deg, #f8f9ff 0%, #e8ecff 100%);
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 2px solid #e0e6ff;
+    position: relative;
+}
+
+.instituciones-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #f5f7fa;
+    vertical-align: middle;
+    transition: all 0.3s ease;
+}
+
+.instituciones-table tbody tr {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.instituciones-table tbody tr:hover {
+    background: linear-gradient(135deg, #f8f9ff 0%, #e8f4fd 100%);
+    transform: translateX(5px);
+    box-shadow: 5px 0 15px rgba(102, 126, 234, 0.1);
+}
+
+.instituciones-table tbody tr.hidden {
+    display: none;
+}
+
+.no-results {
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+    display: none;
+}
+
+.no-results i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-active {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.status-inactive {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.btn-action {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-action::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn-action:hover::before {
+    left: 100%;
+}
+
+.btn-edit {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+    color: #333;
+    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+}
+
+.btn-edit:hover {
+    background: linear-gradient(135deg, #e0a800 0%, #d39e00 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);
+}
+
+.btn-delete {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+}
+
+.btn-delete:hover {
+    background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+}
+
+.btn-toggle {
+    background: linear-gradient(135deg, #6c757d 0%, #545b62 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+}
+
+.btn-toggle:hover {
+    background: linear-gradient(135deg, #545b62 0%, #495057 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+}
+
+/* ===================== MODAL POPUP ===================== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+.modal-overlay.show {
+    display: flex;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-container {
+    background: white;
+    border-radius: 1.5rem;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow: hidden;
+    position: relative;
+    animation: slideInScale 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+}
+
+.modal-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 2px;
+}
+
+.modal-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.modal-close {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.2rem;
+}
+
+.modal-close:hover {
+    background: rgba(255,255,255,0.3);
+    transform: rotate(90deg);
+}
+
+.modal-body {
+    padding: 2rem;
+    max-height: calc(90vh - 120px);
+    overflow-y: auto;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.form-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #333;
+    font-size: 0.95rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 1rem;
+    font-size: 1rem;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-sizing: border-box;
+    background: #fafbfc;
+}
+
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    outline: none;
+    background: white;
+    transform: translateY(-2px);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 1rem;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1rem;
+    width: 100%;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn-primary:hover::before {
+    left: 100%;
+}
+
+.btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #6c757d 0%, #545b62 100%);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    margin-left: 1rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+}
+
+/* ===================== FAB MENU (Floating Action Button) ===================== */
+.fab-menu {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 1000;
+}
+
+.fab-main {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5rem;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fab-main:hover {
+    transform: scale(1.1) rotate(90deg);
+    box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
+}
+
+.fab-main.open {
+    transform: rotate(45deg);
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}
+
+.fab-options {
+    position: absolute;
+    bottom: 80px;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    pointer-events: none;
+}
+
+.fab-options.open {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
+}
+
+.fab-option {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    background: white;
+    border: none;
+    border-radius: 2rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transform: scale(0.8);
+    white-space: nowrap;
+}
+
+.fab-options.open .fab-option {
+    transform: scale(1);
+}
+
+.fab-option:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: scale(1.05) translateX(-5px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+}
+
+.fab-option i {
+    color: #667eea;
+    transition: color 0.3s ease;
+    width: 20px;
+    text-align: center;
+}
+
+.fab-option:hover i {
+    color: white;
+}
+
+/* ===================== RESPONSIVE DESIGN ===================== */
+@media (max-width: 1200px) {
+    .main-table-section {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-header {
+        padding: 2rem 1rem;
+        margin: 1rem;
+    }
+    
+    .admin-title-section {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .admin-icon {
+        width: 80px;
+        height: 80px;
+        font-size: 2rem;
+    }
+    
+    .admin-title-content h1 {
+        font-size: 2rem;
+    }
+    
+    .stats-showcase {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        padding: 0 1rem;
+    }
+    
+    .main-table-section {
+        padding: 1rem;
+    }
+    
+    .search-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .search-actions {
+        justify-content: center;
+    }
+    
+    .search-input-container {
+        max-width: 100%;
+    }
+    
+    .instituciones-table-container {
+        overflow-x: auto;
+    }
+    
+    .instituciones-table {
+        min-width: 600px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .fab-menu {
+        bottom: 1rem;
+        right: 1rem;
+    }
+    
+    .fab-main {
+        width: 60px;
+        height: 60px;
+        font-size: 1.3rem;
+    }
+    
+    .modal-container {
+        max-width: 95%;
+        margin: 1rem;
+    }
+    
+    .modal-body {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .stats-showcase {
+        grid-template-columns: 1fr;
+    }
+    
+    .admin-title-content h1 {
+        font-size: 1.8rem;
+    }
+    
+    .fab-option span {
+        display: none;
+    }
+    
+    .fab-option {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        padding: 0;
+        justify-content: center;
+    }
+    
+    .search-panel {
+        padding: 1rem;
+    }
+    
+    .search-input {
+        padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+    }
+    
+    .btn-new-institution {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .modal-header {
+        padding: 1rem 1.5rem;
+    }
+    
+    .modal-body {
+        padding: 1rem;
+    }
+}
+
+/* ===================== ANIMACIONES DE CARGA ===================== */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.stat-card-enhanced,
+.search-panel,
+.instituciones-table-container {
+    animation: slideInUp 0.6s ease-out;
+}
+
+.stat-card-enhanced:nth-child(1) { animation-delay: 0.1s; }
+.stat-card-enhanced:nth-child(2) { animation-delay: 0.2s; }
+.stat-card-enhanced:nth-child(3) { animation-delay: 0.3s; }
+.stat-card-enhanced:nth-child(4) { animation-delay: 0.4s; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Iconos flotantes de fondo -->
+<div class="floating-icons-container">
+    <div class="floating-icon icon1">📚</div>
+    <div class="floating-icon icon2">🏢</div>
+    <div class="floating-icon icon3">🎓</div>
+    <div class="floating-icon icon4">✏️</div>
+    <div class="floating-icon icon5">📐</div>
+    <div class="floating-icon icon6">🔬</div>
+    <div class="floating-icon icon7">🎨</div>
+    <div class="floating-icon icon8">📝</div>
+    <div class="floating-icon icon9">🔍</div>
+    <div class="floating-icon icon10">📊</div>
+    <div class="floating-icon icon11">💡</div>
+    <div class="floating-icon icon12">⚗️</div>
+    <div class="floating-icon icon13">📓</div>
+    <div class="floating-icon icon14">🧮</div>
+    <div class="floating-icon icon15">📱</div>
+    <div class="floating-icon icon16">🎯</div>
+    <div class="floating-icon icon17">📖</div>
+    <div class="floating-icon icon18">🔖</div>
+    <div class="floating-icon icon19">📏</div>
+    <div class="floating-icon icon20">🎭</div>
+</div>
+
+<!-- Iconos flotantes de fondo -->
+<div class="admin-bg-icons">
+    <div class="admin-bg-icon icon-university">🏛️</div>
+    <div class="admin-bg-icon icon-building">🏢</div>
+    <div class="admin-bg-icon icon-graduation">🎓</div>
+    <div class="admin-bg-icon icon-school">🏫</div>
+    <div class="admin-bg-icon icon-landmark">🏛️</div>
+    <div class="admin-bg-icon icon-institution">🏤</div>
+    <div class="admin-bg-icon icon-campus">🏬</div>
+</div>
+
+<div class="admin-instituciones-container">
+    <!-- Header mejorado -->
+    <div class="admin-header">
+        <div class="admin-title-section">
+            <div class="admin-icon">
+                <i class="fas fa-university"></i>
+            </div>
+            <div class="admin-title-content">
+                <h1>Administración de Instituciones</h1>
+                <p class="admin-subtitle">Gestiona todas las instituciones educativas del sistema</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas mejoradas -->
+    <div class="stats-showcase">
+        <div class="stat-card-enhanced">
+            <div class="stat-icon">
+                <i class="fas fa-university"></i>
+            </div>
+            <div class="stat-number">{{ estadisticas.total_instituciones }}</div>
+            <div class="stat-label">Total Instituciones</div>
+        </div>
+        <div class="stat-card-enhanced">
+            <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-number">{{ estadisticas.instituciones_activas }}</div>
+            <div class="stat-label">Activas</div>
+        </div>
+        <div class="stat-card-enhanced">
+            <div class="stat-icon">
+                <i class="fas fa-pause-circle"></i>
+            </div>
+            <div class="stat-number">{{ estadisticas.instituciones_inactivas }}</div>
+            <div class="stat-label">Inactivas</div>
+        </div>
+    </div>
+
+    <!-- Sección principal -->
+    <div class="main-content-section">
+        <div class="content-header">
+            <h2>
+                <i class="fas fa-cogs"></i>
+                Centro de Control de Instituciones
+            </h2>
+        </div>
+
+        <div class="main-table-section">
+            <!-- Panel de búsqueda y acciones -->
+            <div class="search-panel">
+                <div class="search-header">
+                    <div class="search-title">
+                        <i class="fas fa-search"></i>
+                        Buscar Instituciones
+                    </div>
+                    <div class="search-actions">
+                        {% if has_permission('crear_institucion') %}
+                        <button class="btn-new-institution" onclick="openModal()">
+                            <i class="fas fa-plus"></i>
+                            Nueva Institución
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="search-input-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" 
+                           class="search-input" 
+                           id="searchInput" 
+                           placeholder="Buscar por nombre, email, ubicación, tipo..."
+                           autocomplete="off">
+                    <button class="clear-search-btn" id="clearSearchBtn" onclick="clearSearch()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="search-results-info" id="searchResultsInfo">
+                    <!-- Información de resultados se mostrará aquí -->
+                </div>
+            </div>
+
+            <!-- Lista de instituciones mejorada -->
+            <div class="instituciones-table-container">
+                <div class="table-header">
+                    <h3 style="margin: 0; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                        <i class="fas fa-list"></i> 
+                        <span id="tableTitle">Instituciones Registradas</span>
+                        <span class="badge" id="totalCount" style="background: rgba(255,255,255,0.2); padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.9rem;">
+                            {{ estadisticas.total_instituciones }}
+                        </span>
+                    </h3>
+                </div>
+                
+                <table class="instituciones-table">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-hashtag"></i> ID</th>
+                            <th><i class="fas fa-university"></i> Institución</th>
+                            <th><i class="fas fa-map-marker-alt"></i> Ubicación</th>
+                            <th><i class="fas fa-tag"></i> Tipo</th>
+                            <th><i class="fas fa-toggle-on"></i> Estado</th>
+                            <th><i class="fas fa-cogs"></i> Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="instituciones-tbody">
+                        {% for institucion in instituciones %}
+                        <tr data-institucion-id="{{ institucion.id_institucion }}" class="institution-row">
+                            <td><strong style="color: #667eea;">#{{ institucion.id_institucion }}</strong></td>
+                            <td class="institution-name">
+                                <div style="font-weight: 600; color: #333; font-size: 1rem;">{{ institucion.nombre_institucion }}</div>
+                                {% if institucion.email %}
+                                <div class="institution-email" style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">
+                                    <i class="fas fa-envelope"></i> {{ institucion.email }}
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td class="institution-location">
+                                {% if institucion.municipio or institucion.estado %}
+                                <div style="font-size: 0.9rem; font-weight: 500;">
+                                    <i class="fas fa-map-marker-alt" style="color: #667eea;"></i>
+                                    {% if institucion.municipio %}{{ institucion.municipio }}{% endif %}
+                                    {% if institucion.municipio and institucion.estado %}, {% endif %}
+                                    {% if institucion.estado %}{{ institucion.estado }}{% endif %}
+                                </div>
+                                {% endif %}
+                                {% if institucion.telefono %}
+                                <div style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">
+                                    <i class="fas fa-phone"></i> {{ institucion.telefono }}
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td class="institution-type">
+                                {% if institucion.tipo_institucion %}
+                                    <span class="badge" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white; padding: 0.5rem 1rem; border-radius: 1rem; font-size: 0.8rem;">
+                                        {{ institucion.tipo_institucion.nombre_tipo_institucion }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge" style="background: #6c757d; color: white; padding: 0.5rem 1rem; border-radius: 1rem; font-size: 0.8rem;">Sin tipo</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="status-badge {% if institucion.activo %}status-active{% else %}status-inactive{% endif %}">
+                                    <i class="fas fa-{% if institucion.activo %}check{% else %}times{% endif %}"></i>
+                                    {% if institucion.activo %}Activa{% else %}Inactiva{% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    {% if has_permission('editar_institucion') %}
+                                    <button class="btn-action btn-edit" onclick="editarInstitucion({{ institucion.id_institucion }})" title="Editar institución">
+                                        <i class="fas fa-edit"></i> Editar
+                                    </button>
+                                    {% endif %}
+                                    {% if has_permission('cambiar_estado_institucion') %}
+                                    <button class="btn-action btn-toggle" onclick="toggleStatus({{ institucion.id_institucion }})" title="Cambiar estado">
+                                        <i class="fas fa-toggle-on"></i>
+                                    </button>
+                                    {% endif %}
+                                    {% if has_permission('eliminar_institucion') %}
+                                    <button class="btn-action btn-delete" onclick="eliminarInstitucion({{ institucion.id_institucion }})" title="Eliminar institución">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+                <!-- Mensaje cuando no hay resultados -->
+                <div class="no-results" id="noResults">
+                    <i class="fas fa-search"></i>
+                    <h3>No se encontraron instituciones</h3>
+                    <p>Intenta con otros términos de búsqueda</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para formulario -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3 class="modal-title" id="modalTitle">
+                <i class="fas fa-plus"></i> Nueva Institución
+            </h3>
+            <button class="modal-close" onclick="closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="institucion-form">
+                <input type="hidden" id="id_institucion" name="id_institucion">
+                
+                <div class="form-group">
+                    <label for="nombre_institucion">
+                        <i class="fas fa-university"></i> Nombre de la Institución *
+                    </label>
+                    <input type="text" class="form-control" id="nombre_institucion" name="nombre_institucion" 
+                           required placeholder="Ej: Universidad Nacional Autónoma">
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_tipo_institucion">
+                        <i class="fas fa-tag"></i> Tipo de Institución
+                    </label>
+                    <select class="form-control" id="id_tipo_institucion" name="id_tipo_institucion">
+                        <option value="">Seleccionar tipo</option>
+                        {% for tipo in tipos_institucion %}
+                        <option value="{{ tipo.id_tipo_institucion }}">{{ tipo.nombre_tipo_institucion }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">
+                        <i class="fas fa-envelope"></i> Email Institucional
+                    </label>
+                    <input type="email" class="form-control" id="email" name="email" 
+                           placeholder="contacto@institucion.edu">
+                </div>
+
+                <div class="form-group">
+                    <label for="telefono">
+                        <i class="fas fa-phone"></i> Teléfono
+                    </label>
+                    <input type="tel" class="form-control" id="telefono" name="telefono" 
+                           placeholder="+52 55 1234 5678">
+                </div>
+
+                <div class="form-group">
+                    <label for="calle">
+                        <i class="fas fa-road"></i> Dirección
+                    </label>
+                    <input type="text" class="form-control" id="calle" name="calle" 
+                           placeholder="Calle y número">
+                </div>
+
+                <div class="form-group">
+                    <label for="colonia">
+                        <i class="fas fa-map"></i> Colonia
+                    </label>
+                    <input type="text" class="form-control" id="colonia" name="colonia" 
+                           placeholder="Nombre de la colonia">
+                </div>
+
+                <div class="form-group">
+                    <label for="municipio">
+                        <i class="fas fa-city"></i> Municipio
+                    </label>
+                    <input type="text" class="form-control" id="municipio" name="municipio" 
+                           placeholder="Municipio o alcaldía">
+                </div>
+
+                <div class="form-group">
+                    <label for="estado">
+                        <i class="fas fa-flag"></i> Estado
+                    </label>
+                    <input type="text" class="form-control" id="estado" name="estado" 
+                           placeholder="Estado o provincia">
+                </div>
+
+                <div class="form-group">
+                    <label for="codigo_postal">
+                        <i class="fas fa-mail-bulk"></i> Código Postal
+                    </label>
+                    <input type="text" class="form-control" id="codigo_postal" name="codigo_postal" 
+                           placeholder="12345">
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" id="activo" name="activo" checked style="transform: scale(1.2);"> 
+                        <i class="fas fa-check-circle" style="color: #28a745;"></i> 
+                        <span>Institución activa</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn-primary" id="submitBtn">
+                    <i class="fas fa-save"></i> Crear Institución
+                </button>
+                
+                <button type="button" class="btn-secondary" onclick="closeModal()">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Menú FAB (Floating Action Button) -->
+{% if has_permission('crear_institucion') %}
+<div class="fab-menu">
+    <button class="fab-main" onclick="toggleFabMenu()">
+        <i class="fas fa-plus"></i>
+    </button>
+    <div class="fab-options">
+        <button class="fab-option" onclick="openModal()">
+            <i class="fas fa-university"></i>
+            <span>Nueva Institución</span>
+        </button>
+        <button class="fab-option" onclick="window.location.href='{{ url_for('admin_options.admin_options') }}'">
+            <i class="fas fa-cogs"></i>
+            <span>Panel Admin</span>
+        </button>
+        <button class="fab-option" onclick="window.location.href='{{ url_for('admin_areas.index') }}'">
+            <i class="fas fa-layer-group"></i>
+            <span>Gestionar Áreas</span>
+        </button>
+        {% if has_permission('exportar_instituciones') %}
+        <button class="fab-option" onclick="exportarInstituciones()">
+            <i class="fas fa-download"></i>
+            <span>Exportar</span>
+        </button>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+console.log('🔧 INICIALIZANDO EVENTOS Y FORMULARIOS...');
+
+// Variables globales
+var editandoInstitucion = false;
+var institucionIdActual = null;
+
+// Las funciones principales ya están definidas en HEAD
+// Solo inicializamos eventos adicionales aquí
+
+/*
+// FUNCIÓN PARA EDITAR INSTITUCIÓN YA DEFINIDA EN HEAD
+function editarInstitucion(id) {
+    console.log('✅ editarInstitucion DEFINIDA - Editando institución ID:', id);
+    alert('✅ Función editar funcionando perfectamente - ID: ' + id);
+    
+    fetch('/admin/instituciones/' + id)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('Error: ' + data.error);
+                return;
+            }
+            
+            // Abrir modal
+            openModal();
+            
+            // Llenar formulario
+            document.getElementById('institucion-id').value = data.id_institucion || '';
+            document.getElementById('nombre_institucion').value = data.nombre_institucion || '';
+            document.getElementById('id_tipo_institucion').value = data.id_tipo_institucion || '';
+            document.getElementById('email').value = data.email || '';
+            document.getElementById('telefono').value = data.telefono || '';
+            document.getElementById('calle').value = data.calle || '';
+            document.getElementById('colonia').value = data.colonia || '';
+            document.getElementById('municipio').value = data.municipio || '';
+            document.getElementById('estado').value = data.estado || '';
+            document.getElementById('codigo_postal').value = data.codigo_postal || '';
+            document.getElementById('activo').checked = data.activo || false;
+            
+            // Cambiar título
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Editar Institución';
+            document.getElementById('submitBtn').innerHTML = '<i class="fas fa-save"></i> Actualizar Institución';
+            
+            editandoInstitucion = true;
+            institucionIdActual = id;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al cargar la institución');
+        });
+}
+
+// FUNCIÓN PARA ELIMINAR INSTITUCIÓN
+function eliminarInstitucion(id) {
+    console.log('✅ eliminarInstitucion DEFINIDA - Eliminando institución ID:', id);
+    
+    if (confirm('¿Estás seguro de eliminar esta institución?')) {
+        fetch('/admin/instituciones/eliminar/' + id, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('Error: ' + data.error);
+            } else {
+                alert('Institución eliminada exitosamente');
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al eliminar la institución');
+        });
+    }
+}
+
+// FUNCIÓN PARA CAMBIAR ESTADO  
+function toggleStatus(id) {
+    console.log('✅ toggleStatus DEFINIDA - Cambiando estado de institución ID:', id);
+    
+    if (confirm('¿Cambiar el estado de esta institución?')) {
+        fetch('/admin/instituciones/toggle-status/' + id, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('Error: ' + data.error);
+            } else {
+                alert('Estado cambiado exitosamente');
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al cambiar el estado');
+        });
+    }
+}
+
+// FUNCIÓN PARA EXPORTAR
+function exportarInstituciones() {
+    console.log('Exportando instituciones');
+    
+    var formato = prompt('Exportar a: 1=Excel, 2=CSV');
+    if (formato === '1') {
+        window.open('/admin/instituciones/exportar', '_blank');
+    } else if (formato === '2') {
+        window.open('/admin/instituciones/exportar-csv', '_blank');
+    }
+}
+
+// FUNCIÓN PARA MENU FAB
+function toggleFabMenu() {
+    var fabOptions = document.querySelector('.fab-options');
+    var fabMain = document.querySelector('.fab-main');
+    
+    if (fabOptions && fabOptions.classList.contains('open')) {
+        fabOptions.classList.remove('open');
+        fabMain.classList.remove('open');
+    } else if (fabOptions && fabMain) {
+        fabOptions.classList.add('open');
+        fabMain.classList.add('open');
+    }
+}
+
+// FUNCIÓN PARA ABRIR MODAL
+function openModal() {
+    var modal = document.getElementById('modalOverlay');
+    if (modal) {
+        modal.classList.add('show');
+        clearForm();
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+// FUNCIÓN PARA CERRAR MODAL
+function closeModal() {
+    var modal = document.getElementById('modalOverlay');
+    if (modal) {
+        modal.classList.remove('show');
+        document.body.style.overflow = 'auto';
+        clearForm();
+    }
+}
+
+// FUNCIÓN PARA LIMPIAR FORMULARIO
+function clearForm() {
+    var form = document.getElementById('institucion-form');
+    var institucionId = document.getElementById('institucion-id');
+    var modalTitle = document.getElementById('modalTitle');
+    var submitBtn = document.getElementById('submitBtn');
+    var activo = document.getElementById('activo');
+    
+    if (form) form.reset();
+    if (institucionId) institucionId.value = '';
+    if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-plus"></i> Nueva Institución';
+    if (submitBtn) submitBtn.innerHTML = '<i class="fas fa-save"></i> Crear Institución';
+    if (activo) activo.checked = true;
+    
+    editandoInstitucion = false;
+    institucionIdActual = null;
+}
+*/
+
+// FUNCIÓN PARA LIMPIAR BÚSQUEDA (necesaria para otros eventos)
+function clearSearch() {
+    var searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.value = '';
+    }
+    
+    // Mostrar todas las filas
+    var rows = document.querySelectorAll('.institution-row');
+    for (var i = 0; i < rows.length; i++) {
+        rows[i].classList.remove('hidden');
+    }
+}
+
+// INICIALIZACIÓN SIMPLE
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('JavaScript de instituciones cargado');
+    
+    var modalOverlay = document.getElementById('modalOverlay');
+    var form = document.getElementById('institucion-form');
+    
+    // Event listener para cerrar modal al hacer clic fuera
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    }
+    
+    // Event listener para el formulario
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log('Enviando formulario');
+            
+            var submitBtn = document.getElementById('submitBtn');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+                submitBtn.disabled = true;
+            }
+            
+            var formData = new FormData(form);
+            var data = {};
+            for (var pair of formData.entries()) {
+                data[pair[0]] = pair[1];
+            }
+            data.activo = document.getElementById('activo').checked;
+            
+            var url = '/admin/instituciones/agregar';
+            var method = 'POST';
+            
+            if (editandoInstitucion && institucionIdActual) {
+                url = '/admin/instituciones/editar/' + institucionIdActual;
+                method = 'PUT';
+            }
+            
+            fetch(url, {
+                method: method,
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(result) {
+                if (result.error) {
+                    alert('Error: ' + result.error);
+                } else {
+                    alert('¡Éxito! ' + result.mensaje);
+                    closeModal();
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
+                }
+            })
+            .catch(function(error) {
+                console.error('Error:', error);
+                alert('Error al procesar la solicitud');
+            })
+            .finally(function() {
+                if (submitBtn) {
+                    submitBtn.innerHTML = editandoInstitucion ? 
+                        '<i class="fas fa-save"></i> Actualizar Institución' : 
+                        '<i class="fas fa-save"></i> Crear Institución';
+                    submitBtn.disabled = false;
+                }
+            });
+        });
+    }
+    
+    // Cerrar modal con ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeModal();
+        }
+    });
+    
+    // Cerrar FAB menu al hacer clic fuera  
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.fab-menu')) {
+            var fabOptions = document.querySelector('.fab-options');
+            var fabMain = document.querySelector('.fab-main');
+            if (fabOptions && fabMain) {
+                fabOptions.classList.remove('open');
+                fabMain.classList.remove('open');
+            }
+        }
+    });
+});
+
+// ==================== VERIFICACIÓN DE FUNCIONES ====================
+console.log('🔍 VERIFICANDO FUNCIONES DISPONIBLES:');
+console.log('editarInstitucion:', typeof editarInstitucion !== 'undefined' ? '✅ DEFINIDA' : '❌ NO DEFINIDA');
+console.log('eliminarInstitucion:', typeof eliminarInstitucion !== 'undefined' ? '✅ DEFINIDA' : '❌ NO DEFINIDA');
+console.log('toggleStatus:', typeof toggleStatus !== 'undefined' ? '✅ DEFINIDA' : '❌ NO DEFINIDA');
+console.log('exportarInstituciones:', typeof exportarInstituciones !== 'undefined' ? '✅ DEFINIDA' : '❌ NO DEFINIDA');
+console.log('openModal:', typeof openModal !== 'undefined' ? '✅ DEFINIDA' : '❌ NO DEFINIDA');
+console.log('closeModal:', typeof closeModal !== 'undefined' ? '✅ DEFINIDA' : '❌ NO DEFINIDA');
+console.log('toggleFabMenu:', typeof toggleFabMenu !== 'undefined' ? '✅ DEFINIDA' : '❌ NO DEFINIDA');
+
+// Asegurar disponibilidad global 
+window.editarInstitucion = editarInstitucion;
+window.eliminarInstitucion = eliminarInstitucion;
+window.toggleStatus = toggleStatus;
+window.exportarInstituciones = exportarInstituciones;
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.toggleFabMenu = toggleFabMenu;
+window.clearSearch = clearSearch;
+
+console.log('🎉 EVENTOS INICIALIZADOS CORRECTAMENTE');
+
+// Confirmación final de que las funciones están disponibles
+setTimeout(function() {
+    console.log('🔍 VERIFICACIÓN FINAL:');
+    console.log('✅ editarInstitucion:', typeof window.editarInstitucion);
+    console.log('✅ eliminarInstitucion:', typeof window.eliminarInstitucion); 
+    console.log('✅ toggleStatus:', typeof window.toggleStatus);
+    
+    if (typeof window.editarInstitucion === 'undefined') {
+        console.error('❌ ERROR: editarInstitucion no está definida!');
+        alert('ERROR: Las funciones no se cargaron correctamente. Recarga la página.');
+    } else {
+        console.log('🎉 ¡TODAS LAS FUNCIONES ESTÁN CORRECTAMENTE DEFINIDAS!');
+    }
+}, 1000);
+
+</script>
+{% endblock %} 

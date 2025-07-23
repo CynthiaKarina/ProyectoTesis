@@ -114,7 +114,7 @@
                         {% endif %}
                         
                         {% if has_permission('gestionar_areas') %}
-                        <li><a href="{{ url_for('area.admin_areas') }}">
+                        <li><a href="{{ url_for('admin_areas.index') }}">
                             <i class="fas fa-layer-group"></i> Gestionar Áreas
                         </a></li>
                         {% endif %}
@@ -144,7 +144,7 @@
                         {% endif %}
                         
                         {% if has_permission('gestionar_instituciones') %}
-                        <li><a href="{{ url_for('institucion.get_instituciones') }}">
+                        <li><a href="{{ url_for('admin_instituciones.index') }}">
                             <i class="fas fa-university"></i> Gestionar Instituciones
                         </a></li>
                         {% endif %}

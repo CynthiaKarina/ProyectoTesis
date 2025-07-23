@@ -15,6 +15,5 @@ class Tipo_Institucion(db.Model):
     def to_dict(self):
         return {
             'id_tipo_institucion': self.id_tipo_institucion,
-            'nombre_tipo_institucion': self.nombre_tipo_institucion,
-            'descripcion': self.descripcion
+            'nombre_tipo_institucion': self.nombre_tipo_institucion
         }
