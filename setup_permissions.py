@@ -68,6 +68,12 @@ def init_basic_permissions():
         {'nombre': 'rechazar_solicitud', 'descripcion': 'Rechazar solicitudes de laboratorio'},
         {'nombre': 'ver_todas_solicitudes', 'descripcion': 'Ver solicitudes de todos los usuarios'},
         
+        # Permisos de gestión de proyectos
+        {'nombre': 'gestionar_proyectos', 'descripcion': 'Ver lista de proyectos', 'modelo': 'general'},
+        {'nombre': 'crear_proyecto', 'descripcion': 'Crear nuevos proyectos', 'modelo': 'general'},
+        {'nombre': 'editar_proyecto', 'descripcion': 'Editar información de proyectos', 'modelo': 'general'},
+        {'nombre': 'eliminar_proyecto', 'descripcion': 'Eliminar proyectos del sistema', 'modelo': 'general'},
+        
         # Permisos de perfil
         {'nombre': 'ver_perfil', 'descripcion': 'Ver información del perfil propio'},
         {'nombre': 'editar_perfil', 'descripcion': 'Editar información del perfil propio'},
@@ -90,7 +96,8 @@ def init_basic_permissions():
         if not existing_permission:
             new_permission = Permiso(
                 nombre_permiso=perm_data['nombre'],
-                descripcion=perm_data['descripcion']
+                descripcion=perm_data['descripcion'],
+                modelo=perm_data.get('modelo', 'general')
             )
             db.session.add(new_permission)
             print(f"✓ Creado permiso: {perm_data['nombre']}")
@@ -123,6 +130,7 @@ def init_basic_roles():
                 'gestionar_laboratorios', 'crear_laboratorio', 'editar_laboratorio',
                 'gestionar_areas', 'crear_area', 'editar_area',
                 'gestionar_instituciones', 'crear_institucion', 'editar_institucion',
+                'gestionar_proyectos', 'crear_proyecto', 'editar_proyecto', 'eliminar_proyecto',
                 'ver_todas_solicitudes', 'aprobar_solicitud', 'rechazar_solicitud',
                 'ver_reportes', 'generar_reportes', 'ver_dashboard'
             ]
@@ -132,6 +140,7 @@ def init_basic_roles():
             'descripcion': 'Gestión de laboratorios y solicitudes',
             'permisos': [
                 'gestionar_laboratorios', 'editar_laboratorio',
+                'gestionar_proyectos', 'crear_proyecto', 'editar_proyecto',
                 'ver_todas_solicitudes', 'aprobar_solicitud', 'rechazar_solicitud',
                 'ver_dashboard', 'ver_reportes'
             ]
@@ -142,6 +151,7 @@ def init_basic_roles():
             'permisos': [
                 'ver_perfil', 'editar_perfil', 'cambiar_password',
                 'crear_solicitud', 'editar_solicitud', 'ver_solicitudes',
+                'gestionar_proyectos', 'crear_proyecto', 'editar_proyecto',
                 'ver_dashboard'
             ]
         },

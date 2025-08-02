@@ -1507,34 +1507,6 @@ console.log('✅ toggleStatus disponible:', typeof toggleStatus !== 'undefined')
     </div>
 </div>
 
-<!-- Menú FAB (Floating Action Button) -->
-{% if has_permission('crear_institucion') %}
-<div class="fab-menu">
-    <button class="fab-main" onclick="toggleFabMenu()">
-        <i class="fas fa-plus"></i>
-    </button>
-    <div class="fab-options">
-        <button class="fab-option" onclick="openModal()">
-            <i class="fas fa-university"></i>
-            <span>Nueva Institución</span>
-        </button>
-        <button class="fab-option" onclick="window.location.href='{{ url_for('admin_options.admin_options') }}'">
-            <i class="fas fa-cogs"></i>
-            <span>Panel Admin</span>
-        </button>
-        <button class="fab-option" onclick="window.location.href='{{ url_for('admin_areas.index') }}'">
-            <i class="fas fa-layer-group"></i>
-            <span>Gestionar Áreas</span>
-        </button>
-        {% if has_permission('exportar_instituciones') %}
-        <button class="fab-option" onclick="exportarInstituciones()">
-            <i class="fas fa-download"></i>
-            <span>Exportar</span>
-        </button>
-        {% endif %}
-    </div>
-</div>
-{% endif %}
 {% endblock %}
 
 {% block scripts %}

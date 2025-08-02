@@ -149,6 +149,12 @@
                         </a></li>
                         {% endif %}
                         
+                        {% if has_permission('gestionar_proyectos') %}
+                        <li><a href="{{ url_for('admin_proyectos.admin_proyectos') }}">
+                            <i class="fas fa-project-diagram"></i> Gestionar Proyectos
+                        </a></li>
+                        {% endif %}
+                        
                         {% if has_permission('ver_reportes') %}
                         <li class="divider"></li>
                         <!-- TODO: Implementar funcionalidad de reportes -->

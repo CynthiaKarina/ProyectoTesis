@@ -116,7 +116,7 @@ class Laboratorio(db.Model):
             'tipo_laboratorio': self.tipo_laboratorio.nombre_tipo_laboratorio if self.tipo_laboratorio else None,
             'encargado': {
                 'id': self.encargado.id_usuario if self.encargado else None,
-                'nombre': self.encargado.nombre if self.encargado else None,
+                'nombre': self.encargado.nombre_completo if self.encargado else None,
                 'imagen': self.encargado.ruta_imagen if self.encargado else None
             } if self.encargado else None,
             'fecha_creacion': self.fecha_creacion.isoformat() if self.fecha_creacion else None,

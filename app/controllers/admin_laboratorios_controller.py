@@ -40,10 +40,54 @@ def admin_laboratorios():
         tipos_laboratorio = Tipo_Laboratorio.query.all()
         usuarios = User.query.filter(User.activo == True).all()
         
-        # Estadísticas
+        # Estadísticas dinámicas
         total_laboratorios = len(laboratorios)
-        laboratorios_activos = len([lab for lab in laboratorios if lab.disponibilidad == 'Activo'])
-        laboratorios_mantenimiento = len([lab for lab in laboratorios if lab.disponibilidad == 'Mantenimiento'])
+        
+        # Calcular estadísticas por estado
+        estadisticas_estados = {}
+        estados_disponibles = ['Activo', 'Inactivo', 'Mantenimiento', 'Reservado']
+        
+        for estado in estados_disponibles:
+            estadisticas_estados[estado.lower()] = len([lab for lab in laboratorios if lab.disponibilidad == estado])
+        
+        # Configuración de tarjetas de estadísticas
+        stats_config = [
+            {
+                'key': 'total',
+                'icon': 'fas fa-flask',
+                'label': 'Total Laboratorios',
+                'value': total_laboratorios,
+                'color': 'total'
+            },
+            {
+                'key': 'activos',
+                'icon': 'fas fa-check-circle',
+                'label': 'Activos',
+                'value': estadisticas_estados['activo'],
+                'color': 'success'
+            },
+            {
+                'key': 'inactivos',
+                'icon': 'fas fa-times-circle',
+                'label': 'Inactivos',
+                'value': estadisticas_estados['inactivo'],
+                'color': 'danger'
+            },
+            {
+                'key': 'mantenimiento',
+                'icon': 'fas fa-tools',
+                'label': 'En Mantenimiento',
+                'value': estadisticas_estados['mantenimiento'],
+                'color': 'warning'
+            },
+            {
+                'key': 'reservados',
+                'icon': 'fas fa-calendar-check',
+                'label': 'Reservados', 
+                'value': estadisticas_estados['reservado'],
+                'color': 'info'
+            }
+        ]
         
         return render_template('admin_laboratorios.html', 
                              laboratorios=laboratorios,
@@ -52,11 +96,93 @@ def admin_laboratorios():
                              tipos_laboratorio=tipos_laboratorio,
                              usuarios=usuarios,
                              total_laboratorios=total_laboratorios,
-                             laboratorios_activos=laboratorios_activos,
-                             laboratorios_mantenimiento=laboratorios_mantenimiento)
+                             laboratorios_activos=estadisticas_estados['activo'],
+                             laboratorios_mantenimiento=estadisticas_estados['mantenimiento'],
+                             laboratorios_inactivos=estadisticas_estados['inactivo'],
+                             laboratorios_reservados=estadisticas_estados['reservado'],
+                             estadisticas_estados=estadisticas_estados,
+                             stats_config=stats_config)
     except Exception as e:
         flash(f'Error al cargar la página de administración: {str(e)}', 'error')
         return redirect(url_for('home.index'))
+
+@admin_laboratorios_bp.route('/admin/laboratorios/<int:id>/detalle')
+@login_required
+@permission_required('gestionar_laboratorios')
+def detalle_laboratorio(id):
+    """Página de detalles del laboratorio con gestión de equipamiento"""
+    try:
+        # Obtener el laboratorio con sus relaciones
+        laboratorio = db.session.query(Laboratorio).options(
+            db.joinedload(Laboratorio.institucion),
+            db.joinedload(Laboratorio.area),
+            db.joinedload(Laboratorio.tipo_laboratorio),
+            db.joinedload(Laboratorio.encargado)
+        ).get_or_404(id)
+        
+        # Datos para formularios y selects
+        areas = Area.query.all()
+        instituciones = Institucion.query.all()
+        tipos_laboratorio = Tipo_Laboratorio.query.all()
+        usuarios = User.query.filter(User.activo == True).all()
+        
+        # TODO: Calcular estadísticas de equipamiento cuando se implemente
+        # Por ahora valores por defecto
+        total_equipamiento = 0
+        capacidad_total = 0
+        
+        return render_template('detalle_laboratorio.html',
+                             laboratorio=laboratorio,
+                             areas=areas,
+                             instituciones=instituciones,
+                             tipos_laboratorio=tipos_laboratorio,
+                             usuarios=usuarios,
+                             total_equipamiento=total_equipamiento,
+                             capacidad_total=capacidad_total)
+        
+    except Exception as e:
+        flash(f'Error al cargar detalles del laboratorio: {str(e)}', 'error')
+        return redirect(url_for('admin_laboratorios.admin_laboratorios'))
+
+
+
+@admin_laboratorios_bp.route('/admin/laboratorios/<int:id_laboratorio>')
+@login_required
+@permission_required('gestionar_laboratorios')
+def obtener_laboratorio(id_laboratorio):
+    """Obtener datos de un laboratorio específico para edición"""
+    try:
+        # Obtener el laboratorio con sus relaciones desde la base de datos
+        laboratorio = db.session.query(Laboratorio).options(
+            db.joinedload(Laboratorio.institucion),
+            db.joinedload(Laboratorio.area),
+            db.joinedload(Laboratorio.tipo_laboratorio),
+            db.joinedload(Laboratorio.encargado)
+        ).filter(Laboratorio.id_laboratorio == id_laboratorio).first()
+        
+        if not laboratorio:
+            return jsonify({
+                'success': False,
+                'message': f'Laboratorio con ID {id_laboratorio} no encontrado'
+            }), 404
+        
+        # Convertir a diccionario usando el método del modelo
+        laboratorio_data = laboratorio.to_dict()
+        
+        return jsonify({
+            'success': True,
+            'laboratorio': laboratorio_data
+        })
+        
+    except Exception as e:
+        print(f"ERROR al obtener laboratorio: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        return jsonify({
+            'success': False,
+            'message': f'Error al obtener el laboratorio: {str(e)}'
+        }), 500
 
 @admin_laboratorios_bp.route('/admin/laboratorios/crear', methods=['POST'])
 @login_required
@@ -712,6 +838,30 @@ def importar_laboratorios():
             'message': f'Error al importar archivo: {str(e)}'
         }), 500
 
+@admin_laboratorios_bp.route('/api/check-permission/<permission_name>')
+@login_required
+def check_permission(permission_name):
+    """API para verificar si el usuario tiene un permiso específico"""
+    from app.utils.permissions import has_permission
+    return jsonify({'has_permission': has_permission(permission_name)})
+
+@admin_laboratorios_bp.route('/api/user-info')
+@login_required
+def get_user_info():
+    """API para obtener información del usuario actual"""
+    from app.utils.permissions import get_user_role, is_admin
+    return jsonify({
+        'username': current_user.nombre_usuario,
+        'role': get_user_role(current_user),
+        'is_admin': is_admin(current_user)
+    })
+
+@admin_laboratorios_bp.route('/test-permisos-laboratorio')
+@login_required
+def test_permisos_laboratorio():
+    """Página de prueba para verificar permisos de laboratorios"""
+    return render_template('test_permisos_laboratorio.html')
+
 @admin_laboratorios_bp.route('/admin/laboratorios/buscar')
 @login_required
 @permission_required('gestionar_laboratorios')
@@ -744,4 +894,94 @@ def buscar_laboratorios():
         return jsonify({
             'success': False,
             'message': f'Error en la búsqueda: {str(e)}'
+        }), 500
+
+# ==================== RUTAS DE EQUIPAMIENTO (PLACEHOLDER) ====================
+# TODO: Implementar completamente cuando se tenga el modelo de equipamiento
+
+@admin_laboratorios_bp.route('/admin/laboratorios/<int:id>/equipamiento')
+@login_required
+@permission_required('gestionar_laboratorios')
+def equipamiento_laboratorio(id):
+    """Obtener equipamiento de un laboratorio específico"""
+    try:
+        # TODO: Implementar cuando se tenga el modelo de equipamiento
+        return jsonify({
+            'success': True,
+            'total_equipos': 0,
+            'capacidad_total': 0,
+            'equipamiento': []
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Error al cargar equipamiento: {str(e)}'
+        }), 500
+
+@admin_laboratorios_bp.route('/admin/equipamiento/disponible')
+@login_required
+@permission_required('gestionar_laboratorios')
+def equipamiento_disponible():
+    """Obtener equipamiento disponible para asignar"""
+    try:
+        # TODO: Implementar cuando se tenga el modelo de equipamiento
+        return jsonify({
+            'success': True,
+            'equipamiento': []
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Error al cargar equipamiento disponible: {str(e)}'
+        }), 500
+
+@admin_laboratorios_bp.route('/admin/laboratorios/equipamiento/asignar', methods=['POST'])
+@login_required
+@permission_required('gestionar_laboratorios')
+def asignar_equipamiento():
+    """Asignar equipamiento a un laboratorio"""
+    try:
+        # TODO: Implementar cuando se tenga el modelo de equipamiento
+        return jsonify({
+            'success': False,
+            'message': 'Funcionalidad de equipamiento en desarrollo. Por favor, implementa las tablas de equipamiento primero.'
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error al asignar equipamiento: {str(e)}'
+        }), 500
+
+@admin_laboratorios_bp.route('/admin/laboratorios/equipamiento/editar/<int:assignment_id>', methods=['PUT'])
+@login_required
+@permission_required('gestionar_laboratorios')
+def editar_equipamiento_laboratorio(assignment_id):
+    """Editar cantidad/capacidad de equipamiento asignado"""
+    try:
+        # TODO: Implementar cuando se tenga el modelo de equipamiento
+        return jsonify({
+            'success': False,
+            'message': 'Funcionalidad de equipamiento en desarrollo. Por favor, implementa las tablas de equipamiento primero.'
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error al editar equipamiento: {str(e)}'
+        }), 500
+
+@admin_laboratorios_bp.route('/admin/laboratorios/equipamiento/desasignar/<int:assignment_id>', methods=['DELETE'])
+@login_required
+@permission_required('gestionar_laboratorios')
+def desasignar_equipamiento(assignment_id):
+    """Quitar equipamiento de un laboratorio"""
+    try:
+        # TODO: Implementar cuando se tenga el modelo de equipamiento
+        return jsonify({
+            'success': False,
+            'message': 'Funcionalidad de equipamiento en desarrollo. Por favor, implementa las tablas de equipamiento primero.'
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error al desasignar equipamiento: {str(e)}'
         }), 500 

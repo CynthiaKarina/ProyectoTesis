@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba de Permisos - Laboratorios</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .permission-item {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border-left: 4px solid #ddd;
+        }
+        .permission-true {
+            background-color: #d4edda;
+            border-left-color: #28a745;
+        }
+        .permission-false {
+            background-color: #f8d7da;
+            border-left-color: #dc3545;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Prueba de Permisos - Laboratorios</h1>
+        
+        <h2>Permisos del Usuario Actual</h2>
+        <div id="permisos-container">
+            <div class="permission-item">
+                <strong>crear_laboratorio:</strong> 
+                <span id="permiso-crear">Verificando...</span>
+            </div>
+            <div class="permission-item">
+                <strong>editar_laboratorio:</strong> 
+                <span id="permiso-editar">Verificando...</span>
+            </div>
+            <div class="permission-item">
+                <strong>eliminar_laboratorio:</strong> 
+                <span id="permiso-eliminar">Verificando...</span>
+            </div>
+            <div class="permission-item">
+                <strong>gestionar_laboratorios:</strong> 
+                <span id="permiso-gestionar">Verificando...</span>
+            </div>
+        </div>
+
+        <h2>Prueba de Botón</h2>
+        <button class="btn" onclick="testButton()">Probar Botón Nuevo Laboratorio</button>
+        
+        <h2>Información del Usuario</h2>
+        <div id="user-info">
+            <p><strong>Usuario:</strong> <span id="username">Cargando...</span></p>
+            <p><strong>Rol:</strong> <span id="user-role">Cargando...</span></p>
+            <p><strong>Es Admin:</strong> <span id="is-admin">Cargando...</span></p>
+        </div>
+    </div>
+
+    <script>
+        // Función para verificar permisos
+        async function checkPermission(permission) {
+            try {
+                const response = await fetch(`/api/check-permission/${permission}`);
+                const data = await response.json();
+                return data.has_permission;
+            } catch (error) {
+                console.error('Error verificando permiso:', error);
+                return false;
+            }
+        }
+
+        // Función para actualizar la UI con los permisos
+        async function updatePermissions() {
+            const permissions = ['crear_laboratorio', 'editar_laboratorio', 'eliminar_laboratorio', 'gestionar_laboratorios'];
+            
+            for (const perm of permissions) {
+                const element = document.getElementById(`permiso-${perm.split('_')[0]}`);
+                const hasPermission = await checkPermission(perm);
+                
+                element.textContent = hasPermission ? 'SÍ' : 'NO';
+                element.parentElement.className = `permission-item ${hasPermission ? 'permission-true' : 'permission-false'}`;
+            }
+        }
+
+        // Función para obtener información del usuario
+        async function getUserInfo() {
+            try {
+                const response = await fetch('/api/user-info');
+                const data = await response.json();
+                
+                document.getElementById('username').textContent = data.username || 'No disponible';
+                document.getElementById('user-role').textContent = data.role || 'No disponible';
+                document.getElementById('is-admin').textContent = data.is_admin ? 'SÍ' : 'NO';
+            } catch (error) {
+                console.error('Error obteniendo información del usuario:', error);
+                document.getElementById('username').textContent = 'Error al cargar';
+                document.getElementById('user-role').textContent = 'Error al cargar';
+                document.getElementById('is-admin').textContent = 'Error al cargar';
+            }
+        }
+
+        // Función para probar el botón
+        function testButton() {
+            console.log('Botón de prueba clickeado');
+            alert('El botón está funcionando correctamente');
+        }
+
+        // Cargar información al cargar la página
+        window.addEventListener('load', () => {
+            updatePermissions();
+            getUserInfo();
+        });
+    </script>
+</body>
+</html> 

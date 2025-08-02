@@ -11,38 +11,38 @@
                     <i class="fas fa-flask"></i>
                     Administración de Laboratorios
                 </h1>
-                <p class="subtitle">Gestión completa de laboratorios del sistema</p>
             </div>
-            
+            <div class="stats-header">
+                <h3>Estadísticas de Laboratorios</h3>
+                <small class="stats-hint">
+                    <i class="fas fa-info-circle"></i>
+                    Haz clic en cualquier tarjeta para filtrar por estado
+                </small>
+            </div>
             <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-flask"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-number">{{ total_laboratorios }}</div>
-                        <div class="stat-label">Total Laboratorios</div>
-                    </div>
-                </div>
                 
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-check-circle"></i>
+                <div class="stats-cards-container">
+                    {% for stat in stats_config %}
+                    <div class="stat-card stat-card-{{ stat.color }}" data-stat-key="{{ stat.key }}" onclick="filterByStat('{{ stat.key }}')" style="cursor: pointer;" title="Clic para filtrar por {{ stat.label | lower }}">
+                        <div class="filter-indicator">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="{{ stat.icon }}"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="stat-{{ stat.key }}">{{ stat.value }}</div>
+                            <div class="stat-label">{{ stat.label }}</div>
+                        </div>
+                        <div class="stat-trend" id="trend-{{ stat.key }}">
+                            <!-- Aquí se podría agregar tendencias en el futuro -->
+                        </div>
+                        <div class="stat-overlay">
+                            <i class="fas fa-filter"></i>
+                            <span>Filtrar</span>
+                        </div>
                     </div>
-                    <div class="stat-content">
-                        <div class="stat-number">{{ laboratorios_activos }}</div>
-                        <div class="stat-label">Activos</div>
-                    </div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-tools"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-number">{{ laboratorios_mantenimiento }}</div>
-                        <div class="stat-label">En Mantenimiento</div>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -92,11 +92,49 @@
         }
 
         .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
             flex: 1;
-            max-width: 600px;
+            width: 100%;
+        }
+
+        .stats-header {
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-header h3 {
+            color: white;
+            margin: 0 0 0.5rem 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .stats-hint {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .stats-hint i {
+            color: #ffc107;
+        }
+
+        .stats-cards-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.2rem;
+            justify-content: center;
+        }
+        
+        .stat-card {
+            flex: 1;
+            min-width: 150px;
+            max-width: 200px;
         }
 
         .stat-card {
@@ -108,6 +146,9 @@
             gap: 1rem;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border-left: 4px solid transparent;
         }
 
         .stat-card:hover {
@@ -124,18 +165,44 @@
             justify-content: center;
             font-size: 1.5rem;
             color: white;
+            position: relative;
+            z-index: 2;
         }
 
-        .stat-card:nth-child(1) .stat-icon {
-            background: linear-gradient(135deg, #2E7D32 0%, #4CAF50 100%);
+        /* Estilos específicos por tipo de estadística */
+        .stat-card-total {
+            border-left-color: #6c757d;
         }
-
-        .stat-card:nth-child(2) .stat-icon {
-            background: linear-gradient(135deg, #1565C0 0%, #2196F3 100%);
+        .stat-card-total .stat-icon {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
         }
-
-        .stat-card:nth-child(3) .stat-icon {
-            background: linear-gradient(135deg, #E65100 0%, #FF9800 100%);
+        
+        .stat-card-success {
+            border-left-color: #28a745;
+        }
+        .stat-card-success .stat-icon {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        
+        .stat-card-danger {
+            border-left-color: #dc3545;
+        }
+        .stat-card-danger .stat-icon {
+            background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);
+        }
+        
+        .stat-card-warning {
+            border-left-color: #ffc107;
+        }
+        .stat-card-warning .stat-icon {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+        }
+        
+        .stat-card-info {
+            border-left-color: #17a2b8;
+        }
+        .stat-card-info .stat-icon {
+            background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);
         }
 
         .stat-number {
@@ -508,8 +575,36 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
-        /* Responsividad */
+        /* Responsividad mejorada */
+        /* Tarjetas de estadísticas responsive */
+        @media (max-width: 1400px) {
+            .stats-cards-container {
+                gap: 1rem;
+            }
+            
+            .stat-card {
+                padding: 1.25rem;
+                min-width: 160px;
+                max-width: 220px;
+            }
+            
+            .stat-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 1.3rem;
+            }
+        }
+
         @media (max-width: 1200px) {
+            .stats-cards-container {
+                justify-content: space-around;
+            }
+            
+            .stat-card {
+                min-width: 120px;
+                max-width: 160px;
+            }
+            
             .labs-table {
                 min-width: 900px;
             }
@@ -521,6 +616,15 @@
         }
 
         @media (max-width: 992px) {
+            .stats-cards-container {
+                justify-content: space-around;
+            }
+            
+            .stat-card {
+                min-width: 100px;
+                max-width: 140px;
+            }
+            
             .labs-table {
                 min-width: 800px;
             }
@@ -539,11 +643,36 @@
             .header-content {
                 flex-direction: column;
                 align-items: flex-start;
+                gap: 1.5rem;
             }
             
-            .stats-grid {
+            .stats-cards-container {
                 width: 100%;
                 max-width: none;
+                gap: 0.7rem;
+                justify-content: space-around;
+            }
+            
+            .stat-card {
+                padding: 0.75rem;
+                gap: 0.5rem;
+                min-width: 80px;
+                max-width: 120px;
+                flex: 1 1 auto;
+            }
+            
+            .stat-icon {
+                width: 45px;
+                height: 45px;
+                font-size: 1.1rem;
+            }
+            
+            .stat-number {
+                font-size: 1.5rem;
+            }
+            
+            .stat-label {
+                font-size: 0.8rem;
             }
             
             .admin-controls {
@@ -579,6 +708,30 @@
                 font-size: 2rem;
             }
             
+            .stats-cards-container {
+                gap: 0.5rem;
+                flex-direction: row;
+                justify-content: space-around;
+                flex-wrap: wrap;
+            }
+            
+            .stat-card {
+                padding: 0.75rem;
+                justify-content: center;
+                text-align: center;
+                flex-direction: column;
+                gap: 0.5rem;
+                min-width: 80px;
+                max-width: 120px;
+                flex: 1 1 auto;
+            }
+            
+            .stat-content {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            
             .controls-left {
                 flex-direction: column;
                 gap: 0.5rem;
@@ -601,6 +754,110 @@
                 height: 30px;
                 font-size: 0.8rem;
             }
+        }
+
+        /* Animaciones de entrada para las tarjetas */
+        .stat-card {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: slideInUp 0.6s ease forwards;
+        }
+
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+        .stat-card:nth-child(4) { animation-delay: 0.4s; }
+        .stat-card:nth-child(5) { animation-delay: 0.5s; }
+
+        @keyframes slideInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Efecto de hover mejorado */
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1;
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        /* Overlay para indicar que es clickeable */
+        .stat-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: 1rem;
+            z-index: 3;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .stat-card:hover .stat-overlay {
+            opacity: 1;
+        }
+
+        .stat-overlay i {
+            font-size: 1.2rem;
+            margin-bottom: 0.25rem;
+        }
+
+        /* Estado activo para tarjetas filtradas */
+        .stat-card.active {
+            transform: scale(1.05);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            border: 2px solid currentColor;
+        }
+
+        .stat-card.active .stat-overlay {
+            opacity: 1;
+            background: rgba(0,0,0,0.8);
+        }
+
+        /* Indicador de filtro activo */
+        .filter-indicator {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+            z-index: 4;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .stat-card.active .filter-indicator {
+            opacity: 1;
         }
 
         /* Hint de scroll móvil */
@@ -851,9 +1108,14 @@
     <div class="admin-controls">
         <div class="controls-left">
             {% if has_permission('crear_laboratorio') %}
-            <button class="btn-add-lab" onclick="showAddLabModal()">
+            <button class="btn-add-lab" onclick="console.log('Botón Nuevo Laboratorio clickeado'); showAddLabModal()">
                 <i class="fas fa-plus"></i>
                 <span>Nuevo Laboratorio</span>
+            </button>
+            {% else %}
+            <button class="btn-add-lab" style="background: #dc3545;" onclick="alert('No tienes permisos para crear laboratorios')">
+                <i class="fas fa-ban"></i>
+                <span>Sin Permisos</span>
             </button>
             {% endif %}
             
@@ -984,11 +1246,9 @@
                     <th class="checkbox-column">
                         <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
                     </th>
-                    <th class="id-column d-none-mobile">ID</th>
                     <th class="lab-column">Laboratorio</th>
                     <th class="capacity-column">Capacidad</th>
-                    <th class="d-none-mobile">Institución/Área</th>
-                    <th class="d-none-mobile">Tipo</th>
+                    <th class="d-none-mobile">Area</th>
                     <th class="status-column">Estado</th>
                     <th class="actions-column">Acciones</th>
                 </tr>
@@ -1017,18 +1277,18 @@
                     </td>
                     <td class="d-none-mobile">
                         <div>
-                            <span class="institution-tag">
+                            <span class="institution-tag" data-institution-id="{{ lab.id_institucion if lab.id_institucion else '' }}">
                                 {{ lab.institucion.nombre_institucion if lab.institucion else 'Sin institución' }}
                             </span>
                         </div>
                         <div style="margin-top: 4px;">
-                            <span class="area-tag">
+                            <span class="area-tag" data-area-id="{{ lab.id_area if lab.id_area else '' }}">
                                 {{ lab.area.nombre_area if lab.area else 'Sin área' }}
                             </span>
                         </div>
                     </td>
                     <td class="d-none-mobile">
-                        <span class="type-tag">
+                        <span class="type-tag" data-type-id="{{ lab.id_tipo_laboratorio if lab.id_tipo_laboratorio else '' }}">
                             {{ lab.tipo_laboratorio.nombre_tipo_laboratorio if lab.tipo_laboratorio else 'Sin tipo' }}
                         </span>
                     </td>
@@ -1040,9 +1300,9 @@
                     <td class="actions-column">
                         <div class="action-buttons-row">
                             {% if has_permission('gestionar_laboratorios') %}
-                            <button class="btn-action btn-view" onclick="mostrarDetallesLab({{ lab.id_laboratorio }})" title="Ver detalles">
+                            <a href="{{ url_for('admin_laboratorios.detalle_laboratorio', id=lab.id_laboratorio) }}" class="btn-action btn-view" title="Ver detalles">
                                 <i class="fas fa-eye"></i>
-                            </button>
+                            </a>
                             {% endif %}
                             
                             {% if has_permission('editar_laboratorio') %}
@@ -1063,7 +1323,414 @@
             </tbody>
         </table>
     </div>
+
+    <!-- Sección de Equipamiento -->
+    <div class="equipment-section">
+        <div class="section-header">
+            <h2>
+                <i class="fas fa-tools equipment-icon"></i>
+                Gestión de Equipamiento
+            </h2>
+            <div class="equipment-stats">
+                <div class="equipment-stat-card">
+                    <div class="stat-icon equipment-stat-icon">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="totalEquipment">{{ total_equipamiento or 0 }}</div>
+                        <div class="stat-label">Total Equipos</div>
+                    </div>
+                </div>
+                <div class="equipment-stat-card">
+                    <div class="stat-icon equipment-stat-icon assigned-icon">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="assignedEquipment">{{ equipamiento_asignado or 0 }}</div>
+                        <div class="stat-label">Asignados</div>
+                    </div>
+                </div>
+                <div class="equipment-stat-card">
+                    <div class="stat-icon equipment-stat-icon available-icon">
+                        <i class="fas fa-cube"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="availableEquipment">{{ equipamiento_disponible or 0 }}</div>
+                        <div class="stat-label">Disponibles</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controles de equipamiento -->
+        <div class="equipment-controls">
+            <div class="controls-left">
+                {% if has_permission('crear_laboratorio') %}
+                <button class="btn-add-equipment" onclick="showAddEquipmentModal()">
+                    <i class="fas fa-plus"></i>
+                    <span>Nuevo Equipo</span>
+                </button>
+                {% endif %}
+                
+                {% if has_permission('gestionar_laboratorios') %}
+                <button class="btn-assign-equipment" onclick="showAssignEquipmentModal()">
+                    <i class="fas fa-link"></i>
+                    <span>Asignar a Laboratorio</span>
+                </button>
+                {% endif %}
+                
+                <button class="btn-view-assignments" onclick="showEquipmentAssignments()">
+                    <i class="fas fa-list"></i>
+                    <span>Ver Asignaciones</span>
+                </button>
+            </div>
+            
+            <div class="controls-center">
+                <div class="search-box-equipment">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="searchEquipmentInput" class="search-input-modern" 
+                           placeholder="Buscar equipamiento..." 
+                           onkeyup="searchEquipment()">
+                    <button class="search-clear" onclick="clearEquipmentSearch()" style="display: none;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="controls-right">
+                <button class="btn-toggle-view" onclick="toggleEquipmentView()" title="Cambiar vista">
+                    <i class="fas fa-th-list"></i>
+                </button>
+                <button class="btn-refresh" onclick="refreshData()">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabla de equipamiento -->
+        <div class="mobile-scroll-hint d-mobile-only">
+            <i class="fas fa-arrows-alt-h"></i>
+            <span>Desliza horizontalmente para ver más columnas del equipamiento</span>
+        </div>
+        
+        <div class="equipment-table-container">
+            <table class="equipment-table">
+                <thead>
+                    <tr>
+                        <th class="checkbox-column">
+                            <input type="checkbox" id="selectAllEquipment" onchange="toggleSelectAllEquipment()">
+                        </th>
+                        <th class="equipment-column">Equipamiento</th>
+                        <th class="assignments-column">Asignaciones</th>
+                        <th class="total-quantity-column">Cantidad Total</th>
+                        <th class="date-column d-none-mobile">Fecha Creación</th>
+                        <th class="actions-column">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="equipmentTableBody">
+                    {% for equipo in equipamiento %}
+                    <tr data-equipment-id="{{ equipo.id_equipamiento }}" class="equipment-row">
+                        <td class="checkbox-column">
+                            <input type="checkbox" class="equipment-checkbox" value="{{ equipo.id_equipamiento }}" onchange="updateEquipmentBulkActions()">
+                        </td>
+                        <td class="equipment-info">
+                            <div class="equipment-icon">
+                                <i class="fas fa-tools"></i>
+                            </div>
+                            <div class="equipment-details">
+                                <div class="equipment-name">{{ equipo.nombre_equipo }}</div>
+                                <div class="equipment-description">{{ equipo.descripcion[:80] + '...' if equipo.descripcion and equipo.descripcion|length > 80 else equipo.descripcion or 'Sin descripción' }}</div>
+                            </div>
+                        </td>
+                        <td class="assignments-info">
+                            <div class="assignment-badges">
+                                {% for asignacion in equipo.asignaciones %}
+                                <span class="assignment-badge" data-lab-id="{{ asignacion.id_laboratorio }}">
+                                    <i class="fas fa-flask"></i>
+                                    {{ asignacion.laboratorio.nombre_laboratorio[:15] + '...' if asignacion.laboratorio.nombre_laboratorio|length > 15 else asignacion.laboratorio.nombre_laboratorio }}
+                                    <small class="quantity-badge">{{ asignacion.cantidad }}</small>
+                                </span>
+                                {% endfor %}
+                                {% if not equipo.asignaciones %}
+                                <span class="no-assignments">Sin asignaciones</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="total-quantity">
+                            <div class="quantity-info">
+                                <span class="total-count">{{ equipo.cantidad_total or 0 }}</span>
+                                <small class="capacity-info">
+                                    {% if equipo.capacidad_total %}
+                                    Cap: {{ equipo.capacidad_total }}
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </td>
+                        <td class="d-none-mobile">
+                            {% if equipo.fecha_creacion %}
+                            <div class="date-info">
+                                <i class="fas fa-calendar-alt"></i>
+                                {{ equipo.fecha_creacion.strftime('%d/%m/%Y') }}
+                            </div>
+                            {% else %}
+                            <span class="no-date">Sin fecha</span>
+                            {% endif %}
+                        </td>
+                        <td class="actions-column">
+                            <div class="action-buttons-row">
+                                <button class="btn-action btn-view" onclick="viewEquipmentDetails({{ equipo.id_equipamiento }})" title="Ver detalles">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                
+                                {% if has_permission('editar_laboratorio') %}
+                                <button class="btn-action btn-edit" onclick="editEquipment({{ equipo.id_equipamiento }})" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                {% endif %}
+                                
+                                {% if has_permission('gestionar_laboratorios') %}
+                                <button class="btn-action btn-assign" onclick="showAssignToLabModal({{ equipo.id_equipamiento }})" title="Asignar a laboratorio">
+                                    <i class="fas fa-link"></i>
+                                </button>
+                                {% endif %}
+                                
+                                {% if has_permission('eliminar_laboratorio') %}
+                                <button class="btn-action btn-delete" onclick="deleteEquipment({{ equipo.id_equipamiento }})" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
+
+<!-- Modal para agregar/editar equipamiento -->
+<div class="modal-overlay" id="equipmentModal" style="display: none;">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3 id="equipmentModalTitle">
+                <i class="fas fa-tools"></i>
+                Nuevo Equipamiento
+            </h3>
+            <button class="btn-close-modal" onclick="closeEquipmentModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <form id="equipmentForm" class="equipment-form">
+                <input type="hidden" id="id_equipamiento" name="id_equipamiento">
+                
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-info-circle"></i>
+                        Información del Equipamiento
+                    </h4>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nombre_equipo" class="form-label">
+                                <i class="fas fa-tools"></i>
+                                Nombre del Equipo *
+                            </label>
+                            <input type="text" class="form-control" id="nombre_equipo" name="nombre_equipo" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="descripcion_equipo" class="form-label">
+                                <i class="fas fa-align-left"></i>
+                                Descripción
+                            </label>
+                            <textarea class="form-control form-control-textarea" id="descripcion_equipo" name="descripcion" placeholder="Descripción detallada del equipamiento..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeEquipmentModal()">Cancelar</button>
+            <button type="button" class="btn-primary" onclick="saveEquipment()">Guardar Equipamiento</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para asignar equipamiento a laboratorio -->
+<div class="modal-overlay" id="assignEquipmentModal" style="display: none;">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3>
+                <i class="fas fa-link"></i>
+                Asignar Equipamiento a Laboratorio
+            </h3>
+            <button class="btn-close-modal" onclick="closeAssignEquipmentModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <form id="assignEquipmentForm" class="assign-equipment-form">
+                <input type="hidden" id="assign_equipment_id" name="id_equipamiento">
+                
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-link"></i>
+                        Detalles de Asignación
+                    </h4>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="assign_id_laboratorio" class="form-label">
+                                <i class="fas fa-flask"></i>
+                                Laboratorio *
+                            </label>
+                            <select class="form-control" id="assign_id_laboratorio" name="id_laboratorio" required>
+                                <option value="">Seleccionar laboratorio</option>
+                                {% for lab in laboratorios %}
+                                <option value="{{ lab.id_laboratorio }}">{{ lab.nombre_laboratorio }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="assign_id_equipamiento_select" class="form-label">
+                                <i class="fas fa-tools"></i>
+                                Equipamiento *
+                            </label>
+                            <select class="form-control" id="assign_id_equipamiento_select" name="id_equipamiento_select" required>
+                                <option value="">Seleccionar equipamiento</option>
+                                {% for equipo in equipamiento %}
+                                <option value="{{ equipo.id_equipamiento }}">{{ equipo.nombre_equipo }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="assign_cantidad" class="form-label">
+                                <i class="fas fa-hashtag"></i>
+                                Cantidad *
+                            </label>
+                            <input type="number" class="form-control" id="assign_cantidad" name="cantidad" min="1" value="1" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="assign_capacidad" class="form-label">
+                                <i class="fas fa-expand-arrows-alt"></i>
+                                Capacidad
+                            </label>
+                            <input type="number" class="form-control" id="assign_capacidad" name="capacidad" min="0" placeholder="Opcional">
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeAssignEquipmentModal()">Cancelar</button>
+            <button type="button" class="btn-primary" onclick="saveEquipmentAssignment()">Asignar Equipamiento</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para ver asignaciones de equipamiento -->
+<div class="modal-overlay" id="equipmentAssignmentsModal" style="display: none;">
+    <div class="modal-container modal-large">
+        <div class="modal-header">
+            <h3>
+                <i class="fas fa-list"></i>
+                Asignaciones de Equipamiento
+            </h3>
+            <button class="btn-close-modal" onclick="closeEquipmentAssignmentsModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="assignments-filter">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="filterAssignmentLab">Filtrar por Laboratorio:</label>
+                        <select id="filterAssignmentLab" class="form-control" onchange="filterAssignments()">
+                            <option value="">Todos los laboratorios</option>
+                            {% for lab in laboratorios %}
+                            <option value="{{ lab.id_laboratorio }}">{{ lab.nombre_laboratorio }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="assignments-table-container">
+                <table class="assignments-table">
+                    <thead>
+                        <tr>
+                            <th>Laboratorio</th>
+                            <th>Equipamiento</th>
+                            <th>Cantidad</th>
+                            <th>Capacidad</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="assignmentsTableBody">
+                        {% for asignacion in asignaciones_equipamiento %}
+                        <tr data-assignment-id="{{ asignacion.id_equipo_lab }}" data-lab-id="{{ asignacion.id_laboratorio }}" class="assignment-row">
+                            <td>
+                                <div class="lab-info-mini">
+                                    <i class="fas fa-flask"></i>
+                                    {{ asignacion.laboratorio.nombre_laboratorio if asignacion.laboratorio else 'Laboratorio no encontrado' }}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="equipment-info-mini">
+                                    <i class="fas fa-tools"></i>
+                                    {{ asignacion.equipamiento.nombre_equipo if asignacion.equipamiento else 'Equipamiento no encontrado' }}
+                                </div>
+                            </td>
+                            <td>
+                                <span class="quantity-badge">{{ asignacion.cantidad }}</span>
+                            </td>
+                            <td>
+                                {% if asignacion.capacidad %}
+                                <span class="capacity-badge">{{ asignacion.capacidad }}</span>
+                                {% else %}
+                                <span class="no-capacity">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="action-buttons-row">
+                                    {% if has_permission('gestionar_laboratorios') %}
+                                    <button class="btn-action btn-edit" onclick="editAssignment({{ asignacion.id_equipo_lab }})" title="Editar asignación">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn-action btn-delete" onclick="deleteAssignment({{ asignacion.id_equipo_lab }})" title="Eliminar asignación">
+                                        <i class="fas fa-unlink"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeEquipmentAssignmentsModal()">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modales de detalles eliminados - ahora se usa página dedicada -->
 
 <!-- Modal para agregar/editar laboratorio -->
 <div class="modal-overlay" id="labModal" style="display: none;">
@@ -1346,12 +2013,132 @@
 // Variables globales
 let currentLabId = null;
 let allLabs = [];
+let originalStats = {};
 
 // Inicialización
 document.addEventListener('DOMContentLoaded', function() {
     loadLabs();
+    
+    // Verificar que los botones de acción existan y funcionen
+    console.log('DOM loaded, checking action buttons...');
+    const actionButtons = document.querySelectorAll('.btn-action');
+    console.log('Found action buttons:', actionButtons.length);
+    
+    // Test de funciones globales
+    if (typeof editLab === 'function') {
+        console.log('editLab function is available');
+    } else {
+        console.error('editLab function is NOT available');
+    }
+    
+    if (typeof deleteLab === 'function') {
+        console.log('deleteLab function is available');
+    } else {
+        console.error('deleteLab function is NOT available');
+    }
     setupEventListeners();
+    initializeStats();
+    animateStatsCards();
+    
+    // Diagnóstico del botón y modal
+    console.log('=== DIAGNÓSTICO DEL BOTÓN NUEVO LABORATORIO ===');
+    console.log('Botón encontrado:', !!document.querySelector('.btn-add-lab'));
+    console.log('Modal encontrado:', !!document.getElementById('labModal'));
+    console.log('Formulario encontrado:', !!document.getElementById('labForm'));
+    console.log('Título del modal encontrado:', !!document.getElementById('modalTitle'));
+    console.log('ID laboratorio encontrado:', !!document.getElementById('id_laboratorio'));
+    
+    // Verificar permisos
+    console.log('Permiso crear_laboratorio:', {{ 'true' if has_permission('crear_laboratorio') else 'false' }});
 });
+
+function initializeStats() {
+    // Guardar estadísticas originales
+    originalStats = {
+        total: {{ total_laboratorios }},
+        activos: {{ laboratorios_activos }},
+        inactivos: {{ laboratorios_inactivos }},
+        mantenimiento: {{ laboratorios_mantenimiento }},
+        reservados: {{ laboratorios_reservados }}
+    };
+}
+
+function animateStatsCards() {
+    // Animar los números de las estadísticas
+    const statNumbers = document.querySelectorAll('.stat-number');
+    statNumbers.forEach((element, index) => {
+        const finalValue = parseInt(element.textContent);
+        animateNumber(element, 0, finalValue, 1000 + (index * 200));
+    });
+}
+
+function animateNumber(element, start, end, duration) {
+    const startTime = performance.now();
+    
+    function updateNumber(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Función de easing para suavizar la animación
+        const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+        const currentValue = Math.round(start + (end - start) * easeOutCubic);
+        
+        element.textContent = currentValue;
+        
+        if (progress < 1) {
+            requestAnimationFrame(updateNumber);
+        }
+    }
+    
+    requestAnimationFrame(updateNumber);
+}
+
+function updateDynamicStats() {
+    // Obtener todas las filas visibles
+    const visibleRows = document.querySelectorAll('.lab-row[style=""], .lab-row:not([style*="display: none"])');
+    
+    // Calcular estadísticas dinámicas
+    const stats = {
+        total: visibleRows.length,
+        activos: 0,
+        inactivos: 0,
+        mantenimiento: 0,
+        reservados: 0
+    };
+    
+    visibleRows.forEach(row => {
+        const statusBadge = row.querySelector('.status-badge');
+        if (statusBadge) {
+            const statusText = statusBadge.textContent.trim().toLowerCase();
+            if (statusText === 'activo') stats.activos++;
+            else if (statusText === 'inactivo') stats.inactivos++;
+            else if (statusText === 'mantenimiento') stats.mantenimiento++;
+            else if (statusText === 'reservado') stats.reservados++;
+        }
+    });
+    
+    // Actualizar las tarjetas con animación
+    Object.keys(stats).forEach(key => {
+        const element = document.getElementById(`stat-${key}`);
+        if (element) {
+            const currentValue = parseInt(element.textContent);
+            const newValue = stats[key];
+            
+            if (currentValue !== newValue) {
+                animateNumber(element, currentValue, newValue, 300);
+                
+                // Agregar efecto visual de cambio
+                const card = element.closest('.stat-card');
+                card.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    card.style.transform = '';
+                }, 200);
+            }
+        }
+    });
+    
+    return stats;
+}
 
 function setupEventListeners() {
     // Configurar drag and drop para importar
@@ -1403,90 +2190,7 @@ function loadLabs() {
     }));
 }
 
-function showAddLabModal() {
-    currentLabId = null;
-    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-flask"></i> Nuevo Laboratorio';
-    document.getElementById('labForm').reset();
-    document.getElementById('id_laboratorio').value = '';
-    document.getElementById('labModal').style.display = 'flex';
-}
-
-function closeLabModal() {
-    document.getElementById('labModal').style.display = 'none';
-    currentLabId = null;
-}
-
-function editLab(labId) {
-    currentLabId = labId;
-    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Editar Laboratorio';
-    
-    // Aquí cargarías los datos del laboratorio para editar
-    // Por ahora, solo mostramos el modal
-    document.getElementById('labModal').style.display = 'flex';
-}
-
-function saveLab() {
-    const form = document.getElementById('labForm');
-    const formData = new FormData(form);
-    const data = Object.fromEntries(formData.entries());
-    
-    // Convertir checkbox a boolean
-    data.requiere_capacitacion = document.getElementById('requiere_capacitacion').checked;
-    
-    const url = currentLabId ? 
-        `/admin/laboratorios/editar/${currentLabId}` : 
-        '/admin/laboratorios/crear';
-    
-    const method = currentLabId ? 'PUT' : 'POST';
-    
-    fetch(url, {
-        method: method,
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showNotification(data.message, 'success');
-            closeLabModal();
-            location.reload(); // Recargar la página para mostrar los cambios
-        } else {
-            showNotification(data.message, 'error');
-        }
-    })
-    .catch(error => {
-        showNotification('Error al guardar el laboratorio', 'error');
-        console.error('Error:', error);
-    });
-}
-
-function deleteLab(labId) {
-    if (confirm('¿Estás seguro de que deseas eliminar este laboratorio?')) {
-        fetch(`/admin/laboratorios/eliminar/${labId}`, {
-            method: 'DELETE'
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showNotification(data.message, 'success');
-                location.reload();
-            } else {
-                showNotification(data.message, 'error');
-            }
-        })
-        .catch(error => {
-            showNotification('Error al eliminar el laboratorio', 'error');
-            console.error('Error:', error);
-        });
-    }
-}
-
-function mostrarDetallesLab(labId) {
-    // Implementar modal de detalles del laboratorio
-    showNotification('Función de detalles en desarrollo', 'info');
-}
+// Las funciones editLab, saveLab, deleteLab ahora están definidas al final del script como funciones globales
 
 function exportLabs() {
     showNotification('Exportando laboratorios...', 'info');
@@ -1597,14 +2301,46 @@ function applyFilters() {
     const tipo = document.getElementById('filterTipo').value;
     const estado = document.getElementById('filterEstado').value;
     
+    // Remover estado activo de todas las tarjetas cuando se usan filtros manuales
+    if (institucion || area || tipo || estado) {
+        document.querySelectorAll('.stat-card').forEach(card => {
+            card.classList.remove('active');
+        });
+    }
+    
     const rows = document.querySelectorAll('.lab-row');
     let visibleCount = 0;
     
     rows.forEach(row => {
         let visible = true;
         
-        // Aplicar filtros (implementar lógica según los datos de la fila)
-        // Por ahora, mantener todas las filas visibles
+        // Filtrar por estado
+        if (estado) {
+            const statusBadge = row.querySelector('.status-badge');
+            const statusText = statusBadge ? statusBadge.textContent.trim() : '';
+            visible = visible && statusText.toLowerCase() === estado.toLowerCase();
+        }
+        
+        // Filtrar por institución
+        if (institucion) {
+            const institutionTag = row.querySelector('.institution-tag');
+            const institutionId = institutionTag ? institutionTag.dataset.institutionId : '';
+            visible = visible && institutionId === institucion;
+        }
+        
+        // Filtrar por área
+        if (area) {
+            const areaTag = row.querySelector('.area-tag');
+            const areaId = areaTag ? areaTag.dataset.areaId : '';
+            visible = visible && areaId === area;
+        }
+        
+        // Filtrar por tipo
+        if (tipo) {
+            const typeTag = row.querySelector('.type-tag');
+            const typeId = typeTag ? typeTag.dataset.typeId : '';
+            visible = visible && typeId === tipo;
+        }
         
         row.style.display = visible ? '' : 'none';
         if (visible) visibleCount++;
@@ -1619,11 +2355,21 @@ function applyFilters() {
     } else {
         filterCount.style.display = 'none';
     }
+    
+    // Actualizar estadísticas dinámicas
+    updateDynamicStats();
 }
 
 function searchLabs() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const rows = document.querySelectorAll('.lab-row');
+    
+    // Remover estado activo de todas las tarjetas cuando se busca
+    if (searchTerm) {
+        document.querySelectorAll('.stat-card').forEach(card => {
+            card.classList.remove('active');
+        });
+    }
     
     rows.forEach(row => {
         const labName = row.querySelector('.lab-name').textContent.toLowerCase();
@@ -1635,18 +2381,200 @@ function searchLabs() {
     
     // Mostrar/ocultar botón de limpiar búsqueda
     const clearBtn = document.querySelector('.search-clear');
-    clearBtn.style.display = searchTerm ? 'block' : 'none';
+    if (clearBtn) {
+        clearBtn.style.display = searchTerm ? 'block' : 'none';
+    }
+    
+    // Actualizar estadísticas dinámicas
+    updateDynamicStats();
 }
 
 function clearSearch() {
     document.getElementById('searchInput').value = '';
-    document.querySelector('.search-clear').style.display = 'none';
-    searchLabs();
+    const clearBtn = document.querySelector('.search-clear');
+    if (clearBtn) {
+        clearBtn.style.display = 'none';
+    }
+    
+    // Mostrar todas las filas
+    const rows = document.querySelectorAll('.lab-row');
+    rows.forEach(row => {
+        row.style.display = '';
+    });
+    
+    // Actualizar estadísticas dinámicas
+    updateDynamicStats();
 }
 
 function refreshData() {
     location.reload();
 }
+
+function resetAllFilters() {
+    // Limpiar filtros
+    document.getElementById('filterInstitucion').value = '';
+    document.getElementById('filterArea').value = '';
+    document.getElementById('filterTipo').value = '';
+    document.getElementById('filterEstado').value = '';
+    
+    // Limpiar búsqueda
+    document.getElementById('searchInput').value = '';
+    
+    // Mostrar todas las filas
+    const rows = document.querySelectorAll('.lab-row');
+    rows.forEach(row => {
+        row.style.display = '';
+    });
+    
+    // Ocultar contador de filtros
+    const filterCount = document.getElementById('filterCount');
+    if (filterCount) {
+        filterCount.style.display = 'none';
+    }
+    
+    // Ocultar botón de limpiar búsqueda
+    const clearBtn = document.querySelector('.search-clear');
+    if (clearBtn) {
+        clearBtn.style.display = 'none';
+    }
+    
+    // Restaurar estadísticas originales con animación
+    Object.keys(originalStats).forEach(key => {
+        const element = document.getElementById(`stat-${key}`);
+        if (element) {
+            const currentValue = parseInt(element.textContent);
+            const originalValue = originalStats[key];
+            
+            if (currentValue !== originalValue) {
+                animateNumber(element, currentValue, originalValue, 500);
+            }
+        }
+    });
+    
+    // Remover estado activo de todas las tarjetas
+    document.querySelectorAll('.stat-card').forEach(card => {
+        card.classList.remove('active');
+    });
+    
+    showNotification('Filtros restablecidos', 'info');
+}
+
+function filterByStat(statKey) {
+    const selectedCard = document.querySelector(`[data-stat-key="${statKey}"]`);
+    const isCurrentlyActive = selectedCard && selectedCard.classList.contains('active');
+    
+    // Si la tarjeta ya está activa, desactivarla (doble clic)
+    if (isCurrentlyActive) {
+        selectedCard.classList.remove('active');
+        // Mostrar todos los laboratorios
+        const rows = document.querySelectorAll('.lab-row');
+        rows.forEach(row => {
+            row.style.display = '';
+        });
+        
+        // Actualizar estadísticas dinámicas
+        updateDynamicStats();
+        
+        // Ocultar contador de filtros
+        const filterCount = document.getElementById('filterCount');
+        if (filterCount) {
+            filterCount.style.display = 'none';
+        }
+        
+        showNotification('Filtro desactivado', 'info');
+        return;
+    }
+    
+    // Remover estado activo de todas las tarjetas
+    document.querySelectorAll('.stat-card').forEach(card => {
+        card.classList.remove('active');
+    });
+    
+    // Activar la tarjeta seleccionada
+    if (selectedCard) {
+        selectedCard.classList.add('active');
+    }
+    
+    // Mapeo de claves de estadísticas a estados de laboratorio
+    const statToStatusMap = {
+        'total': null, // Mostrar todos
+        'activos': 'Activo',
+        'inactivos': 'Inactivo', 
+        'mantenimiento': 'Mantenimiento',
+        'reservados': 'Reservado'
+    };
+    
+    const targetStatus = statToStatusMap[statKey];
+    const rows = document.querySelectorAll('.lab-row');
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+        let visible = true;
+        
+        if (targetStatus) {
+            // Filtrar por estado específico
+            const statusBadge = row.querySelector('.status-badge');
+            const statusText = statusBadge ? statusBadge.textContent.trim() : '';
+            visible = statusText.toLowerCase() === targetStatus.toLowerCase();
+        } else {
+            // Mostrar todos (tarjeta "Total")
+            visible = true;
+        }
+        
+        row.style.display = visible ? '' : 'none';
+        if (visible) visibleCount++;
+    });
+    
+    // Actualizar estadísticas dinámicas
+    updateDynamicStats();
+    
+    // Mostrar notificación
+    const statLabel = selectedCard ? selectedCard.querySelector('.stat-label').textContent : statKey;
+    if (targetStatus) {
+        showNotification(`Filtrado por: ${statLabel}`, 'info');
+    } else {
+        showNotification('Mostrando todos los laboratorios', 'info');
+    }
+    
+    // Actualizar contador de filtros
+    const filterCount = document.getElementById('filterCount');
+    if (filterCount) {
+        if (targetStatus) {
+            filterCount.textContent = '1';
+            filterCount.style.display = 'inline';
+        } else {
+            filterCount.style.display = 'none';
+        }
+    }
+}
+
+// Agregar botón de reset a los filtros
+document.addEventListener('DOMContentLoaded', function() {
+    const filtersHeader = document.querySelector('.filters-header');
+    if (filtersHeader) {
+        const resetBtn = document.createElement('button');
+        resetBtn.className = 'btn-reset-filters';
+        resetBtn.innerHTML = '<i class="fas fa-undo"></i> Restablecer';
+        resetBtn.onclick = resetAllFilters;
+        resetBtn.style.cssText = `
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        `;
+        resetBtn.onmouseover = () => resetBtn.style.background = '#5a6268';
+        resetBtn.onmouseout = () => resetBtn.style.background = '#6c757d';
+        
+        filtersHeader.appendChild(resetBtn);
+    }
+});
 
 function toggleSelectAll() {
     const selectAll = document.getElementById('selectAll');
@@ -1669,24 +2597,634 @@ function updateBulkActions() {
     selectAll.indeterminate = checkboxes.length > 0 && checkboxes.length < allCheckboxes.length;
 }
 
-function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.textContent = message;
+// ==================== FUNCIONES DE EQUIPAMIENTO ====================
+
+// Variables globales para equipamiento
+let currentEquipmentId = null;
+let allEquipment = [];
+let equipmentViewMode = 'table'; // 'table' o 'grid'
+
+// Funciones principales de equipamiento
+function showAddEquipmentModal() {
+    console.log('showAddEquipmentModal() llamado');
+    currentEquipmentId = null;
     
-    document.body.appendChild(notification);
+    const modalTitle = document.getElementById('equipmentModalTitle');
+    const equipmentForm = document.getElementById('equipmentForm');
+    const idEquipamiento = document.getElementById('id_equipamiento');
+    const equipmentModal = document.getElementById('equipmentModal');
     
-    setTimeout(() => {
-        notification.classList.add('show');
-    }, 100);
+    if (!modalTitle || !equipmentForm || !idEquipamiento || !equipmentModal) {
+        console.error('Elementos del modal de equipamiento no encontrados');
+        return;
+    }
     
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => {
-            document.body.removeChild(notification);
-        }, 300);
-    }, 3000);
+    modalTitle.innerHTML = '<i class="fas fa-tools"></i> Nuevo Equipamiento';
+    equipmentForm.reset();
+    idEquipamiento.value = '';
+    equipmentModal.style.display = 'flex';
+    console.log('Modal de equipamiento mostrado correctamente');
 }
+
+function closeEquipmentModal() {
+    document.getElementById('equipmentModal').style.display = 'none';
+    currentEquipmentId = null;
+}
+
+function editEquipment(equipmentId) {
+    currentEquipmentId = equipmentId;
+    document.getElementById('equipmentModalTitle').innerHTML = '<i class="fas fa-edit"></i> Editar Equipamiento';
+    
+    // Cargar datos del equipamiento
+    fetch(`/admin/equipamiento/${equipmentId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showNotification('Error al cargar el equipamiento: ' + data.error, 'error');
+                return;
+            }
+            
+            // Llenar formulario
+            document.getElementById('id_equipamiento').value = data.id_equipamiento || '';
+            document.getElementById('nombre_equipo').value = data.nombre_equipo || '';
+            document.getElementById('descripcion_equipo').value = data.descripcion || '';
+            
+            document.getElementById('equipmentModal').style.display = 'flex';
+        })
+        .catch(error => {
+            showNotification('Error al cargar el equipamiento', 'error');
+            console.error('Error:', error);
+        });
+}
+
+function saveEquipment() {
+    const form = document.getElementById('equipmentForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    
+    const url = currentEquipmentId ? 
+        `/admin/equipamiento/editar/${currentEquipmentId}` : 
+        '/admin/equipamiento/crear';
+    
+    const method = currentEquipmentId ? 'PUT' : 'POST';
+    
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            closeEquipmentModal();
+            location.reload();
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('Error al guardar el equipamiento', 'error');
+        console.error('Error:', error);
+    });
+}
+
+function deleteEquipment(equipmentId) {
+    if (confirm('¿Estás seguro de que deseas eliminar este equipamiento? Esto también eliminará todas sus asignaciones.')) {
+        fetch(`/admin/equipamiento/eliminar/${equipmentId}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                location.reload();
+            } else {
+                showNotification(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('Error al eliminar el equipamiento', 'error');
+            console.error('Error:', error);
+        });
+    }
+}
+
+function viewEquipmentDetails(equipmentId) {
+    showNotification('Función de detalles de equipamiento en desarrollo', 'info');
+}
+
+// Funciones de asignación de equipamiento
+function showAssignEquipmentModal() {
+    document.getElementById('assignEquipmentModal').style.display = 'flex';
+    
+    // Limpiar selecciones previas
+    document.getElementById('assign_id_laboratorio').value = '';
+    document.getElementById('assign_id_equipamiento_select').value = '';
+    document.getElementById('assign_cantidad').value = '1';
+    document.getElementById('assign_capacidad').value = '';
+}
+
+function closeAssignEquipmentModal() {
+    document.getElementById('assignEquipmentModal').style.display = 'none';
+}
+
+function showAssignToLabModal(equipmentId) {
+    document.getElementById('assign_equipment_id').value = equipmentId;
+    document.getElementById('assign_id_equipamiento_select').value = equipmentId;
+    showAssignEquipmentModal();
+}
+
+function saveEquipmentAssignment() {
+    const form = document.getElementById('assignEquipmentForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    
+    // Usar el equipamiento seleccionado si está disponible
+    if (data.id_equipamiento_select) {
+        data.id_equipamiento = data.id_equipamiento_select;
+    }
+    
+    fetch('/admin/equipamiento/asignar', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            closeAssignEquipmentModal();
+            location.reload();
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('Error al asignar el equipamiento', 'error');
+        console.error('Error:', error);
+    });
+}
+
+// Funciones de gestión de asignaciones
+function showEquipmentAssignments() {
+    document.getElementById('equipmentAssignmentsModal').style.display = 'flex';
+}
+
+function closeEquipmentAssignmentsModal() {
+    document.getElementById('equipmentAssignmentsModal').style.display = 'none';
+}
+
+function filterAssignments() {
+    const labFilter = document.getElementById('filterAssignmentLab').value;
+    const rows = document.querySelectorAll('.assignment-row');
+    
+    rows.forEach(row => {
+        const labId = row.dataset.labId;
+        const visible = !labFilter || labId === labFilter;
+        row.style.display = visible ? '' : 'none';
+    });
+    
+    // Contar asignaciones visibles
+    const visibleRows = document.querySelectorAll('.assignment-row[style=""], .assignment-row:not([style*="display: none"])');
+    
+    if (labFilter) {
+        showNotification(`Mostrando ${visibleRows.length} asignaciones`, 'info');
+    }
+}
+
+function editAssignment(assignmentId) {
+    showNotification('Función de editar asignación en desarrollo', 'info');
+}
+
+function deleteAssignment(assignmentId) {
+    if (confirm('¿Estás seguro de que deseas eliminar esta asignación?')) {
+        fetch(`/admin/equipamiento/asignacion/eliminar/${assignmentId}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                // Remover la fila de la tabla
+                const row = document.querySelector(`[data-assignment-id="${assignmentId}"]`);
+                if (row) {
+                    row.remove();
+                }
+                // Recargar después de un momento para actualizar las estadísticas
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                showNotification(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('Error al eliminar la asignación', 'error');
+            console.error('Error:', error);
+        });
+    }
+}
+
+// Funciones de búsqueda y filtrado
+function searchEquipment() {
+    const searchTerm = document.getElementById('searchEquipmentInput').value.toLowerCase();
+    const rows = document.querySelectorAll('.equipment-row');
+    
+    rows.forEach(row => {
+        const equipmentName = row.querySelector('.equipment-name').textContent.toLowerCase();
+        const equipmentDescription = row.querySelector('.equipment-description').textContent.toLowerCase();
+        
+        const visible = equipmentName.includes(searchTerm) || equipmentDescription.includes(searchTerm);
+        row.style.display = visible ? '' : 'none';
+    });
+    
+    // Mostrar/ocultar botón de limpiar búsqueda
+    const clearBtn = document.querySelector('.equipment-controls .search-clear');
+    if (clearBtn) {
+        clearBtn.style.display = searchTerm ? 'block' : 'none';
+    }
+    
+    // Contar equipamiento visible
+    const visibleRows = document.querySelectorAll('.equipment-row[style=""], .equipment-row:not([style*="display: none"])');
+    
+    if (searchTerm) {
+        showNotification(`Encontrados ${visibleRows.length} equipos`, 'info');
+    }
+}
+
+function clearEquipmentSearch() {
+    document.getElementById('searchEquipmentInput').value = '';
+    const clearBtn = document.querySelector('.equipment-controls .search-clear');
+    if (clearBtn) {
+        clearBtn.style.display = 'none';
+    }
+    
+    // Mostrar todas las filas
+    const rows = document.querySelectorAll('.equipment-row');
+    rows.forEach(row => {
+        row.style.display = '';
+    });
+    
+    showNotification('Búsqueda de equipamiento limpiada', 'info');
+}
+
+// Funciones de vista
+function toggleEquipmentView() {
+    equipmentViewMode = equipmentViewMode === 'table' ? 'grid' : 'table';
+    const toggleBtn = document.querySelector('.btn-toggle-view i');
+    
+    if (equipmentViewMode === 'grid') {
+        toggleBtn.className = 'fas fa-table';
+        showNotification('Vista de cuadrícula en desarrollo', 'info');
+    } else {
+        toggleBtn.className = 'fas fa-th-list';
+        showNotification('Vista de tabla activa', 'info');
+    }
+}
+
+// Funciones de selección múltiple
+function toggleSelectAllEquipment() {
+    const selectAll = document.getElementById('selectAllEquipment');
+    const checkboxes = document.querySelectorAll('.equipment-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+    });
+    
+    updateEquipmentBulkActions();
+}
+
+function updateEquipmentBulkActions() {
+    const checkboxes = document.querySelectorAll('.equipment-checkbox:checked');
+    const selectAll = document.getElementById('selectAllEquipment');
+    
+    const allCheckboxes = document.querySelectorAll('.equipment-checkbox');
+    selectAll.checked = checkboxes.length === allCheckboxes.length;
+    selectAll.indeterminate = checkboxes.length > 0 && checkboxes.length < allCheckboxes.length;
+    
+    // Mostrar notificación si hay elementos seleccionados
+    if (checkboxes.length > 0) {
+        showNotification(`${checkboxes.length} equipos seleccionados`, 'info');
+    }
+}
+
+// Inicialización de equipamiento
+function initializeEquipment() {
+    // Cargar equipamiento
+    allEquipment = Array.from(document.querySelectorAll('.equipment-row')).map(row => ({
+        id: row.dataset.equipmentId,
+        element: row
+    }));
+    
+    console.log('Equipamiento inicializado:', allEquipment.length, 'elementos');
+}
+
+// Actualizar la inicialización principal para incluir equipamiento
+document.addEventListener('DOMContentLoaded', function() {
+    loadLabs();
+    setupEventListeners();
+    initializeStats();
+    animateStatsCards();
+    initializeEquipment(); // Agregar inicialización de equipamiento
+    
+    // Diagnóstico del botón y modal
+    console.log('=== DIAGNÓSTICO DEL BOTÓN NUEVO LABORATORIO ===');
+    console.log('Botón encontrado:', !!document.querySelector('.btn-add-lab'));
+    console.log('Modal encontrado:', !!document.getElementById('labModal'));
+    console.log('Formulario encontrado:', !!document.getElementById('labForm'));
+    console.log('Título del modal encontrado:', !!document.getElementById('modalTitle'));
+    console.log('ID laboratorio encontrado:', !!document.getElementById('id_laboratorio'));
+    
+    // Diagnóstico de equipamiento
+    console.log('=== DIAGNÓSTICO DE EQUIPAMIENTO ===');
+    console.log('Botón nuevo equipo:', !!document.querySelector('.btn-add-equipment'));
+    console.log('Modal equipamiento:', !!document.getElementById('equipmentModal'));
+    console.log('Formulario equipamiento:', !!document.getElementById('equipmentForm'));
+    console.log('Modal asignación:', !!document.getElementById('assignEquipmentModal'));
+    console.log('Modal asignaciones:', !!document.getElementById('equipmentAssignmentsModal'));
+    
+    // Verificar permisos
+    console.log('Permiso crear_laboratorio:', {{ 'true' if has_permission('crear_laboratorio') else 'false' }});
+});
+
+// ==================== FUNCIONES GLOBALES ====================
+// Estas funciones deben estar fuera del DOMContentLoaded para ser accesibles desde onclick
+
+// Variables globales
+window.currentLabId = currentLabId;
+
+// ==================== FUNCIONES GLOBALES PARA ONCLICK ====================
+
+function showAddLabModal() {
+    console.log('showAddLabModal() llamado');
+    currentLabId = null;
+    
+    const modalTitle = document.getElementById('modalTitle');
+    const labForm = document.getElementById('labForm');
+    const idLaboratorio = document.getElementById('id_laboratorio');
+    const labModal = document.getElementById('labModal');
+    
+    if (!modalTitle || !labForm || !idLaboratorio || !labModal) {
+        console.error('Elementos del modal no encontrados:', {
+            modalTitle: !!modalTitle,
+            labForm: !!labForm,
+            idLaboratorio: !!idLaboratorio,
+            labModal: !!labModal
+        });
+        return;
+    }
+    
+    modalTitle.innerHTML = '<i class="fas fa-flask"></i> Nuevo Laboratorio';
+    labForm.reset();
+    idLaboratorio.value = '';
+    labModal.style.display = 'flex';
+    console.log('Modal mostrado correctamente');
+}
+
+function closeLabModal() {
+    document.getElementById('labModal').style.display = 'none';
+    document.getElementById('labForm').reset();
+    currentLabId = null;
+}
+
+function populateLabForm(lab) {
+    console.log('Poblando formulario con datos:', lab);
+    
+    // Función helper para manejar valores safely
+    function safeValue(value) {
+        return (value !== null && value !== undefined) ? value : '';
+    }
+    
+    try {
+        // Llenar todos los campos del formulario con los datos del laboratorio
+        document.getElementById('nombre_laboratorio').value = safeValue(lab.nombre_laboratorio);
+        document.getElementById('descripcion').value = safeValue(lab.descripcion);
+        document.getElementById('disponibilidad').value = safeValue(lab.disponibilidad);
+        document.getElementById('capacidad').value = safeValue(lab.capacidad);
+        document.getElementById('horario').value = safeValue(lab.horario);
+        document.getElementById('ubicacion').value = safeValue(lab.ubicacion);
+        document.getElementById('telefono').value = safeValue(lab.telefono);
+        document.getElementById('email_contacto').value = safeValue(lab.email_contacto);
+        document.getElementById('superficie_m2').value = safeValue(lab.superficie_m2);
+        document.getElementById('equipamiento').value = safeValue(lab.equipamiento);
+        document.getElementById('normas_uso').value = safeValue(lab.normas_uso);
+        document.getElementById('requiere_capacitacion').checked = Boolean(lab.requiere_capacitacion);
+        document.getElementById('id_institucion').value = safeValue(lab.id_institucion);
+        document.getElementById('id_area').value = safeValue(lab.id_area);
+        document.getElementById('id_tipo_laboratorio').value = safeValue(lab.id_tipo_laboratorio);
+        document.getElementById('id_encargado').value = safeValue(lab.id_encargado);
+        
+        console.log('Formulario poblado exitosamente');
+    } catch (error) {
+        console.error('Error poblando formulario:', error);
+        showNotification('Error al cargar datos en el formulario', 'error');
+    }
+}
+
+function editLab(labId) {
+    console.log('editLab called with ID:', labId);
+    
+    if (!labId) {
+        console.error('ID de laboratorio no válido:', labId);
+        showNotification('Error: ID de laboratorio no válido', 'error');
+        return;
+    }
+    
+    currentLabId = labId;
+    const modalTitle = document.getElementById('modalTitle');
+    if (!modalTitle) {
+        console.error('modalTitle element not found!');
+        showNotification('Error: No se encontró el elemento modalTitle', 'error');
+        return;
+    }
+    modalTitle.innerHTML = '<i class="fas fa-edit"></i> Editar Laboratorio';
+    
+    // Obtener datos del laboratorio directalmente
+    console.log('Obteniendo datos del laboratorio...');
+    fetch(`/admin/laboratorios/${labId}`)
+        .then(response => {
+            console.log('Respuesta:', response.status, response.statusText);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Datos recibidos del servidor:', data);
+            if (data.success) {
+                // Popular el formulario con los datos del laboratorio
+                populateLabForm(data.laboratorio);
+                document.getElementById('labModal').style.display = 'flex';
+            } else {
+                console.error('Error del servidor:', data.message);
+                showNotification('Error al cargar datos del laboratorio: ' + (data.message || 'Error desconocido'), 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error completo:', error);
+            showNotification('Error al cargar datos del laboratorio: ' + error.message, 'error');
+        });
+}
+
+function saveLab() {
+    const form = document.getElementById('labForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    
+    // Convertir checkbox a boolean
+    data.requiere_capacitacion = document.getElementById('requiere_capacitacion').checked;
+    
+    const url = currentLabId ? 
+        `/admin/laboratorios/editar/${currentLabId}` : 
+        '/admin/laboratorios/crear';
+    
+    const method = currentLabId ? 'PUT' : 'POST';
+    
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            closeLabModal();
+            location.reload(); // Recargar la página para mostrar los cambios
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('Error al guardar el laboratorio', 'error');
+        console.error('Error:', error);
+    });
+}
+
+function deleteLab(labId) {
+    console.log('deleteLab called with ID:', labId);
+    if (confirm('¿Estás seguro de que deseas eliminar este laboratorio?')) {
+        fetch(`/admin/laboratorios/eliminar/${labId}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                location.reload();
+            } else {
+                showNotification(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('Error al eliminar el laboratorio', 'error');
+            console.error('Error:', error);
+        });
+    }
+}
+
+// Función de notificaciones global
+function showNotification(message, type = 'info') {
+    // Crear contenedor de notificaciones si no existe
+    let container = document.getElementById('notifications-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'notifications-container';
+        container.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            max-width: 400px;
+        `;
+        document.body.appendChild(container);
+    }
+
+    // Crear notificación
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        background: ${type === 'success' ? '#d4edda' : type === 'error' ? '#f8d7da' : '#d1ecf1'};
+        color: ${type === 'success' ? '#155724' : type === 'error' ? '#721c24' : '#0c5460'};
+        border: 1px solid ${type === 'success' ? '#c3e6cb' : type === 'error' ? '#f5c6cb' : '#bee5eb'};
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        animation: slideInRight 0.3s ease-out;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    `;
+
+    // Agregar icono según el tipo
+    const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+    notification.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 16px;">${icon}</span>
+            <span style="flex: 1;">${message}</span>
+            <span style="font-size: 18px; opacity: 0.7; margin-left: 8px;">×</span>
+        </div>
+    `;
+
+    // Agregar eventos
+    notification.addEventListener('click', () => {
+        notification.style.animation = 'slideOutRight 0.3s ease-in';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    });
+
+    // Agregar animación CSS si no existe
+    if (!document.getElementById('notification-styles')) {
+        const style = document.createElement('style');
+        style.id = 'notification-styles';
+        style.textContent = `
+            @keyframes slideInRight {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            @keyframes slideOutRight {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // Agregar al contenedor
+    container.appendChild(notification);
+
+    // Auto-ocultar después de 5 segundos (excepto errores)
+    if (type !== 'error') {
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.click(); // Activar animación de salida
+            }
+        }, 5000);
+    }
+}
+
+// Funciones del modal detallado eliminadas - ahora se usa página dedicada
 </script>
 
 <style>
@@ -1769,9 +3307,11 @@ function showNotification(message, type = 'info') {
     color: #856404;
 }
 
-.text-danger {
-    color: #721c24;
-}
+         .text-danger {
+             color: #721c24;
+         }
+
+         /* Estilos de modales detallados eliminados - ahora se usa página dedicada */
 
 .btn-refresh {
     background: #6c757d;
@@ -1804,14 +3344,593 @@ function showNotification(message, type = 'info') {
     color: #495057;
 }
 
-.filter-count {
-    background: #dc3545;
-    color: white;
-    border-radius: 50%;
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
-    margin-left: 0.5rem;
-}
+        .filter-count {
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+        }
+
+        /* Estilos para la sección de equipamiento */
+        .equipment-section {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 3px solid rgba(255,255,255,0.2);
+        }
+
+        .section-header {
+            background: rgba(255,255,255,0.1);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .section-header h2 {
+            color: white;
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0 0 1.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .equipment-icon {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            padding: 0.5rem;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .equipment-stats {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .equipment-stat-card {
+            background: rgba(255,255,255,0.98);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            min-width: 200px;
+            border-left: 4px solid #ff6b6b;
+        }
+
+        .equipment-stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .equipment-stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        }
+
+        .assigned-icon {
+            background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+        }
+
+        .available-icon {
+            background: linear-gradient(135deg, #45B7D1 0%, #96C93D 100%);
+        }
+
+        /* Controles de equipamiento */
+        .equipment-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .btn-add-equipment,
+        .btn-assign-equipment,
+        .btn-view-assignments {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-add-equipment:hover,
+        .btn-assign-equipment:hover,
+        .btn-view-assignments:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-assign-equipment {
+            background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+        }
+
+        .btn-assign-equipment:hover {
+            box-shadow: 0 6px 20px rgba(78, 205, 196, 0.4);
+        }
+
+        .btn-view-assignments {
+            background: linear-gradient(135deg, #45B7D1 0%, #96C93D 100%);
+        }
+
+        .btn-view-assignments:hover {
+            box-shadow: 0 6px 20px rgba(69, 183, 209, 0.4);
+        }
+
+                 .search-box-equipment {
+             position: relative;
+             display: flex;
+             align-items: center;
+             background: #f8f9fa;
+             border-radius: 2rem;
+             padding: 0.75rem 1.5rem;
+             min-width: 300px;
+             box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+         }
+
+         .equipment-controls .controls-center {
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             flex: 1;
+             max-width: 400px;
+         }
+
+         .equipment-controls .search-clear {
+             position: absolute;
+             right: 0.75rem;
+             background: none;
+             border: none;
+             color: #6c757d;
+             font-size: 1rem;
+             padding: 0.25rem;
+             cursor: pointer;
+             border-radius: 50%;
+             transition: all 0.3s ease;
+         }
+
+         .equipment-controls .search-clear:hover {
+             background: rgba(108, 117, 125, 0.1);
+             color: #495057;
+         }
+
+        .btn-toggle-view {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+        }
+
+        .btn-toggle-view:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        /* Tabla de equipamiento */
+        .equipment-table-container {
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            position: relative;
+        }
+
+        .equipment-table {
+            width: 100%;
+            margin-bottom: 0;
+            min-width: 1200px;
+        }
+
+        .equipment-table thead th {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            border: none;
+            padding: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .equipment-table tbody tr {
+            transition: all 0.3s ease;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .equipment-table tbody tr:hover {
+            background-color: #f8f9fa;
+            transform: scale(1.01);
+        }
+
+        .equipment-table tbody td {
+            padding: 1rem;
+            vertical-align: middle;
+        }
+
+        .equipment-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .equipment-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .equipment-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .equipment-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .equipment-description {
+            color: #6c757d;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Badges de asignaciones */
+        .assignment-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            max-width: 300px;
+        }
+
+        .assignment-badge {
+            background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            white-space: nowrap;
+            max-width: 140px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .quantity-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 0.125rem 0.5rem;
+            border-radius: 0.75rem;
+            margin-left: 0.25rem;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        .no-assignments {
+            color: #6c757d;
+            font-style: italic;
+            font-size: 0.9rem;
+        }
+
+        /* Información de cantidad */
+        .quantity-info {
+            text-align: center;
+        }
+
+        .total-count {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #333;
+            display: block;
+        }
+
+        .capacity-info {
+            color: #6c757d;
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+            display: block;
+        }
+
+        /* Información de fecha */
+        .date-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #495057;
+            font-size: 0.9rem;
+        }
+
+        .no-date {
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        /* Botón de asignar */
+        .btn-assign {
+            background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+            color: white;
+        }
+
+        /* Modal grande */
+        .modal-large {
+            max-width: 1000px;
+        }
+
+        /* Filtros de asignaciones */
+        .assignments-filter {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .filter-row .filter-group {
+            flex: 1;
+        }
+
+        .filter-row label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        /* Tabla de asignaciones */
+        .assignments-table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 0.5rem;
+        }
+
+        .assignments-table {
+            width: 100%;
+            margin-bottom: 0;
+        }
+
+        .assignments-table thead th {
+            background: #f8f9fa;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+            padding: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .assignments-table tbody td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .lab-info-mini,
+        .equipment-info-mini {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .lab-info-mini i {
+            color: #667eea;
+        }
+
+        .equipment-info-mini i {
+            color: #ff6b6b;
+        }
+
+        .capacity-badge {
+            background: #e9ecef;
+            color: #495057;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .no-capacity {
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        /* Responsividad para equipamiento */
+        @media (max-width: 1200px) {
+            .equipment-stats {
+                gap: 1rem;
+            }
+            
+            .equipment-stat-card {
+                min-width: 180px;
+                padding: 1.25rem;
+            }
+            
+            .equipment-table {
+                min-width: 1000px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .equipment-stats {
+                justify-content: center;
+            }
+            
+            .equipment-stat-card {
+                min-width: 160px;
+            }
+            
+            .equipment-table {
+                min-width: 900px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .equipment-section {
+                margin-top: 2rem;
+                padding-top: 1.5rem;
+            }
+            
+            .section-header {
+                padding: 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+            
+            .section-header h2 {
+                font-size: 1.75rem;
+                text-align: center;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .equipment-stats {
+                flex-direction: column;
+                align-items: center;
+                gap: 1rem;
+            }
+            
+            .equipment-stat-card {
+                min-width: 250px;
+                max-width: 300px;
+            }
+            
+            .equipment-controls {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+            }
+            
+            .controls-left {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 0.5rem;
+            }
+            
+            .search-box-equipment {
+                min-width: auto;
+                width: 100%;
+            }
+            
+            .controls-right {
+                display: flex;
+                gap: 1rem;
+                align-items: center;
+            }
+            
+            .equipment-table-container {
+                margin: 0 -1rem;
+                border-radius: 0;
+            }
+            
+            .equipment-table {
+                min-width: 800px;
+            }
+            
+            .assignment-badges {
+                max-width: 200px;
+            }
+            
+            .assignment-badge {
+                max-width: 100px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .equipment-stat-card {
+                min-width: 200px;
+                padding: 1rem;
+            }
+            
+            .controls-left {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .btn-add-equipment,
+            .btn-assign-equipment,
+            .btn-view-assignments {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .equipment-table {
+                min-width: 700px;
+            }
+            
+            .equipment-table thead th,
+            .equipment-table tbody td {
+                padding: 0.75rem 0.5rem;
+            }
+            
+            .equipment-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+        }
 </style>
 
 {% endblock %} 

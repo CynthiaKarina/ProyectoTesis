@@ -1,0 +1,2841 @@
+{% extends "base_Admin.html" %}
+
+{% block title %}Administración de Proyectos{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <div class="header-content">
+            <div class="title-section">
+                <h1>
+                    <i class="fas fa-project-diagram"></i>
+                    Administración de Proyectos
+                </h1>
+            </div>
+            <div class="stats-header">
+                <h3>Estadísticas de Proyectos</h3>
+                <small class="stats-hint">
+                    <i class="fas fa-info-circle"></i>
+                    Haz clic en cualquier tarjeta para filtrar por estado
+                </small>
+            </div>
+            <div class="stats-grid">
+                
+                <div class="stats-cards-container">
+                    {% for stat in stats_config %}
+                    <div class="stat-card stat-card-{{ stat.color }}" data-stat-key="{{ stat.key }}" onclick="filterByStat('{{ stat.key }}')" style="cursor: pointer;" title="Clic para filtrar por {{ stat.label | lower }}">
+                        <div class="filter-indicator">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="{{ stat.icon }}"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="stat-{{ stat.key }}">{{ stat.value }}</div>
+                            <div class="stat-label">{{ stat.label }}</div>
+                        </div>
+                        <div class="stat-trend" id="trend-{{ stat.key }}">
+                            <!-- Aquí se podría agregar tendencias en el futuro -->
+                        </div>
+                        <div class="stat-overlay">
+                            <i class="fas fa-filter"></i>
+                            <span>Filtrar</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Estilos base para administración de proyectos */
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .admin-header {
+            background: rgba(255,255,255,0.1);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .title-section h1 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .title-section .subtitle {
+            color: rgba(255,255,255,0.8);
+            font-size: 1.1rem;
+            margin: 0.5rem 0 0 0;
+        }
+
+        .stats-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            flex: 1;
+            width: 100%;
+        }
+
+        .stats-header {
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-header h3 {
+            color: white;
+            margin: 0 0 0.5rem 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .stats-hint {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .stats-hint i {
+            color: #ffc107;
+        }
+
+        .stats-cards-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.2rem;
+            justify-content: center;
+        }
+        
+        .stat-card {
+            flex: 1;
+            min-width: 150px;
+            max-width: 200px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.98);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border-left: 4px solid transparent;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Estilos específicos por tipo de estadística */
+        .stat-card-total {
+            border-left-color: #6c757d;
+        }
+        .stat-card-total .stat-icon {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        }
+        
+        .stat-card-success {
+            border-left-color: #28a745;
+        }
+        .stat-card-success .stat-icon {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        
+        .stat-card-danger {
+            border-left-color: #dc3545;
+        }
+        .stat-card-danger .stat-icon {
+            background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);
+        }
+        
+        .stat-card-warning {
+            border-left-color: #ffc107;
+        }
+        .stat-card-warning .stat-icon {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+        }
+        
+        .stat-card-info {
+            border-left-color: #17a2b8;
+        }
+        .stat-card-info .stat-icon {
+            background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #212529;
+        }
+
+        .stat-label {
+            color: #495057;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Controles de administración */
+        .admin-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .controls-left {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-add-project,
+        .btn-import,
+        .btn-export,
+        .btn-filters,
+        .btn-download-template-main {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-add-project:hover,
+        .btn-import:hover,
+        .btn-export:hover,
+        .btn-filters:hover,
+        .btn-download-template-main:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-add-project {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        }
+
+        .btn-export {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+        }
+
+        .btn-download-template-main {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-download-template-main:hover {
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-download-template-main::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-download-template-main:hover::before {
+            left: 100%;
+        }
+
+        .search-box-modern {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: #f8f9fa;
+            border-radius: 2rem;
+            padding: 0.75rem 1.5rem;
+            min-width: 300px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .search-icon {
+            color: #495057;
+            margin-right: 0.75rem;
+        }
+
+        .search-input-modern {
+            border: none;
+            background: transparent;
+            outline: none;
+            flex: 1;
+            font-size: 1rem;
+        }
+
+        .search-input-modern::placeholder {
+            color: #495057;
+        }
+
+        .controls-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            max-width: 400px;
+        }
+
+        /* Panel de filtros */
+        .filters-panel {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            display: none;
+        }
+
+        .filters-panel.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .filters-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #495057;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-select {
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .filter-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            outline: none;
+        }
+
+        /* Tabla de proyectos responsiva */
+        .projects-table-container {
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            position: relative;
+        }
+
+        .projects-table {
+            width: 100%;
+            margin-bottom: 0;
+            min-width: 1000px;
+        }
+
+        .projects-table thead th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .projects-table tbody tr {
+            transition: all 0.3s ease;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .projects-table tbody tr:hover {
+            background-color: #f8f9fa;
+            transform: scale(1.01);
+        }
+
+        .projects-table tbody td {
+            padding: 1rem;
+            vertical-align: middle;
+        }
+
+        .project-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .project-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .project-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .project-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .project-description {
+            color: #6c757d;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            display: inline-block;
+        }
+
+        .status-en_desarrollo {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-completado {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-suspendido {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-cancelado {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-en_revision {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .status-aprobado {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        /* Clases adicionales para compatibilidad */
+        .controls-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .type-badge {
+            background: #e9ecef;
+            color: #495057;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .project-tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            background: #dee2e6;
+            color: #212529;
+            margin: 0.25rem 0;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 150px;
+        }
+
+        .action-buttons-row {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            min-width: 35px;
+            flex-shrink: 0;
+        }
+
+        .btn-view {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+        }
+
+        .btn-edit {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+            color: white;
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        /* Estilos responsivos mejorados */
+        
+        /* Tablets grandes y pantallas medianas */
+        @media (max-width: 1200px) {
+            .admin-container {
+                padding: 1.5rem;
+            }
+            
+            .header-content {
+                gap: 1.5rem;
+            }
+            
+            .stats-cards-container {
+                gap: 1rem;
+            }
+            
+            .stat-card {
+                min-width: 130px;
+                max-width: 180px;
+            }
+            
+            .admin-controls {
+                gap: 1rem;
+            }
+            
+            .search-box-modern {
+                min-width: 250px;
+            }
+            
+            .projects-table {
+                min-width: 900px;
+            }
+        }
+        
+        /* Tablets */
+        @media (max-width: 992px) {
+            .admin-container {
+                padding: 1.25rem;
+            }
+            
+            .title-section h1 {
+                font-size: 2rem;
+            }
+            
+            .stats-cards-container {
+                gap: 0.8rem;
+            }
+            
+            .stat-card {
+                min-width: 110px;
+                max-width: 150px;
+                padding: 1.25rem;
+            }
+            
+            .stat-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 1.3rem;
+            }
+            
+            .stat-number {
+                font-size: 1.75rem;
+            }
+            
+            .admin-controls {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .controls-left {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 0.75rem;
+            }
+            
+            .search-box-modern {
+                min-width: 280px;
+                order: 3;
+                width: 100%;
+            }
+            
+            .controls-right {
+                order: 2;
+            }
+        }
+        
+        /* Móviles grandes */
+        @media (max-width: 768px) {
+            .admin-container {
+                padding: 1rem;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+            
+            .admin-header {
+                padding: 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 1.5rem;
+            }
+            
+            .title-section h1 {
+                font-size: 1.75rem;
+                text-align: center;
+            }
+            
+            .stats-header h3 {
+                font-size: 1.1rem;
+            }
+            
+            .stats-hint {
+                font-size: 0.8rem;
+            }
+            
+            .stats-cards-container {
+                width: 100%;
+                max-width: none;
+                gap: 0.6rem;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            
+            .stat-card {
+                padding: 1rem;
+                gap: 0.75rem;
+                min-width: 140px;
+                max-width: 160px;
+                flex: 0 1 calc(50% - 0.3rem);
+            }
+            
+            .stat-icon {
+                width: 45px;
+                height: 45px;
+                font-size: 1.2rem;
+            }
+            
+            .stat-number {
+                font-size: 1.5rem;
+            }
+            
+            .stat-label {
+                font-size: 0.85rem;
+            }
+            
+            .admin-controls {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            
+            .controls-left {
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+            
+            .btn-add-project,
+            .btn-import,
+            .btn-export,
+            .btn-filters,
+            .btn-download-template-main {
+                padding: 0.6rem 1rem;
+                font-size: 0.9rem;
+                flex: 1;
+                min-width: 120px;
+                max-width: 180px;
+            }
+            
+            .controls-center {
+                order: 2;
+                width: 100%;
+            }
+            
+            .search-box-modern {
+                min-width: auto;
+                width: 100%;
+                padding: 0.6rem 1rem;
+            }
+            
+            .controls-right {
+                order: 3;
+                display: flex;
+                justify-content: center;
+                gap: 0.5rem;
+            }
+            
+            .btn-filters,
+            .btn-refresh {
+                flex: 1;
+                max-width: 120px;
+            }
+            
+            .filters-panel {
+                margin: 0 -1rem 1.5rem -1rem;
+                border-radius: 0;
+            }
+            
+            .filters-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .projects-table-container {
+                margin: 0 -1rem;
+                border-radius: 0;
+                box-shadow: none;
+                border-top: 1px solid #e9ecef;
+            }
+            
+            .projects-table {
+                min-width: 700px;
+            }
+            
+            .projects-table thead th {
+                padding: 0.75rem 0.5rem;
+                font-size: 0.8rem;
+            }
+            
+            .projects-table tbody td {
+                padding: 0.75rem 0.5rem;
+            }
+            
+            .project-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+            
+            .project-name {
+                font-size: 0.9rem;
+            }
+            
+            .project-description {
+                font-size: 0.8rem;
+            }
+            
+            .status-badge {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.75rem;
+            }
+            
+            .type-badge {
+                padding: 0.2rem 0.6rem;
+                font-size: 0.75rem;
+            }
+            
+            .btn-action {
+                width: 32px;
+                height: 32px;
+                font-size: 0.8rem;
+            }
+            
+            .action-buttons-row {
+                gap: 0.25rem;
+            }
+            
+            .d-none-mobile {
+                display: none !important;
+            }
+        }
+        
+        /* Móviles pequeños */
+        @media (max-width: 576px) {
+            .admin-container {
+                padding: 0.75rem;
+            }
+            
+            .admin-header {
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .title-section h1 {
+                font-size: 1.5rem;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .stats-cards-container {
+                gap: 0.4rem;
+            }
+            
+            .stat-card {
+                padding: 0.75rem;
+                gap: 0.5rem;
+                min-width: 100px;
+                max-width: 120px;
+                flex: 1 1 calc(50% - 0.2rem);
+            }
+            
+            .stat-icon {
+                width: 35px;
+                height: 35px;
+                font-size: 1rem;
+            }
+            
+            .stat-number {
+                font-size: 1.25rem;
+            }
+            
+            .stat-label {
+                font-size: 0.75rem;
+            }
+            
+            .admin-controls {
+                padding: 0.75rem;
+            }
+            
+            .controls-left {
+                gap: 0.4rem;
+            }
+            
+            .btn-add-project,
+            .btn-import,
+            .btn-export,
+            .btn-filters,
+            .btn-download-template-main {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.8rem;
+                min-width: 100px;
+                max-width: 140px;
+            }
+            
+            .btn-add-project span,
+            .btn-import span,
+            .btn-export span,
+            .btn-download-template-main span {
+                display: none;
+            }
+            
+            .btn-filters span {
+                display: none;
+            }
+            
+            .search-box-modern {
+                padding: 0.5rem 0.75rem;
+            }
+            
+            .search-input-modern {
+                font-size: 0.9rem;
+            }
+            
+            .projects-table {
+                min-width: 600px;
+            }
+            
+            .projects-table thead th {
+                padding: 0.5rem 0.25rem;
+                font-size: 0.75rem;
+            }
+            
+            .projects-table tbody td {
+                padding: 0.5rem 0.25rem;
+            }
+            
+            .project-info {
+                gap: 0.5rem;
+            }
+            
+            .project-icon {
+                width: 35px;
+                height: 35px;
+                font-size: 0.9rem;
+            }
+            
+            .btn-action {
+                width: 28px;
+                height: 28px;
+                font-size: 0.75rem;
+            }
+            
+            .checkbox-column {
+                width: 30px;
+            }
+            
+            .actions-column {
+                width: 100px;
+            }
+        }
+        
+        /* Móviles muy pequeños */
+        @media (max-width: 480px) {
+            .stat-card {
+                flex: 1 1 100%;
+                max-width: none;
+                margin-bottom: 0.5rem;
+            }
+            
+            .stats-cards-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .controls-left {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .btn-add-project,
+            .btn-import,
+            .btn-export,
+            .btn-download-template-main {
+                max-width: none;
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .btn-add-project span,
+            .btn-import span,
+            .btn-export span,
+            .btn-download-template-main span {
+                display: inline;
+            }
+            
+            .controls-right {
+                width: 100%;
+            }
+            
+            .btn-filters,
+            .btn-refresh {
+                max-width: none;
+            }
+        }
+
+        /* Overlay para indicar que es clickeable */
+        .stat-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: 1rem;
+            z-index: 3;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .stat-card:hover .stat-overlay {
+            opacity: 1;
+        }
+
+        .stat-overlay i {
+            font-size: 1.2rem;
+            margin-bottom: 0.25rem;
+        }
+
+        /* Estado activo para tarjetas filtradas */
+        .stat-card.active {
+            transform: scale(1.05);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            border: 2px solid currentColor;
+        }
+
+        .stat-card.active .stat-overlay {
+            opacity: 1;
+            background: rgba(0,0,0,0.8);
+        }
+
+        /* Indicador de filtro activo */
+        .filter-indicator {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+            z-index: 4;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .stat-card.active .filter-indicator {
+            opacity: 1;
+        }
+
+        /* Animaciones de entrada para las tarjetas */
+        .stat-card {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: slideInUp 0.6s ease forwards;
+        }
+
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+        .stat-card:nth-child(4) { animation-delay: 0.4s; }
+        .stat-card:nth-child(5) { animation-delay: 0.5s; }
+        .stat-card:nth-child(6) { animation-delay: 0.6s; }
+
+        @keyframes slideInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+
+    <!-- Panel de control y filtros -->
+    <div class="admin-controls">
+        <div class="controls-left">
+            {% if has_permission('crear_proyecto') %}
+            <button class="btn-add-project" onclick="showAddProjectModal()">
+                <i class="fas fa-plus"></i>
+                <span>Nuevo Proyecto</span>
+            </button>
+            {% else %}
+            <button class="btn-add-project" style="background: #dc3545;" onclick="alert('No tienes permisos para crear proyectos')">
+                <i class="fas fa-ban"></i>
+                <span>Sin Permisos</span>
+            </button>
+            {% endif %}
+            
+            {% if has_permission('crear_proyecto') %}
+            <button class="btn-import" onclick="showImportModal()">
+                <i class="fas fa-file-excel"></i>
+                <span>Importar Excel</span>
+            </button>
+            {% endif %}
+            
+            {% if has_permission('gestionar_proyectos') %}
+            <button class="btn-export" onclick="exportProjects()">
+                <i class="fas fa-download"></i>
+                <span>Exportar</span>
+            </button>
+            {% endif %}
+            
+            {% if has_permission('crear_proyecto') %}
+            <button class="btn-download-template-main" onclick="downloadTemplate()">
+                <i class="fas fa-file-excel"></i>
+                <span>Descargar Plantilla</span>
+            </button>
+            {% endif %}
+        </div>
+        
+        <div class="controls-center">
+            <div class="search-box-modern">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchInput" class="search-input-modern" 
+                       placeholder="Buscar proyectos..." 
+                       onkeyup="searchProjects()">
+                <button class="search-clear" onclick="clearSearch()" style="display: none;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="controls-right">
+            <button class="btn-filters" onclick="toggleFilters()">
+                <i class="fas fa-filter"></i>
+                <span>Filtros</span>
+                <span class="filter-count" id="filterCount" style="display: none;">0</span>
+            </button>
+            <button class="btn-refresh" onclick="refreshData()">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Panel de filtros avanzados -->
+    <div class="filters-panel" id="filtersPanel">
+        <div class="filters-header">
+            <h3>
+                <i class="fas fa-filter"></i>
+                Filtros Avanzados
+            </h3>
+            <button class="btn-close-filters" onclick="toggleFilters()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="filters-grid">
+            <div class="filter-group">
+                <label for="filterTipo">
+                    <i class="fas fa-tag"></i>
+                    Tipo de Proyecto
+                </label>
+                <select id="filterTipo" class="filter-select" onchange="applyFilters()">
+                    <option value="">Todos los tipos</option>
+                    {% for tipo in tipos_proyecto_disponibles %}
+                    <option value="{{ tipo }}">{{ tipo }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="filterEstado">
+                    <i class="fas fa-toggle-on"></i>
+                    Estado
+                </label>
+                <select id="filterEstado" class="filter-select" onchange="applyFilters()">
+                    <option value="">Todos los estados</option>
+                    <option value="En Desarrollo">En Desarrollo</option>
+                    <option value="Completado">Completado</option>
+                    <option value="Suspendido">Suspendido</option>
+                    <option value="Cancelado">Cancelado</option>
+                    <option value="En Revision">En Revisión</option>
+                    <option value="Aprobado">Aprobado</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="filterAdjunto">
+                    <i class="fas fa-paperclip"></i>
+                    Con Adjunto
+                </label>
+                <select id="filterAdjunto" class="filter-select" onchange="applyFilters()">
+                    <option value="">Todos</option>
+                    <option value="true">Con adjunto</option>
+                    <option value="false">Sin adjunto</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de proyectos -->
+    <div class="projects-table-container">
+        <table class="projects-table">
+            <thead>
+                <tr>
+                    <th class="checkbox-column">
+                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                    </th>
+                    <th class="project-column">Proyecto</th>
+                    <th class="type-column">Tipo</th>
+                    <th class="d-none-mobile">Fecha</th>
+                    <th class="status-column">Estado</th>
+                    <th class="adjunto-column d-none-mobile">Adjunto</th>
+                    <th class="actions-column">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="projectsTableBody">
+                {% for proyecto in proyectos %}
+                <tr data-project-id="{{ proyecto.id_proyecto }}" class="project-row">
+                    <td class="checkbox-column">
+                        <input type="checkbox" class="project-checkbox" value="{{ proyecto.id_proyecto }}" onchange="updateBulkActions()">
+                    </td>
+                    <td class="project-info">
+                        <div class="project-icon">
+                            <i class="{{ proyecto.tipo_proyecto_icono }}"></i>
+                        </div>
+                        <div class="project-details">
+                            <div class="project-name">{{ proyecto.nombre_proyecto }}</div>
+                            <div class="project-description">{{ proyecto.resumen_corto }}</div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if proyecto.tipo_proyecto %}
+                        <span class="type-badge">
+                            <i class="{{ proyecto.tipo_proyecto_icono }}"></i>
+                            {{ proyecto.tipo_proyecto }}
+                        </span>
+                        {% else %}
+                        <span class="type-badge">
+                            <i class="fas fa-question"></i>
+                            Sin tipo
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="d-none-mobile">
+                        {% if proyecto.fecha %}
+                        <div style="font-size: 0.9rem; font-weight: 500; color: #495057;">
+                            <i class="fas fa-calendar-alt" style="color: #667eea; margin-right: 0.5rem;"></i>
+                            {{ proyecto.fecha_formateada }}
+                        </div>
+                        {% else %}
+                        <span style="color: #6c757d; font-style: italic;">Sin fecha</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="status-badge status-{{ proyecto.estatus.lower().replace(' ', '_') }}">
+                            <i class="{{ proyecto.icono_estado }}"></i>
+                            {{ proyecto.estado_proyecto }}
+                        </span>
+                    </td>
+                    <td class="d-none-mobile">
+                        {% if proyecto.adjunto %}
+                        <span style="color: #28a745;">
+                            <i class="fas fa-paperclip"></i> Sí
+                        </span>
+                        {% else %}
+                        <span style="color: #6c757d;">
+                            <i class="fas fa-times"></i> No
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="actions-column">
+                        <div class="action-buttons-row">
+                            {% if has_permission('gestionar_proyectos') %}
+                            <button class="btn-action btn-view" onclick="mostrarDetallesProject({{ proyecto.id_proyecto }})" title="Ver detalles">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            {% endif %}
+                            
+                            {% if has_permission('editar_proyecto') %}
+                            <button class="btn-action btn-edit" onclick="editProject({{ proyecto.id_proyecto }})" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            {% endif %}
+                            
+                            {% if has_permission('eliminar_proyecto') %}
+                            <button class="btn-action btn-delete" onclick="deleteProject({{ proyecto.id_proyecto }})" title="Eliminar">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal para agregar/editar proyecto -->
+<div class="modal-overlay" id="projectModal" style="display: none;">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3 id="modalTitle">
+                <i class="fas fa-project-diagram"></i>
+                Nuevo Proyecto
+            </h3>
+            <button class="btn-close-modal" onclick="closeProjectModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <form id="projectForm" class="project-form">
+                <input type="hidden" id="id_proyecto" name="id_proyecto">
+                
+                <!-- Información básica -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-info-circle"></i>
+                        Información Básica
+                    </h4>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nombre_proyecto" class="form-label">
+                                <i class="fas fa-project-diagram"></i>
+                                Nombre del Proyecto *
+                            </label>
+                            <input type="text" class="form-control" id="nombre_proyecto" name="nombre_proyecto" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="tipo_proyecto" class="form-label">
+                                <i class="fas fa-tag"></i>
+                                Tipo de Proyecto
+                            </label>
+                            <select class="form-control" id="tipo_proyecto" name="tipo_proyecto">
+                                <option value="">Seleccionar tipo</option>
+                                {% for tipo in tipos_proyecto_disponibles %}
+                                <option value="{{ tipo }}">{{ tipo }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="resumen" class="form-label">
+                                <i class="fas fa-align-left"></i>
+                                Resumen/Descripción
+                            </label>
+                            <textarea class="form-control form-control-textarea" id="resumen" name="resumen" placeholder="Descripción detallada del proyecto..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Detalles del proyecto -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-cogs"></i>
+                        Detalles del Proyecto
+                    </h4>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="fecha" class="form-label">
+                                <i class="fas fa-calendar-alt"></i>
+                                Fecha del Proyecto
+                            </label>
+                            <input type="date" class="form-control" id="fecha" name="fecha">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="estatus" class="form-label">
+                                <i class="fas fa-toggle-on"></i>
+                                Estado
+                            </label>
+                            <select class="form-control" id="estatus" name="estatus">
+                                <option value="En Desarrollo">En Desarrollo</option>
+                                <option value="Completado">Completado</option>
+                                <option value="Suspendido">Suspendido</option>
+                                <option value="Cancelado">Cancelado</option>
+                                <option value="En Revision">En Revisión</option>
+                                <option value="Aprobado">Aprobado</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="adjunto" name="adjunto">
+                                <label for="adjunto">
+                                    <i class="fas fa-paperclip"></i>
+                                    El proyecto tiene archivos adjuntos
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeProjectModal()">Cancelar</button>
+            <button type="button" class="btn-primary" onclick="saveProject()">Guardar Proyecto</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para importar Excel -->
+<div class="modal-overlay" id="importModal" style="display: none;">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3>
+                <i class="fas fa-file-excel"></i>
+                Importar Proyectos desde Excel
+            </h3>
+            <button class="btn-close-modal" onclick="closeImportModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="import-instructions">
+                <h4>📋 Instrucciones para importar:</h4>
+                <ul>
+                    <li>Descarga la plantilla Excel usando el botón "Descargar Plantilla"</li>
+                    <li>Completa los datos siguiendo las instrucciones de la plantilla</li>
+                    <li>Los campos en rojo son obligatorios</li>
+                    <li>Revisa la hoja "Instrucciones" para obtener información detallada</li>
+                    <li>Guarda el archivo y selecciónalo aquí</li>
+                </ul>
+            </div>
+            
+            <div class="file-upload-area" id="fileUploadArea">
+                <input type="file" id="excelFile" accept=".xlsx,.xls" style="display: none;">
+                <div class="upload-placeholder">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Arrastra tu archivo Excel aquí o haz clic para seleccionar</p>
+                    <small>Formatos soportados: .xlsx, .xls</small>
+                </div>
+            </div>
+            
+            <div class="import-results" id="importResults" style="display: none;"></div>
+        </div>
+        
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeImportModal()">Cancelar</button>
+            <button type="button" class="btn-primary" onclick="importProjects()" disabled id="importBtn">Importar Proyectos</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Variables globales
+let currentProjectId = null;
+let allProjects = [];
+let originalStats = {};
+
+// Inicialización
+document.addEventListener('DOMContentLoaded', function() {
+    loadProjects();
+    setupEventListeners();
+    initializeStats();
+    animateStatsCards();
+});
+
+function initializeStats() {
+    // Guardar estadísticas originales
+    originalStats = {
+        total: {{ total_proyectos }},
+        en_desarrollo: {{ estadisticas_estados.get('en_desarrollo', 0) }},
+        completado: {{ estadisticas_estados.get('completado', 0) }},
+        suspendido: {{ estadisticas_estados.get('suspendido', 0) }},
+        cancelado: {{ estadisticas_estados.get('cancelado', 0) }},
+        aprobado: {{ estadisticas_estados.get('aprobado', 0) }}
+    };
+}
+
+function animateStatsCards() {
+    // Similar a laboratorios pero para proyectos
+    const statNumbers = document.querySelectorAll('.stat-number');
+    statNumbers.forEach((element, index) => {
+        const finalValue = parseInt(element.textContent);
+        animateNumber(element, 0, finalValue, 1000 + (index * 200));
+    });
+}
+
+function animateNumber(element, start, end, duration) {
+    const startTime = performance.now();
+    
+    function updateNumber(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+        const currentValue = Math.round(start + (end - start) * easeOutCubic);
+        
+        element.textContent = currentValue;
+        
+        if (progress < 1) {
+            requestAnimationFrame(updateNumber);
+        }
+    }
+    
+    requestAnimationFrame(updateNumber);
+}
+
+function setupEventListeners() {
+    // Configurar drag and drop para importar
+    const fileUploadArea = document.getElementById('fileUploadArea');
+    const fileInput = document.getElementById('excelFile');
+    
+    if (fileUploadArea && fileInput) {
+        fileUploadArea.addEventListener('click', () => fileInput.click());
+        fileUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.add('drag-over');
+        });
+        
+        fileUploadArea.addEventListener('dragleave', () => {
+            fileUploadArea.classList.remove('drag-over');
+        });
+        
+        fileUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect(files[0]);
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+    }
+}
+
+function handleFileSelect(file) {
+    if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+        showNotification('Por favor selecciona un archivo Excel válido (.xlsx o .xls)', 'error');
+        return;
+    }
+    
+    document.getElementById('importBtn').disabled = false;
+    document.querySelector('.upload-placeholder p').textContent = `Archivo seleccionado: ${file.name}`;
+}
+
+// Funciones principales
+function loadProjects() {
+    allProjects = Array.from(document.querySelectorAll('.project-row')).map(row => ({
+        id: row.dataset.projectId,
+        element: row
+    }));
+}
+
+function showAddProjectModal() {
+    currentProjectId = null;
+    
+    const modalTitle = document.getElementById('modalTitle');
+    const projectForm = document.getElementById('projectForm');
+    const idProyecto = document.getElementById('id_proyecto');
+    const projectModal = document.getElementById('projectModal');
+    
+    if (!modalTitle || !projectForm || !idProyecto || !projectModal) {
+        console.error('Elementos del modal no encontrados');
+        return;
+    }
+    
+    modalTitle.innerHTML = '<i class="fas fa-project-diagram"></i> Nuevo Proyecto';
+    projectForm.reset();
+    idProyecto.value = '';
+    projectModal.style.display = 'flex';
+}
+
+function closeProjectModal() {
+    document.getElementById('projectModal').style.display = 'none';
+    currentProjectId = null;
+}
+
+function editProject(projectId) {
+    currentProjectId = projectId;
+    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Editar Proyecto';
+    
+    // Cargar datos del proyecto
+    fetch(`/admin/proyectos/${projectId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showNotification('Error al cargar el proyecto: ' + data.error, 'error');
+                return;
+            }
+            
+            // Llenar formulario
+            document.getElementById('id_proyecto').value = data.id_proyecto || '';
+            document.getElementById('nombre_proyecto').value = data.nombre_proyecto || '';
+            document.getElementById('resumen').value = data.resumen || '';
+            document.getElementById('tipo_proyecto').value = data.tipo_proyecto || '';
+            document.getElementById('estatus').value = data.estatus || 'En Desarrollo';
+            document.getElementById('adjunto').checked = data.adjunto || false;
+            
+            if (data.fecha) {
+                // Convertir fecha ISO a formato yyyy-mm-dd
+                const fecha = new Date(data.fecha);
+                const fechaFormatted = fecha.toISOString().split('T')[0];
+                document.getElementById('fecha').value = fechaFormatted;
+            }
+            
+            document.getElementById('projectModal').style.display = 'flex';
+        })
+        .catch(error => {
+            showNotification('Error al cargar el proyecto', 'error');
+            console.error('Error:', error);
+        });
+}
+
+function saveProject() {
+    const form = document.getElementById('projectForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    
+    // Convertir checkbox a boolean
+    data.adjunto = document.getElementById('adjunto').checked;
+    
+    const url = currentProjectId ? 
+        `/admin/proyectos/editar/${currentProjectId}` : 
+        '/admin/proyectos/crear';
+    
+    const method = currentProjectId ? 'PUT' : 'POST';
+    
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            closeProjectModal();
+            location.reload();
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('Error al guardar el proyecto', 'error');
+        console.error('Error:', error);
+    });
+}
+
+function deleteProject(projectId) {
+    if (confirm('¿Estás seguro de que deseas eliminar este proyecto?')) {
+        fetch(`/admin/proyectos/eliminar/${projectId}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                location.reload();
+            } else {
+                showNotification(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('Error al eliminar el proyecto', 'error');
+            console.error('Error:', error);
+        });
+    }
+}
+
+function mostrarDetallesProject(projectId) {
+    showNotification('Función de detalles en desarrollo', 'info');
+}
+
+function exportProjects() {
+    showNotification('Exportando proyectos...', 'info');
+    window.location.href = '/admin/proyectos/exportar';
+}
+
+function downloadTemplate() {
+    showNotification('Descargando plantilla...', 'info');
+    window.location.href = '/admin/proyectos/plantilla';
+}
+
+function showImportModal() {
+    document.getElementById('importModal').style.display = 'flex';
+    document.getElementById('importResults').style.display = 'none';
+    document.getElementById('importBtn').disabled = true;
+    document.querySelector('.upload-placeholder p').textContent = 'Arrastra tu archivo Excel aquí o haz clic para seleccionar';
+}
+
+function closeImportModal() {
+    document.getElementById('importModal').style.display = 'none';
+    document.getElementById('excelFile').value = '';
+}
+
+function importProjects() {
+    const fileInput = document.getElementById('excelFile');
+    if (!fileInput.files.length) {
+        showNotification('Por favor selecciona un archivo', 'error');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+    
+    document.getElementById('importBtn').disabled = true;
+    document.getElementById('importBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importando...';
+    
+    fetch('/admin/proyectos/importar', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        const resultsDiv = document.getElementById('importResults');
+        resultsDiv.style.display = 'block';
+        
+        let html = '<h4>Resultados de la importación:</h4>';
+        
+        if (data.success) {
+            html += `<div class="alert alert-success">
+                <strong>✅ Importación exitosa!</strong><br>
+                ${data.message}
+            </div>`;
+            
+            if (data.proyectos_creados && data.proyectos_creados.length > 0) {
+                html += '<h5>Proyectos creados:</h5><ul>';
+                data.proyectos_creados.forEach(proyecto => {
+                    html += `<li>${proyecto}</li>`;
+                });
+                html += '</ul>';
+            }
+            
+            if (data.advertencias && data.advertencias.length > 0) {
+                html += '<h5>Advertencias:</h5><ul>';
+                data.advertencias.forEach(warning => {
+                    html += `<li class="text-warning">${warning}</li>`;
+                });
+                html += '</ul>';
+            }
+            
+            if (data.errores && data.errores.length > 0) {
+                html += '<h5>Errores encontrados:</h5><ul>';
+                data.errores.forEach(error => {
+                    html += `<li class="text-danger">${error}</li>`;
+                });
+                html += '</ul>';
+            }
+            
+            setTimeout(() => {
+                location.reload();
+            }, 3000);
+        } else {
+            html += `<div class="alert alert-danger">
+                <strong>❌ Error en la importación:</strong><br>
+                ${data.message}
+            </div>`;
+        }
+        
+        resultsDiv.innerHTML = html;
+        document.getElementById('importBtn').disabled = false;
+        document.getElementById('importBtn').innerHTML = 'Importar Proyectos';
+    })
+    .catch(error => {
+        showNotification('Error al importar archivo', 'error');
+        console.error('Error:', error);
+        document.getElementById('importBtn').disabled = false;
+        document.getElementById('importBtn').innerHTML = 'Importar Proyectos';
+    });
+}
+
+function toggleFilters() {
+    const panel = document.getElementById('filtersPanel');
+    panel.classList.toggle('show');
+}
+
+function applyFilters() {
+    const tipo = document.getElementById('filterTipo').value;
+    const estado = document.getElementById('filterEstado').value;
+    const adjunto = document.getElementById('filterAdjunto').value;
+    
+    const rows = document.querySelectorAll('.project-row');
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+        let visible = true;
+        
+        // Filtrar por tipo
+        if (tipo) {
+            const typeTag = row.querySelector('.type-badge');
+            const typeText = typeTag ? typeTag.textContent.trim() : '';
+            visible = visible && typeText.includes(tipo);
+        }
+        
+        // Filtrar por estado
+        if (estado) {
+            const statusBadge = row.querySelector('.status-badge');
+            const statusText = statusBadge ? statusBadge.textContent.trim() : '';
+            visible = visible && statusText.includes(estado);
+        }
+        
+        // Filtrar por adjunto
+        if (adjunto !== '') {
+            const hasAdjunto = row.querySelector('td:nth-last-child(2)').textContent.includes('Sí');
+            visible = visible && (adjunto === 'true' ? hasAdjunto : !hasAdjunto);
+        }
+        
+        row.style.display = visible ? '' : 'none';
+        if (visible) visibleCount++;
+    });
+    
+    // Actualizar contador de filtros
+    const activeFilters = [tipo, estado, adjunto].filter(f => f).length;
+    const filterCount = document.getElementById('filterCount');
+    if (activeFilters > 0) {
+        filterCount.textContent = activeFilters;
+        filterCount.style.display = 'inline';
+    } else {
+        filterCount.style.display = 'none';
+    }
+}
+
+function searchProjects() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const rows = document.querySelectorAll('.project-row');
+    
+    rows.forEach(row => {
+        const projectName = row.querySelector('.project-name').textContent.toLowerCase();
+        const projectDescription = row.querySelector('.project-description').textContent.toLowerCase();
+        
+        const visible = projectName.includes(searchTerm) || projectDescription.includes(searchTerm);
+        row.style.display = visible ? '' : 'none';
+    });
+    
+    // Mostrar/ocultar botón de limpiar búsqueda
+    const clearBtn = document.querySelector('.search-clear');
+    if (clearBtn) {
+        clearBtn.style.display = searchTerm ? 'block' : 'none';
+    }
+}
+
+function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    const clearBtn = document.querySelector('.search-clear');
+    if (clearBtn) {
+        clearBtn.style.display = 'none';
+    }
+    
+    // Mostrar todas las filas
+    const rows = document.querySelectorAll('.project-row');
+    rows.forEach(row => {
+        row.style.display = '';
+    });
+}
+
+function refreshData() {
+    location.reload();
+}
+
+function filterByStat(statKey) {
+    // Similar a laboratorios pero para proyectos
+    const selectedCard = document.querySelector(`[data-stat-key="${statKey}"]`);
+    const isCurrentlyActive = selectedCard && selectedCard.classList.contains('active');
+    
+    if (isCurrentlyActive) {
+        selectedCard.classList.remove('active');
+        const rows = document.querySelectorAll('.project-row');
+        rows.forEach(row => {
+            row.style.display = '';
+        });
+        return;
+    }
+    
+    // Remover estado activo de todas las tarjetas
+    document.querySelectorAll('.stat-card').forEach(card => {
+        card.classList.remove('active');
+    });
+    
+    // Activar la tarjeta seleccionada
+    if (selectedCard) {
+        selectedCard.classList.add('active');
+    }
+    
+    // Mapeo de claves de estadísticas a estados de proyecto
+    const statToStatusMap = {
+        'total': null,
+        'en_desarrollo': 'En Desarrollo',
+        'completado': 'Completado',
+        'suspendido': 'Suspendido',
+        'cancelado': 'Cancelado',
+        'aprobado': 'Aprobado'
+    };
+    
+    const targetStatus = statToStatusMap[statKey];
+    const rows = document.querySelectorAll('.project-row');
+    
+    rows.forEach(row => {
+        let visible = true;
+        
+        if (targetStatus) {
+            const statusBadge = row.querySelector('.status-badge');
+            const statusText = statusBadge ? statusBadge.textContent.trim() : '';
+            visible = statusText.includes(targetStatus);
+        }
+        
+        row.style.display = visible ? '' : 'none';
+    });
+}
+
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.project-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+    });
+    
+    updateBulkActions();
+}
+
+function updateBulkActions() {
+    const checkboxes = document.querySelectorAll('.project-checkbox:checked');
+    const selectAll = document.getElementById('selectAll');
+    
+    const allCheckboxes = document.querySelectorAll('.project-checkbox');
+    selectAll.checked = checkboxes.length === allCheckboxes.length;
+    selectAll.indeterminate = checkboxes.length > 0 && checkboxes.length < allCheckboxes.length;
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 100);
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 300);
+    }, 3000);
+}
+</script>
+
+<!-- Agregar estilos de notificaciones y otros componentes similares a laboratorios -->
+<style>
+/* Estilos adicionales para importación y modales */
+.import-instructions {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.import-instructions h4 {
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.import-instructions ul {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.import-instructions li {
+    margin-bottom: 0.5rem;
+    color: #6c757d;
+}
+
+.file-upload-area {
+    border: 2px dashed #dee2e6;
+    border-radius: 0.5rem;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.file-upload-area:hover,
+.file-upload-area.drag-over {
+    border-color: #667eea;
+    background: rgba(102, 126, 234, 0.05);
+}
+
+.upload-placeholder i {
+    font-size: 3rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+}
+
+.upload-placeholder p {
+    font-size: 1.1rem;
+    color: #495057;
+    margin: 0;
+}
+
+.upload-placeholder small {
+    color: #6c757d;
+    display: block;
+    margin-top: 0.5rem;
+}
+
+.alert {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-danger {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.text-warning {
+    color: #856404;
+}
+
+.text-danger {
+    color: #721c24;
+}
+
+.btn-refresh {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-refresh:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+.btn-close-filters {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6c757d;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.btn-close-filters:hover {
+    background: #f8f9fa;
+    color: #495057;
+}
+
+.filter-count {
+    background: #dc3545;
+    color: white;
+    border-radius: 50%;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+}
+
+/* Modales */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+
+.modal-container {
+    background: white;
+    border-radius: 1rem;
+    max-width: 800px;
+    width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 1rem 1rem 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-close-modal {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.btn-close-modal:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.form-section {
+    margin-bottom: 2rem;
+}
+
+.section-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #495057;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-control {
+    padding: 0.75rem;
+    border: 2px solid #e9ecef;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    outline: none;
+}
+
+.form-control-textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #667eea;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
+.modal-footer {
+    padding: 1.5rem;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+/* Notificaciones */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 1rem 1.5rem;
+    border-radius: 0.5rem;
+    color: white;
+    font-weight: 500;
+    z-index: 1100;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    max-width: 400px;
+    word-wrap: break-word;
+}
+
+.notification.show {
+    transform: translateX(0);
+}
+
+.notification.success {
+    background: #28a745;
+}
+
+.notification.error {
+    background: #dc3545;
+}
+
+.notification.warning {
+    background: #ffc107;
+    color: #212529;
+}
+
+.notification.info {
+    background: #17a2b8;
+}
+
+/* Responsividad para modales */
+@media (max-width: 992px) {
+    .modal-container {
+        max-width: 90%;
+        margin: 1rem;
+    }
+    
+    .modal-body {
+        padding: 1.5rem;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .filters-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .modal-overlay {
+        padding: 1rem;
+        align-items: flex-start;
+        overflow-y: auto;
+    }
+    
+    .modal-container {
+        max-width: 100%;
+        width: 100%;
+        margin: 0;
+        max-height: none;
+        min-height: 100vh;
+        border-radius: 0;
+        position: relative;
+    }
+    
+    .modal-header {
+        border-radius: 0;
+        padding: 1rem;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    
+    .modal-header h3 {
+        font-size: 1.25rem;
+    }
+    
+    .modal-body {
+        padding: 1rem;
+        min-height: calc(100vh - 200px);
+    }
+    
+    .modal-footer {
+        padding: 1rem;
+        position: sticky;
+        bottom: 0;
+        background: white;
+        border-top: 2px solid #e9ecef;
+        z-index: 10;
+    }
+    
+    .section-title {
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .form-control {
+        padding: 0.75rem;
+        font-size: 1rem;
+        border-radius: 0.5rem;
+    }
+    
+    .form-control-textarea {
+        min-height: 120px;
+    }
+    
+    .btn-primary,
+    .btn-secondary {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .modal-footer {
+        flex-direction: column-reverse;
+        gap: 0.5rem;
+    }
+    
+    .import-instructions {
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+    }
+    
+    .import-instructions h4 {
+        font-size: 1rem;
+    }
+    
+    .import-instructions li {
+        font-size: 0.9rem;
+    }
+    
+    .file-upload-area {
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .upload-placeholder i {
+        font-size: 2.5rem;
+    }
+    
+    .upload-placeholder p {
+        font-size: 1rem;
+    }
+    
+    .notification {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .modal-overlay {
+        padding: 0;
+    }
+    
+    .modal-container {
+        border-radius: 0;
+        box-shadow: none;
+    }
+    
+    .modal-header {
+        padding: 0.75rem;
+    }
+    
+    .modal-header h3 {
+        font-size: 1.1rem;
+        flex-direction: column;
+        gap: 0.25rem;
+        text-align: center;
+    }
+    
+    .modal-body {
+        padding: 0.75rem;
+    }
+    
+    .section-title {
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .form-control {
+        padding: 0.6rem;
+        font-size: 0.9rem;
+    }
+    
+    .form-label {
+        font-size: 0.9rem;
+        margin-bottom: 0.4rem;
+    }
+    
+    .checkbox-group {
+        margin-top: 0.25rem;
+    }
+    
+    .checkbox-group label {
+        font-size: 0.9rem;
+    }
+    
+    .btn-primary,
+    .btn-secondary {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .modal-footer {
+        padding: 0.75rem;
+    }
+    
+    .file-upload-area {
+        padding: 1rem;
+    }
+    
+    .upload-placeholder i {
+        font-size: 2rem;
+    }
+    
+    .upload-placeholder p {
+        font-size: 0.9rem;
+    }
+    
+    .import-instructions h4 {
+        font-size: 0.9rem;
+    }
+    
+    .import-instructions li {
+        font-size: 0.8rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .alert {
+        padding: 0.75rem;
+        font-size: 0.9rem;
+    }
+    
+    .notification {
+        top: 5px;
+        right: 5px;
+        left: 5px;
+        padding: 0.6rem 0.75rem;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-header h3 {
+        font-size: 1rem;
+    }
+    
+    .btn-close-modal {
+        font-size: 1.25rem;
+        padding: 0.25rem;
+    }
+    
+    .section-title {
+        font-size: 0.95rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+    
+    .form-control {
+        font-size: 16px; /* Evita zoom en iOS */
+    }
+    
+    .form-control-textarea {
+        min-height: 100px;
+    }
+}
+
+/* Mejoras adicionales para elementos específicos */
+@media (max-width: 768px) {
+    .search-clear {
+        position: absolute;
+        right: 0.75rem;
+        background: none;
+        border: none;
+        color: #6c757d;
+        font-size: 1rem;
+        padding: 0.25rem;
+        cursor: pointer;
+    }
+    
+    .controls-center {
+        position: relative;
+    }
+}
+
+/* Fix para overflow horizontal en móviles */
+@media (max-width: 768px) {
+    body {
+        overflow-x: hidden;
+    }
+    
+    .projects-table-container {
+        position: relative;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .projects-table-container::-webkit-scrollbar {
+        height: 6px;
+    }
+    
+    .projects-table-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+    
+    .projects-table-container::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+    }
+    
+    .projects-table-container::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+}
+
+/* Mejoras de experiencia táctil para móviles */
+@media (max-width: 768px) {
+    /* Aumentar área táctil de botones pequeños */
+    .btn-action {
+        min-height: 44px;
+        min-width: 44px;
+        margin: 2px;
+    }
+    
+    /* Mejorar botones de la barra de herramientas */
+    .btn-add-project,
+    .btn-import,
+    .btn-export,
+    .btn-filters,
+    .btn-download-template-main,
+    .btn-refresh {
+        min-height: 44px;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    /* Mejorar checkboxes */
+    input[type="checkbox"] {
+        min-width: 20px;
+        min-height: 20px;
+        margin: 2px;
+        accent-color: #667eea;
+    }
+    
+    /* Mejorar elementos clickeables */
+    .stat-card {
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        cursor: pointer;
+    }
+    
+    /* Mejorar dropdowns y selects */
+    .filter-select,
+    .form-control {
+        min-height: 44px;
+        touch-action: manipulation;
+    }
+    
+    /* Mejorar área de búsqueda */
+    .search-input-modern {
+        min-height: 44px;
+        padding: 0.75rem 1rem;
+    }
+    
+    /* Optimizar textos para móviles */
+    .project-name,
+    .project-description {
+        line-height: 1.4;
+        word-break: break-word;
+    }
+    
+    /* Mejorar tooltips en móviles */
+    [title] {
+        position: relative;
+    }
+    
+    /* Ocultar tooltips nativos en móviles */
+    .btn-action[title]:hover::after {
+        content: attr(title);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        white-space: nowrap;
+        z-index: 1000;
+        pointer-events: none;
+    }
+}
+
+/* Optimizaciones específicas para pantallas muy pequeñas */
+@media (max-width: 480px) {
+    /* Layout de estadísticas en una sola columna */
+    .stats-cards-container {
+        flex-direction: column;
+        width: 100%;
+        max-width: 300px;
+        margin: 0 auto;
+    }
+    
+    .stat-card {
+        flex: none;
+        width: 100%;
+        max-width: 100%;
+        margin-bottom: 0.5rem;
+        justify-content: flex-start;
+    }
+    
+    /* Botones en columna para mejor accesibilidad */
+    .controls-left {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+    
+    .btn-add-project,
+    .btn-import,
+    .btn-export,
+    .btn-download-template-main {
+        width: 100%;
+        max-width: none;
+        justify-content: center;
+        padding: 0.75rem 1rem;
+        min-height: 48px;
+    }
+    
+    /* Mostrar texto en botones pequeños */
+    .btn-add-project span,
+    .btn-import span,
+    .btn-export span,
+    .btn-download-template-main span {
+        display: inline !important;
+    }
+    
+    /* Controles de filtros en fila */
+    .controls-right {
+        flex-direction: row;
+        justify-content: space-between;
+    }
+    
+    .btn-filters,
+    .btn-refresh {
+        flex: 1;
+        margin: 0 0.25rem;
+        min-height: 44px;
+    }
+    
+    /* Mejorar tabla en pantallas muy pequeñas */
+    .projects-table {
+        min-width: 550px;
+    }
+    
+    .projects-table th,
+    .projects-table td {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.8rem;
+    }
+    
+    .project-info {
+        min-width: 150px;
+    }
+    
+    .project-name {
+        max-width: 120px;
+    }
+    
+    .project-description {
+        max-width: 120px;
+    }
+}
+
+/* Mejoras de accesibilidad */
+@media (max-width: 768px) {
+    /* Mejorar contraste en elementos focuseables */
+    .btn-action:focus,
+    .form-control:focus,
+    .filter-select:focus {
+        outline: 2px solid #667eea;
+        outline-offset: 2px;
+    }
+    
+    /* Mejorar indicadores de estado activo */
+    .stat-card.active {
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+    }
+    
+    /* Mejorar feedback visual en elementos clickeables */
+    .btn-action:active,
+    .stat-card:active {
+        transform: scale(0.95);
+    }
+    
+    .btn-add-project:active,
+    .btn-import:active,
+    .btn-export:active,
+    .btn-filters:active,
+    .btn-download-template-main:active,
+    .btn-refresh:active {
+        transform: translateY(1px);
+    }
+}
+
+/* Optimizaciones de rendimiento para móviles */
+@media (max-width: 768px) {
+    /* Reducir animaciones en dispositivos de bajo rendimiento */
+    @media (prefers-reduced-motion: reduce) {
+        .stat-card,
+        .btn-action,
+        .notification {
+            animation: none;
+            transition: none;
+        }
+        
+        .projects-table tbody tr:hover {
+            transform: none;
+        }
+    }
+    
+    /* Optimizar scroll suave */
+    .projects-table-container {
+        scroll-behavior: smooth;
+    }
+    
+    /* Mejorar rendimiento de la tabla */
+    .projects-table {
+        will-change: transform;
+    }
+}
+</style>
+
+{% endblock %} 

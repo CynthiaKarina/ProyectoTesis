@@ -246,7 +246,7 @@
                         {% if laboratorio.encargado %}
                         <div class="contact-item">
                             <i class="fas fa-user-tie"></i>
-                            <span>Encargado: {{ laboratorio.encargado.nombre }} {{ laboratorio.encargado.apellido }}</span>
+                            <span>Encargado: {{ laboratorio.encargado.nombre_completo if laboratorio.encargado else 'No asignado' }}</span>
                         </div>
                         {% endif %}
                         

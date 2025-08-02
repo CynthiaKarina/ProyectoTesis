@@ -1,0 +1,2442 @@
+{% extends "base_Admin.html" %}
+
+{% block title %}Detalles - {{ laboratorio.nombre_laboratorio }}{% endblock %}
+
+{% block content %}
+<div class="lab-detail-page">
+    <!-- Header con información básica del laboratorio -->
+    <div class="lab-detail-header">
+        <div class="header-content-lab">
+            <div class="lab-title-section">
+                <div class="back-navigation">
+                    <a href="{{ url_for('admin_laboratorios.admin_laboratorios') }}" class="btn-back">
+                        <i class="fas fa-arrow-left"></i>
+                        Volver a Laboratorios
+                    </a>
+                </div>
+                <div class="lab-title-info">
+                    <h1 class="lab-title">
+                        <i class="fas fa-flask lab-icon"></i>
+                        {{ laboratorio.nombre_laboratorio }}
+                    </h1>
+                    <div class="lab-status">
+                        <span class="status-badge status-{{ laboratorio.disponibilidad.lower() if laboratorio.disponibilidad else 'inactivo' }}">
+                            {{ laboratorio.disponibilidad or 'Sin estado' }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="lab-actions-header">
+                {% if has_permission('editar_laboratorio') %}
+                <button class="btn-edit-lab" onclick="editCurrentLab()">
+                    <i class="fas fa-edit"></i>
+                    Editar Laboratorio
+                </button>
+                {% endif %}
+                
+                <button class="btn-refresh-detail" onclick="location.reload()">
+                    <i class="fas fa-sync-alt"></i>
+                    Actualizar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas del laboratorio -->
+    <div class="lab-stats-section">
+        <div class="stats-grid-detail">
+            <div class="stat-card-detail">
+                <div class="stat-icon-detail lab-capacity-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-content-detail">
+                    <div class="stat-number-detail">{{ laboratorio.capacidad or 0 }}</div>
+                    <div class="stat-label-detail">Capacidad</div>
+                </div>
+            </div>
+            
+            <div class="stat-card-detail">
+                <div class="stat-icon-detail lab-surface-icon">
+                    <i class="fas fa-expand-arrows-alt"></i>
+                </div>
+                <div class="stat-content-detail">
+                    <div class="stat-number-detail">{{ laboratorio.superficie_m2 or 0 }}</div>
+                    <div class="stat-label-detail">m² Superficie</div>
+                </div>
+            </div>
+            
+            <div class="stat-card-detail">
+                <div class="stat-icon-detail equipment-count-icon">
+                    <i class="fas fa-tools"></i>
+                </div>
+                <div class="stat-content-detail">
+                    <div class="stat-number-detail" id="totalEquipmentCount">{{ total_equipamiento or 0 }}</div>
+                    <div class="stat-label-detail">Equipos Asignados</div>
+                </div>
+            </div>
+            
+            <div class="stat-card-detail">
+                <div class="stat-icon-detail capacity-total-icon">
+                    <i class="fas fa-cubes"></i>
+                </div>
+                <div class="stat-content-detail">
+                    <div class="stat-number-detail" id="totalCapacityCount">{{ capacidad_total or 0 }}</div>
+                    <div class="stat-label-detail">Capacidad Total</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido principal con pestañas -->
+    <div class="lab-main-content">
+        <div class="tab-navigation-detail">
+            <button class="tab-btn-detail active" onclick="switchTabDetail('info')" id="tab-info-detail">
+                <i class="fas fa-info-circle"></i>
+                Información
+            </button>
+            <button class="tab-btn-detail" onclick="switchTabDetail('equipment')" id="tab-equipment-detail">
+                <i class="fas fa-tools"></i>
+                Equipamiento
+            </button>
+        </div>
+
+        <!-- Pestaña de Información -->
+        <div class="tab-content-detail active" id="content-info">
+            <div class="info-section-detail">
+                <div class="info-cards-grid">
+                    <div class="info-card-detail">
+                        <h3 class="info-card-title">
+                            <i class="fas fa-flask"></i>
+                            Información General
+                        </h3>
+                        <div class="info-items-detail">
+                            <div class="info-item-detail">
+                                <label>Nombre:</label>
+                                <span>{{ laboratorio.nombre_laboratorio }}</span>
+                            </div>
+                            <div class="info-item-detail">
+                                <label>Capacidad:</label>
+                                <span>{{ (laboratorio.capacidad|string + ' personas') if laboratorio.capacidad else 'No especificada' }}</span>
+                            </div>
+                            <div class="info-item-detail">
+                                <label>Superficie:</label>
+                                <span>{{ (laboratorio.superficie_m2|string + ' m²') if laboratorio.superficie_m2 else 'No especificada' }}</span>
+                            </div>
+                            <div class="info-item-detail">
+                                <label>Estado:</label>
+                                <span class="status-inline status-{{ laboratorio.disponibilidad.lower() if laboratorio.disponibilidad else 'inactivo' }}">
+                                    {{ laboratorio.disponibilidad or 'Sin estado' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-card-detail">
+                        <h3 class="info-card-title">
+                            <i class="fas fa-map-marker-alt"></i>
+                            Ubicación y Contacto
+                        </h3>
+                        <div class="info-items-detail">
+                            <div class="info-item-detail">
+                                <label>Ubicación:</label>
+                                <span>{{ laboratorio.ubicacion or 'No especificada' }}</span>
+                            </div>
+                            <div class="info-item-detail">
+                                <label>Teléfono:</label>
+                                <span>{{ laboratorio.telefono or 'No especificado' }}</span>
+                            </div>
+                            <div class="info-item-detail">
+                                <label>Email:</label>
+                                <span>{{ laboratorio.email_contacto or 'No especificado' }}</span>
+                            </div>
+                            <div class="info-item-detail">
+                                <label>Horario:</label>
+                                <span>{{ laboratorio.horario or 'No especificado' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if laboratorio.descripcion %}
+                <div class="description-section-detail">
+                    <h3 class="description-title">
+                        <i class="fas fa-align-left"></i>
+                        Descripción
+                    </h3>
+                    <div class="description-content">
+                        {{ laboratorio.descripcion }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Pestaña de Equipamiento -->
+        <div class="tab-content-detail" id="content-equipment">
+            <div class="equipment-section-detail">
+                <!-- Controles del equipamiento -->
+                <div class="equipment-controls-detail">
+                    <div class="controls-left-detail">
+                        {% if has_permission('gestionar_laboratorios') %}
+                        <button class="btn-add-equipment-detail" onclick="showAddEquipmentModal()">
+                            <i class="fas fa-plus"></i>
+                            Agregar Equipamiento
+                        </button>
+                        {% endif %}
+                        
+                        {% if has_permission('gestionar_laboratorios') %}
+                        <button class="btn-bulk-manage" onclick="toggleBulkMode()">
+                            <i class="fas fa-tasks"></i>
+                            Gestión Masiva
+                        </button>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="controls-center-detail">
+                        <div class="search-box-equipment-detail">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="searchEquipmentDetailInput" placeholder="Buscar equipamiento..." onkeyup="searchEquipmentDetail()">
+                            <button class="search-clear-detail" onclick="clearEquipmentDetailSearch()" style="display: none;">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="controls-right-detail">
+                        <div class="view-controls">
+                            <button class="btn-view-toggle" onclick="toggleEquipmentView()" title="Cambiar vista">
+                                <i class="fas fa-th-list" id="viewToggleIcon"></i>
+                            </button>
+                            <button class="btn-filter" onclick="toggleEquipmentFilters()" title="Filtros">
+                                <i class="fas fa-filter"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filtros del equipamiento -->
+                <div class="equipment-filters-detail" id="equipmentFilters" style="display: none;">
+                    <div class="filters-row">
+                        <div class="filter-group">
+                            <label for="filterType">Tipo:</label>
+                            <select id="filterType" onchange="applyEquipmentFilters()">
+                                <option value="">Todos los tipos</option>
+                                <!-- Se llenará dinámicamente -->
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filterStatus">Estado:</label>
+                            <select id="filterStatus" onchange="applyEquipmentFilters()">
+                                <option value="">Todos los estados</option>
+                                <option value="functional">Funcional</option>
+                                <option value="maintenance">En mantenimiento</option>
+                                <option value="broken">Averiado</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="sortBy">Ordenar por:</label>
+                            <select id="sortBy" onchange="applySorting()">
+                                <option value="name">Nombre</option>
+                                <option value="quantity">Cantidad</option>
+                                <option value="date">Fecha de asignación</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista/Grid de equipamiento -->
+                <div class="equipment-container-detail" id="equipmentContainer">
+                    <div class="equipment-grid-view" id="equipmentGridView">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                    
+                    <div class="equipment-list-view" id="equipmentListView" style="display: none;">
+                        <div class="equipment-table-responsive">
+                            <table class="equipment-table-detail">
+                                <thead>
+                                    <tr>
+                                        <th class="checkbox-col">
+                                            <input type="checkbox" id="selectAllEquipmentDetail" onchange="toggleSelectAllEquipmentDetail()">
+                                        </th>
+                                        <th>Equipamiento</th>
+                                        <th>Cantidad</th>
+                                        <th>Capacidad</th>
+                                        <th>Estado</th>
+                                        <th>Fecha Asignación</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="equipmentTableDetailBody">
+                                    <!-- Se llenará dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estado vacío -->
+                <div class="empty-equipment-detail" id="emptyEquipmentState" style="display: none;">
+                    <div class="empty-icon-detail">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <h3>Sin equipamiento asignado</h3>
+                    <p>Este laboratorio no tiene equipamiento asignado aún.</p>
+                    {% if has_permission('gestionar_laboratorios') %}
+                    <button class="btn-add-first-equipment" onclick="showAddEquipmentModal()">
+                        <i class="fas fa-plus"></i>
+                        Agregar Primer Equipo
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+
+<!-- Modal para agregar/editar equipamiento -->
+<div class="modal-overlay-detail" id="equipmentModal" style="display: none;">
+    <div class="modal-container-detail">
+        <div class="modal-header-detail">
+            <h3 id="equipmentModalTitle">
+                <i class="fas fa-plus"></i>
+                Agregar Equipamiento al Laboratorio
+            </h3>
+            <button class="btn-close-modal-detail" onclick="closeEquipmentModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="modal-body-detail">
+            <form id="equipmentFormDetail">
+                <input type="hidden" id="labId" name="id_laboratorio" value="{{ laboratorio.id_laboratorio }}">
+                <input type="hidden" id="assignmentId" name="assignment_id">
+                
+                <div class="form-section-detail">
+                    <h4 class="section-title-detail">
+                        <i class="fas fa-search"></i>
+                        Seleccionar Equipamiento
+                    </h4>
+                    
+                    <div class="equipment-search-section">
+                        <div class="search-input-group">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="equipmentSearchModal" placeholder="Buscar equipamiento disponible..." onkeyup="searchAvailableEquipmentModal()">
+                        </div>
+                        
+                        <div class="available-equipment-grid" id="availableEquipmentGrid">
+                            <!-- Se llenará dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-section-detail" id="selectedEquipmentDetails" style="display: none;">
+                    <h4 class="section-title-detail">
+                        <i class="fas fa-cog"></i>
+                        Configuración del Equipamiento
+                    </h4>
+                    
+                    <div class="selected-equipment-info">
+                        <div class="selected-equipment-display">
+                            <div class="selected-equipment-icon">
+                                <i class="fas fa-tools"></i>
+                            </div>
+                            <div class="selected-equipment-details">
+                                <h5 id="selectedEquipmentName">Nombre del equipo</h5>
+                                <p id="selectedEquipmentDescription">Descripción del equipo</p>
+                                <input type="hidden" id="selectedEquipmentId" name="id_equipamiento">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="equipment-config-form">
+                        <div class="form-row-detail">
+                            <div class="form-group-detail">
+                                <label for="equipmentQuantity" class="form-label-detail">
+                                    <i class="fas fa-hashtag"></i>
+                                    Cantidad *
+                                </label>
+                                <input type="number" class="form-control-detail" id="equipmentQuantity" name="cantidad" min="1" value="1" required>
+                                <small class="form-help">Número de unidades a asignar</small>
+                            </div>
+                            
+                            <div class="form-group-detail">
+                                <label for="equipmentCapacity" class="form-label-detail">
+                                    <i class="fas fa-expand-arrows-alt"></i>
+                                    Capacidad
+                                </label>
+                                <input type="number" class="form-control-detail" id="equipmentCapacity" name="capacidad" min="0" placeholder="Opcional">
+                                <small class="form-help">Capacidad total del equipamiento</small>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row-detail">
+                            <div class="form-group-detail">
+                                <label for="equipmentNotes" class="form-label-detail">
+                                    <i class="fas fa-sticky-note"></i>
+                                    Notas
+                                </label>
+                                <textarea class="form-control-detail" id="equipmentNotes" name="notas" rows="3" placeholder="Notas adicionales sobre la asignación..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="modal-footer-detail">
+            <button type="button" class="btn-secondary-detail" onclick="closeEquipmentModal()">Cancelar</button>
+            <button type="button" class="btn-primary-detail" onclick="saveEquipmentAssignment()" id="btnSaveEquipment" disabled>
+                <i class="fas fa-save"></i>
+                <span id="saveButtonText">Asignar Equipamiento</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación para eliminación -->
+<div class="modal-overlay-detail" id="confirmDeleteModal" style="display: none;">
+    <div class="modal-container-detail modal-small">
+        <div class="modal-header-detail">
+            <h3>
+                <i class="fas fa-exclamation-triangle text-warning"></i>
+                Confirmar Eliminación
+            </h3>
+            <button class="btn-close-modal-detail" onclick="closeConfirmDeleteModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="modal-body-detail">
+            <p id="deleteConfirmText">¿Estás seguro de que deseas quitar este equipamiento del laboratorio?</p>
+            <div class="delete-equipment-info" id="deleteEquipmentInfo">
+                <!-- Se llenará dinámicamente -->
+            </div>
+        </div>
+        
+        <div class="modal-footer-detail">
+            <button type="button" class="btn-secondary-detail" onclick="closeConfirmDeleteModal()">Cancelar</button>
+            <button type="button" class="btn-danger-detail" onclick="confirmDeleteEquipment()" id="btnConfirmDelete">
+                <i class="fas fa-trash"></i>
+                Eliminar
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Variables globales para la página de detalles
+let currentLabId = {{ laboratorio.id_laboratorio }};
+let equipmentViewMode = 'grid'; // 'grid' o 'list'
+let bulkMode = false;
+let selectedEquipment = [];
+let allEquipmentData = [];
+let deleteTargetId = null;
+
+// Inicialización cuando se carga la página
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Inicializando página de detalles del laboratorio:', currentLabId);
+    loadLabEquipmentDetail();
+    setupEventListeners();
+});
+
+// ==================== FUNCIONES DE NAVEGACIÓN POR PESTAÑAS ====================
+
+function switchTabDetail(tabName) {
+    // Remover clase activa de todos los botones y contenidos
+    document.querySelectorAll('.tab-btn-detail').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content-detail').forEach(content => content.classList.remove('active'));
+    
+    // Activar pestaña seleccionada
+    document.getElementById(`tab-${tabName}-detail`).classList.add('active');
+    document.getElementById(`content-${tabName}`).classList.add('active');
+    
+    // Cargar contenido específico si es necesario
+    if (tabName === 'equipment') {
+        loadLabEquipmentDetail();
+    }
+}
+
+// ==================== FUNCIONES DE CARGA DE EQUIPAMIENTO ====================
+
+function loadLabEquipmentDetail() {
+    fetch(`/admin/laboratorios/${currentLabId}/equipamiento`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showNotification('Error al cargar equipamiento: ' + data.error, 'error');
+                return;
+            }
+            
+            allEquipmentData = data.equipamiento || [];
+            updateEquipmentStats(data);
+            renderEquipmentDetail(allEquipmentData);
+        })
+        .catch(error => {
+            showNotification('Error al cargar equipamiento del laboratorio', 'error');
+            console.error('Error:', error);
+        });
+}
+
+function updateEquipmentStats(data) {
+    document.getElementById('totalEquipmentCount').textContent = data.total_equipos || 0;
+    document.getElementById('totalCapacityCount').textContent = data.capacidad_total || 0;
+    
+    // Animar números
+    animateNumber('totalEquipmentCount', 0, data.total_equipos || 0, 1000);
+    animateNumber('totalCapacityCount', 0, data.capacidad_total || 0, 1000);
+}
+
+function renderEquipmentDetail(equipmentList) {
+    const gridView = document.getElementById('equipmentGridView');
+    const listView = document.getElementById('equipmentListView');
+    const emptyState = document.getElementById('emptyEquipmentState');
+    
+    if (!equipmentList.length) {
+        gridView.style.display = 'none';
+        listView.style.display = 'none';
+        emptyState.style.display = 'flex';
+        return;
+    }
+    
+    emptyState.style.display = 'none';
+    
+    if (equipmentViewMode === 'grid') {
+        renderEquipmentGrid(equipmentList);
+        gridView.style.display = 'grid';
+        listView.style.display = 'none';
+    } else {
+        renderEquipmentTable(equipmentList);
+        gridView.style.display = 'none';
+        listView.style.display = 'block';
+    }
+}
+
+function renderEquipmentGrid(equipmentList) {
+    const container = document.getElementById('equipmentGridView');
+    let html = '';
+    
+    equipmentList.forEach(item => {
+        html += `
+            <div class="equipment-card-detail" data-equipment-id="${item.id_asignacion}">
+                ${bulkMode ? `
+                    <div class="equipment-card-checkbox">
+                        <input type="checkbox" class="equipment-checkbox-detail" value="${item.id_asignacion}" onchange="updateSelectedEquipment()">
+                    </div>
+                ` : ''}
+                
+                <div class="equipment-card-header">
+                    <div class="equipment-card-icon">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <div class="equipment-card-actions">
+                        <button class="btn-card-action btn-edit-card" onclick="editEquipmentDetail(${item.id_asignacion})" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-card-action btn-delete-card" onclick="showDeleteConfirmation(${item.id_asignacion}, '${item.nombre_equipo}')" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="equipment-card-body">
+                    <h4 class="equipment-card-name">${item.nombre_equipo}</h4>
+                    <p class="equipment-card-description">${item.descripcion || 'Sin descripción'}</p>
+                    
+                    <div class="equipment-card-stats">
+                        <div class="stat-item-card">
+                            <i class="fas fa-hashtag"></i>
+                            <span>Cantidad: <strong>${item.cantidad}</strong></span>
+                        </div>
+                        ${item.capacidad ? `
+                            <div class="stat-item-card">
+                                <i class="fas fa-expand-arrows-alt"></i>
+                                <span>Capacidad: <strong>${item.capacidad}</strong></span>
+                            </div>
+                        ` : ''}
+                        <div class="stat-item-card">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Asignado: <strong>${item.fecha_asignacion || 'Sin fecha'}</strong></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="equipment-card-footer">
+                    <div class="quick-edit-controls" style="display: none;" id="quick-edit-${item.id_asignacion}">
+                        <input type="number" class="quick-edit-input" value="${item.cantidad}" min="1" id="quick-cantidad-${item.id_asignacion}">
+                        <input type="number" class="quick-edit-input" value="${item.capacidad || ''}" min="0" placeholder="Cap." id="quick-capacidad-${item.id_asignacion}">
+                        <button class="btn-quick-save" onclick="saveQuickEdit(${item.id_asignacion})">
+                            <i class="fas fa-check"></i>
+                        </button>
+                        <button class="btn-quick-cancel" onclick="cancelQuickEdit(${item.id_asignacion})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+function renderEquipmentTable(equipmentList) {
+    const tbody = document.getElementById('equipmentTableDetailBody');
+    let html = '';
+    
+    equipmentList.forEach(item => {
+        html += `
+            <tr data-equipment-id="${item.id_asignacion}">
+                <td>
+                    <input type="checkbox" class="equipment-checkbox-detail" value="${item.id_asignacion}" onchange="updateSelectedEquipment()">
+                </td>
+                <td>
+                    <div class="equipment-info-table">
+                        <div class="equipment-icon-small">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                        <div class="equipment-details-table">
+                            <div class="equipment-name-table">${item.nombre_equipo}</div>
+                            <div class="equipment-desc-table">${item.descripcion || 'Sin descripción'}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <span class="quantity-badge-table">${item.cantidad}</span>
+                </td>
+                <td>
+                    ${item.capacidad ? `<span class="capacity-badge-table">${item.capacidad}</span>` : '<span class="no-capacity-table">-</span>'}
+                </td>
+                <td>
+                    <span class="status-badge-table status-functional">Funcional</span>
+                </td>
+                <td>
+                    <span class="date-table">${item.fecha_asignacion || 'Sin fecha'}</span>
+                </td>
+                <td>
+                    <div class="table-actions">
+                        <button class="btn-table-action btn-edit-table" onclick="editEquipmentDetail(${item.id_asignacion})" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-table-action btn-delete-table" onclick="showDeleteConfirmation(${item.id_asignacion}, '${item.nombre_equipo}')" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+    
+    tbody.innerHTML = html;
+}
+
+// ==================== FUNCIONES DE GESTIÓN DE EQUIPAMIENTO ====================
+
+function showAddEquipmentModal() {
+    document.getElementById('equipmentModalTitle').innerHTML = '<i class="fas fa-plus"></i> Agregar Equipamiento al Laboratorio';
+    document.getElementById('saveButtonText').textContent = 'Asignar Equipamiento';
+    document.getElementById('assignmentId').value = '';
+    document.getElementById('equipmentModal').style.display = 'flex';
+    loadAvailableEquipmentModal();
+}
+
+function editEquipmentDetail(assignmentId) {
+    // Encontrar el equipamiento en los datos
+    const equipment = allEquipmentData.find(eq => eq.id_asignacion == assignmentId);
+    if (!equipment) {
+        showNotification('Equipamiento no encontrado', 'error');
+        return;
+    }
+    
+    document.getElementById('equipmentModalTitle').innerHTML = '<i class="fas fa-edit"></i> Editar Equipamiento';
+    document.getElementById('saveButtonText').textContent = 'Guardar Cambios';
+    document.getElementById('assignmentId').value = assignmentId;
+    
+    // Pre-llenar formulario
+    document.getElementById('selectedEquipmentId').value = equipment.id_equipamiento;
+    document.getElementById('selectedEquipmentName').textContent = equipment.nombre_equipo;
+    document.getElementById('selectedEquipmentDescription').textContent = equipment.descripcion || 'Sin descripción';
+    document.getElementById('equipmentQuantity').value = equipment.cantidad;
+    document.getElementById('equipmentCapacity').value = equipment.capacidad || '';
+    document.getElementById('equipmentNotes').value = equipment.notas || '';
+    
+    document.getElementById('selectedEquipmentDetails').style.display = 'block';
+    document.getElementById('btnSaveEquipment').disabled = false;
+    document.getElementById('equipmentModal').style.display = 'flex';
+}
+
+function closeEquipmentModal() {
+    document.getElementById('equipmentModal').style.display = 'none';
+    document.getElementById('selectedEquipmentDetails').style.display = 'none';
+    document.getElementById('btnSaveEquipment').disabled = true;
+    document.getElementById('equipmentFormDetail').reset();
+}
+
+function loadAvailableEquipmentModal() {
+    fetch('/admin/equipamiento/disponible')
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showNotification('Error al cargar equipamiento disponible: ' + data.error, 'error');
+                return;
+            }
+            
+            renderAvailableEquipmentGrid(data.equipamiento || []);
+        })
+        .catch(error => {
+            showNotification('Error al cargar equipamiento disponible', 'error');
+            console.error('Error:', error);
+        });
+}
+
+function renderAvailableEquipmentGrid(equipmentList) {
+    const container = document.getElementById('availableEquipmentGrid');
+    
+    if (!equipmentList.length) {
+        container.innerHTML = `
+            <div class="no-equipment-available-detail">
+                <i class="fas fa-tools"></i>
+                <p>No hay equipamiento disponible para asignar.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    equipmentList.forEach(item => {
+        html += `
+            <div class="available-equipment-card" onclick="selectEquipmentForAssignment(${item.id_equipamiento}, '${item.nombre_equipo}', '${item.descripcion || 'Sin descripción'}')">
+                <div class="available-equipment-icon">
+                    <i class="fas fa-tools"></i>
+                </div>
+                <div class="available-equipment-info">
+                    <h6>${item.nombre_equipo}</h6>
+                    <p>${item.descripcion || 'Sin descripción'}</p>
+                </div>
+                <div class="available-equipment-action">
+                    <i class="fas fa-plus-circle"></i>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+function selectEquipmentForAssignment(equipmentId, equipmentName, equipmentDescription) {
+    document.getElementById('selectedEquipmentId').value = equipmentId;
+    document.getElementById('selectedEquipmentName').textContent = equipmentName;
+    document.getElementById('selectedEquipmentDescription').textContent = equipmentDescription;
+    document.getElementById('selectedEquipmentDetails').style.display = 'block';
+    document.getElementById('btnSaveEquipment').disabled = false;
+    
+    // Highlight seleccionado
+    document.querySelectorAll('.available-equipment-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    event.currentTarget.classList.add('selected');
+}
+
+function saveEquipmentAssignment() {
+    const form = document.getElementById('equipmentFormDetail');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    
+    const isEdit = document.getElementById('assignmentId').value !== '';
+    const url = isEdit 
+        ? `/admin/laboratorios/equipamiento/editar/${data.assignment_id}`
+        : '/admin/laboratorios/equipamiento/asignar';
+    const method = isEdit ? 'PUT' : 'POST';
+    
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            closeEquipmentModal();
+            loadLabEquipmentDetail(); // Recargar la lista
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('Error al guardar equipamiento', 'error');
+        console.error('Error:', error);
+    });
+}
+
+// ==================== FUNCIONES DE ELIMINACIÓN ====================
+
+function showDeleteConfirmation(assignmentId, equipmentName) {
+    deleteTargetId = assignmentId;
+    document.getElementById('deleteConfirmText').textContent = 
+        `¿Estás seguro de que deseas quitar "${equipmentName}" del laboratorio?`;
+    
+    document.getElementById('deleteEquipmentInfo').innerHTML = `
+        <div class="delete-equipment-preview">
+            <i class="fas fa-tools"></i>
+            <strong>${equipmentName}</strong>
+        </div>
+    `;
+    
+    document.getElementById('confirmDeleteModal').style.display = 'flex';
+}
+
+function closeConfirmDeleteModal() {
+    document.getElementById('confirmDeleteModal').style.display = 'none';
+    deleteTargetId = null;
+}
+
+function confirmDeleteEquipment() {
+    if (!deleteTargetId) return;
+    
+    fetch(`/admin/laboratorios/equipamiento/desasignar/${deleteTargetId}`, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            closeConfirmDeleteModal();
+            loadLabEquipmentDetail(); // Recargar la lista
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('Error al eliminar equipamiento', 'error');
+        console.error('Error:', error);
+    });
+}
+
+// ==================== FUNCIONES DE BÚSQUEDA Y FILTROS ====================
+
+function searchEquipmentDetail() {
+    const searchTerm = document.getElementById('searchEquipmentDetailInput').value.toLowerCase();
+    const clearBtn = document.querySelector('.search-clear-detail');
+    
+    if (searchTerm.length > 0) {
+        clearBtn.style.display = 'block';
+    } else {
+        clearBtn.style.display = 'none';
+    }
+    
+    const filteredData = allEquipmentData.filter(item => {
+        const name = item.nombre_equipo.toLowerCase();
+        const description = (item.descripcion || '').toLowerCase();
+        return name.includes(searchTerm) || description.includes(searchTerm);
+    });
+    
+    renderEquipmentDetail(filteredData);
+}
+
+function clearEquipmentDetailSearch() {
+    document.getElementById('searchEquipmentDetailInput').value = '';
+    document.querySelector('.search-clear-detail').style.display = 'none';
+    renderEquipmentDetail(allEquipmentData);
+}
+
+function searchAvailableEquipmentModal() {
+    const searchTerm = document.getElementById('equipmentSearchModal').value.toLowerCase();
+    const cards = document.querySelectorAll('.available-equipment-card');
+    
+    cards.forEach(card => {
+        const name = card.querySelector('h6').textContent.toLowerCase();
+        const description = card.querySelector('p').textContent.toLowerCase();
+        const visible = name.includes(searchTerm) || description.includes(searchTerm);
+        card.style.display = visible ? '' : 'none';
+    });
+}
+
+function toggleEquipmentFilters() {
+    const filters = document.getElementById('equipmentFilters');
+    const isVisible = filters.style.display !== 'none';
+    filters.style.display = isVisible ? 'none' : 'block';
+}
+
+function toggleEquipmentView() {
+    equipmentViewMode = equipmentViewMode === 'grid' ? 'list' : 'grid';
+    const icon = document.getElementById('viewToggleIcon');
+    icon.className = equipmentViewMode === 'grid' ? 'fas fa-th-list' : 'fas fa-th';
+    renderEquipmentDetail(allEquipmentData);
+}
+
+// ==================== FUNCIONES AUXILIARES ====================
+
+function setupEventListeners() {
+    // Event listeners adicionales si son necesarios
+}
+
+function editCurrentLab() {
+    // Redirigir de vuelta a la página principal para editar
+    // TODO: Implementar modal de edición en esta página o página dedicada de edición
+    showNotification('Funcionalidad de edición próximamente. Regresa a la lista principal para editar.', 'info');
+}
+
+function toggleBulkMode() {
+    bulkMode = !bulkMode;
+    const btn = document.querySelector('.btn-bulk-manage');
+    
+    if (bulkMode) {
+        btn.classList.add('active');
+        btn.innerHTML = '<i class="fas fa-times"></i> Cancelar Gestión';
+    } else {
+        btn.classList.remove('active');
+        btn.innerHTML = '<i class="fas fa-tasks"></i> Gestión Masiva';
+        selectedEquipment = [];
+    }
+    
+    renderEquipmentDetail(allEquipmentData);
+}
+
+function updateSelectedEquipment() {
+    const checkboxes = document.querySelectorAll('.equipment-checkbox-detail:checked');
+    selectedEquipment = Array.from(checkboxes).map(cb => cb.value);
+    console.log('Equipamiento seleccionado:', selectedEquipment);
+}
+
+function toggleSelectAllEquipmentDetail() {
+    const mainCheckbox = document.getElementById('selectAllEquipmentDetail');
+    const checkboxes = document.querySelectorAll('.equipment-checkbox-detail');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = mainCheckbox.checked;
+    });
+    
+    updateSelectedEquipment();
+}
+
+// Función para animar números (como en el archivo original)
+function animateNumber(elementId, start, end, duration) {
+    const element = document.getElementById(elementId);
+    const range = end - start;
+    const increment = range / (duration / 16);
+    let current = start;
+    
+    const timer = setInterval(() => {
+        current += increment;
+        if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+            current = end;
+            clearInterval(timer);
+        }
+        element.textContent = Math.floor(current);
+    }, 16);
+}
+
+// Función de notificaciones (debe estar definida en base_Admin.html o aquí)
+function showNotification(message, type) {
+    // Implementar sistema de notificaciones
+    console.log(`${type.toUpperCase()}: ${message}`);
+    
+    // Crear notificación temporal
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+        <span>${message}</span>
+        <button onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-remover después de 5 segundos
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.remove();
+        }
+    }, 5000);
+}
+</script>
+
+<style>
+/* ==================== ESTILOS PARA PÁGINA DE DETALLES DEL LABORATORIO ==================== */
+
+.lab-detail-page {
+    min-height: 100vh;
+    background: #f8f9fa;
+    padding: 0;
+}
+
+/* Header del laboratorio */
+.lab-detail-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+}
+
+.header-content-lab {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2rem;
+}
+
+.lab-title-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.back-navigation {
+    margin-bottom: 0.5rem;
+}
+
+.btn-back {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-back:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+    text-decoration: none;
+    transform: translateX(-2px);
+}
+
+.lab-title-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.lab-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.lab-icon {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 1rem;
+    border-radius: 50%;
+    font-size: 1.5rem;
+}
+
+.lab-status .status-badge {
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-weight: 600;
+}
+
+.lab-actions-header {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.btn-edit-lab,
+.btn-refresh-detail {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-edit-lab:hover,
+.btn-refresh-detail:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+/* Estadísticas del laboratorio */
+.lab-stats-section {
+    max-width: 1400px;
+    margin: 0 auto 3rem auto;
+    padding: 0 2rem;
+}
+
+.stats-grid-detail {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+.stat-card-detail {
+    background: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+.stat-card-detail:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card-detail:nth-child(1) { border-left-color: #667eea; }
+.stat-card-detail:nth-child(2) { border-left-color: #f093fb; }
+.stat-card-detail:nth-child(3) { border-left-color: #4ECDC4; }
+.stat-card-detail:nth-child(4) { border-left-color: #45B7D1; }
+
+.stat-icon-detail {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.lab-capacity-icon { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.lab-surface-icon { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.equipment-count-icon { background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%); }
+.capacity-total-icon { background: linear-gradient(135deg, #45B7D1 0%, #2196F3 100%); }
+
+.stat-content-detail {
+    flex: 1;
+}
+
+.stat-number-detail {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #333;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label-detail {
+    color: #6c757d;
+    font-size: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Contenido principal */
+.lab-main-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem 3rem 2rem;
+    background: white;
+    border-radius: 1rem 1rem 0 0;
+    box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.05);
+    min-height: 600px;
+}
+
+/* Navegación de pestañas */
+.tab-navigation-detail {
+    display: flex;
+    border-bottom: 3px solid #e9ecef;
+    margin-bottom: 3rem;
+    padding-top: 2rem;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
+}
+
+.tab-btn-detail {
+    background: none;
+    border: none;
+    padding: 1.25rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #6c757d;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-bottom: 3px solid transparent;
+    position: relative;
+}
+
+.tab-btn-detail:hover {
+    color: #495057;
+    background: rgba(102, 126, 234, 0.05);
+}
+
+.tab-btn-detail.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+    background: rgba(102, 126, 234, 0.1);
+}
+
+.tab-content-detail {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.tab-content-detail.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Información del laboratorio */
+.info-section-detail {
+    padding: 2rem 0;
+}
+
+.info-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2.5rem;
+    margin-bottom: 3rem;
+}
+
+.info-card-detail {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 1rem;
+    border-left: 4px solid #667eea;
+    transition: all 0.3s ease;
+}
+
+.info-card-detail:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.info-card-title {
+    color: #333;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.info-items-detail {
+    display: grid;
+    gap: 1.25rem;
+}
+
+.info-item-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.info-item-detail label {
+    font-weight: 700;
+    color: #495057;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-item-detail span {
+    color: #333;
+    padding: 0.75rem;
+    background: white;
+    border-radius: 0.5rem;
+    border: 2px solid #e9ecef;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.info-item-detail span:hover {
+    border-color: #667eea;
+}
+
+.status-inline {
+    display: inline-block;
+    padding: 0.5rem 1rem !important;
+    border-radius: 2rem !important;
+    font-weight: 600 !important;
+    text-align: center;
+}
+
+.description-section-detail {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 1rem;
+    border-left: 4px solid #4ECDC4;
+}
+
+.description-title {
+    color: #333;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.description-content {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    border: 2px solid #e9ecef;
+    color: #333;
+    line-height: 1.7;
+    font-size: 1rem;
+}
+
+/* Sección de equipamiento */
+.equipment-section-detail {
+    padding: 2rem 0;
+}
+
+.equipment-controls-detail {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 2rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 1rem;
+    border: 2px solid #e9ecef;
+}
+
+.controls-left-detail {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.btn-add-equipment-detail,
+.btn-bulk-manage {
+    background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+    color: white;
+    border: none;
+    padding: 0.875rem 1.75rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.btn-bulk-manage {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.btn-add-equipment-detail:hover,
+.btn-bulk-manage:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(78, 205, 196, 0.4);
+}
+
+.btn-bulk-manage:hover {
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-bulk-manage.active {
+    background: linear-gradient(135deg, #e55353 0%, #c0392b 100%);
+}
+
+.controls-center-detail {
+    flex: 1;
+    max-width: 400px;
+}
+
+.search-box-equipment-detail {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 0.75rem;
+    padding: 0.875rem 1.25rem;
+    transition: all 0.3s ease;
+}
+
+.search-box-equipment-detail:focus-within {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.search-box-equipment-detail i {
+    color: #6c757d;
+    margin-right: 0.875rem;
+    font-size: 1.1rem;
+}
+
+.search-box-equipment-detail input {
+    border: none;
+    background: transparent;
+    outline: none;
+    flex: 1;
+    font-size: 1rem;
+    color: #333;
+}
+
+.search-clear-detail {
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.search-clear-detail:hover {
+    color: #495057;
+    background: #f8f9fa;
+}
+
+.controls-right-detail {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.view-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-view-toggle,
+.btn-filter {
+    background: white;
+    border: 2px solid #e9ecef;
+    color: #6c757d;
+    width: 45px;
+    height: 45px;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.1rem;
+}
+
+.btn-view-toggle:hover,
+.btn-filter:hover {
+    border-color: #667eea;
+    color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+/* Filtros de equipamiento */
+.equipment-filters-detail {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    border: 2px solid #e9ecef;
+    margin-bottom: 2rem;
+}
+
+.filters-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    align-items: end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-group label {
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.filter-group select {
+    padding: 0.75rem;
+    border: 2px solid #e9ecef;
+    border-radius: 0.5rem;
+    background: white;
+    color: #333;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.filter-group select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    outline: none;
+}
+
+/* Vista de equipamiento */
+.equipment-container-detail {
+    min-height: 400px;
+}
+
+.equipment-grid-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+}
+
+.equipment-card-detail {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.equipment-card-detail:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+    border-color: #667eea;
+}
+
+.equipment-card-checkbox {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    z-index: 5;
+}
+
+.equipment-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+
+.equipment-card-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.equipment-card-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-card-action {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.btn-edit-card {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+    color: white;
+}
+
+.btn-delete-card {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+}
+
+.btn-card-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.equipment-card-body {
+    margin-bottom: 1.5rem;
+}
+
+.equipment-card-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 0.75rem;
+}
+
+.equipment-card-description {
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.equipment-card-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.stat-item-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    font-size: 0.95rem;
+    color: #495057;
+}
+
+.stat-item-card i {
+    color: #667eea;
+    width: 16px;
+    text-align: center;
+}
+
+/* Vista de tabla */
+.equipment-list-view {
+    background: white;
+    border-radius: 1rem;
+    overflow: hidden;
+    border: 2px solid #e9ecef;
+}
+
+.equipment-table-responsive {
+    overflow-x: auto;
+}
+
+.equipment-table-detail {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.equipment-table-detail th,
+.equipment-table-detail td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.equipment-table-detail th {
+    background: #f8f9fa;
+    font-weight: 700;
+    color: #495057;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.equipment-info-table {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.equipment-icon-small {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.equipment-name-table {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.25rem;
+}
+
+.equipment-desc-table {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.quantity-badge-table,
+.capacity-badge-table {
+    background: #4ECDC4;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.capacity-badge-table {
+    background: #667eea;
+}
+
+.no-capacity-table {
+    color: #adb5bd;
+    font-style: italic;
+}
+
+.status-badge-table {
+    padding: 0.4rem 0.8rem;
+    border-radius: 2rem;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-functional {
+    background: #d4edda;
+    color: #155724;
+}
+
+.date-table {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.table-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-table-action {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    font-size: 0.8rem;
+}
+
+.btn-edit-table {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+    color: white;
+}
+
+.btn-delete-table {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+}
+
+.btn-table-action:hover {
+    transform: scale(1.1);
+}
+
+/* Estado vacío */
+.empty-equipment-detail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    text-align: center;
+    color: #6c757d;
+    min-height: 400px;
+    background: white;
+    border-radius: 1rem;
+    border: 2px dashed #dee2e6;
+}
+
+.empty-icon-detail {
+    font-size: 5rem;
+    margin-bottom: 2rem;
+    color: #dee2e6;
+}
+
+.empty-equipment-detail h3 {
+    margin-bottom: 1rem;
+    color: #6c757d;
+}
+
+.empty-equipment-detail p {
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+}
+
+.btn-add-first-equipment {
+    background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    font-size: 1.1rem;
+}
+
+.btn-add-first-equipment:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(78, 205, 196, 0.4);
+}
+
+/* Modales */
+.modal-overlay-detail {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.modal-container-detail {
+    background: white;
+    border-radius: 1rem;
+    max-width: 800px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    animation: modalSlideIn 0.3s ease;
+}
+
+.modal-small {
+    max-width: 500px;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal-header-detail {
+    padding: 2rem 2rem 1rem 2rem;
+    border-bottom: 2px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header-detail h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1.5rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.btn-close-modal-detail {
+    background: none;
+    border: none;
+    color: #6c757d;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.btn-close-modal-detail:hover {
+    background: #f8f9fa;
+    color: #495057;
+}
+
+.modal-body-detail {
+    padding: 2rem;
+}
+
+.form-section-detail {
+    margin-bottom: 2rem;
+}
+
+.form-section-detail:last-child {
+    margin-bottom: 0;
+}
+
+.section-title-detail {
+    color: #333;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+/* Búsqueda de equipamiento en modal */
+.equipment-search-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.search-input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 0.75rem;
+    padding: 1rem 1.25rem;
+    transition: all 0.3s ease;
+}
+
+.search-input-group:focus-within {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.search-input-group i {
+    color: #6c757d;
+    margin-right: 1rem;
+    font-size: 1.1rem;
+}
+
+.search-input-group input {
+    border: none;
+    background: transparent;
+    outline: none;
+    flex: 1;
+    font-size: 1rem;
+    color: #333;
+}
+
+.available-equipment-grid {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 2px solid #e9ecef;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    background: #f8f9fa;
+}
+
+.available-equipment-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    background: white;
+    margin-bottom: 0.75rem;
+}
+
+.available-equipment-card:last-child {
+    margin-bottom: 0;
+}
+
+.available-equipment-card:hover {
+    border-color: rgba(102, 126, 234, 0.3);
+    background: rgba(102, 126, 234, 0.05);
+    transform: translateX(4px);
+}
+
+.available-equipment-card.selected {
+    border-color: #667eea;
+    background: rgba(102, 126, 234, 0.1);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.available-equipment-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.available-equipment-info {
+    flex: 1;
+}
+
+.available-equipment-info h6 {
+    margin: 0 0 0.25rem 0;
+    font-weight: 700;
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.available-equipment-info p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 0.95rem;
+}
+
+.available-equipment-action {
+    color: #28a745;
+    font-size: 1.8rem;
+    transition: all 0.3s ease;
+}
+
+.available-equipment-card:hover .available-equipment-action {
+    transform: scale(1.2);
+}
+
+.no-equipment-available-detail {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: #6c757d;
+}
+
+.no-equipment-available-detail i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: #dee2e6;
+}
+
+/* Detalles del equipamiento seleccionado */
+.selected-equipment-info {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    border: 2px solid #e9ecef;
+    margin-bottom: 2rem;
+}
+
+.selected-equipment-display {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.selected-equipment-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.selected-equipment-details h5 {
+    margin: 0 0 0.5rem 0;
+    color: #333;
+    font-weight: 700;
+    font-size: 1.2rem;
+}
+
+.selected-equipment-details p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 0.95rem;
+}
+
+.equipment-config-form {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    border: 2px solid #e9ecef;
+}
+
+.form-row-detail {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-row-detail:last-child {
+    margin-bottom: 0;
+}
+
+.form-group-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-label-detail {
+    font-weight: 700;
+    color: #495057;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-control-detail {
+    padding: 0.875rem;
+    border: 2px solid #e9ecef;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+    color: #333;
+}
+
+.form-control-detail:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    outline: none;
+}
+
+.form-control-detail[type="textarea"] {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.form-help {
+    color: #6c757d;
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+.modal-footer-detail {
+    padding: 1rem 2rem 2rem 2rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    border-top: 2px solid #e9ecef;
+}
+
+.btn-secondary-detail,
+.btn-primary-detail,
+.btn-danger-detail {
+    padding: 0.875rem 1.75rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    font-size: 1rem;
+    border: none;
+}
+
+.btn-secondary-detail {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-primary-detail {
+    background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+    color: white;
+}
+
+.btn-danger-detail {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+}
+
+.btn-secondary-detail:hover,
+.btn-primary-detail:hover,
+.btn-danger-detail:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.btn-primary-detail:disabled {
+    background: #adb5bd;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Modal de confirmación de eliminación */
+.delete-equipment-info {
+    margin-top: 1rem;
+}
+
+.delete-equipment-preview {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 0.75rem;
+    border-left: 4px solid #dc3545;
+}
+
+.delete-equipment-preview i {
+    color: #dc3545;
+    font-size: 1.5rem;
+}
+
+/* Notificaciones */
+.notification {
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    padding: 1rem 1.5rem;
+    border-radius: 0.75rem;
+    color: white;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    z-index: 2000;
+    animation: slideInRight 0.3s ease;
+    max-width: 400px;
+}
+
+.notification-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.notification-error {
+    background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
+}
+
+.notification-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);
+}
+
+.notification button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.notification button:hover {
+    opacity: 1;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ==================== RESPONSIVIDAD ==================== */
+
+@media (max-width: 1200px) {
+    .info-cards-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .equipment-grid-view {
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    }
+}
+
+@media (max-width: 992px) {
+    .header-content-lab {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 2rem;
+    }
+    
+    .lab-title {
+        font-size: 2rem;
+    }
+    
+    .stats-grid-detail {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+    
+    .equipment-controls-detail {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1.5rem;
+    }
+    
+    .controls-center-detail {
+        max-width: none;
+    }
+    
+    .controls-left-detail,
+    .controls-right-detail {
+        justify-content: center;
+    }
+    
+    .modal-container-detail {
+        width: 95%;
+        margin: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .lab-detail-header {
+        padding: 1.5rem 0;
+    }
+    
+    .lab-title {
+        font-size: 1.8rem;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .lab-main-content {
+        padding: 0 1rem 2rem 1rem;
+        border-radius: 0;
+    }
+    
+    .tab-navigation-detail {
+        flex-wrap: wrap;
+        justify-content: center;
+        padding-top: 1rem;
+    }
+    
+    .tab-btn-detail {
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
+    }
+    
+    .stats-grid-detail {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .stat-card-detail {
+        padding: 1.5rem;
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .equipment-grid-view {
+        grid-template-columns: 1fr;
+    }
+    
+    .equipment-card-detail {
+        padding: 1.25rem;
+    }
+    
+    .equipment-card-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: center;
+    }
+    
+    .modal-container-detail {
+        width: 100%;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+        margin: 0;
+    }
+    
+    .modal-header-detail,
+    .modal-body-detail,
+    .modal-footer-detail {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .lab-detail-page {
+        padding: 0;
+    }
+    
+    .header-content-lab {
+        padding: 0 1rem;
+    }
+    
+    .lab-title {
+        font-size: 1.5rem;
+    }
+    
+    .lab-actions-header {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .btn-edit-lab,
+    .btn-refresh-detail {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .tab-btn-detail {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .controls-left-detail {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .btn-add-equipment-detail,
+    .btn-bulk-manage {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .form-row-detail {
+        grid-template-columns: 1fr;
+    }
+    
+    .available-equipment-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .notification {
+        top: 1rem;
+        right: 1rem;
+        left: 1rem;
+        max-width: none;
+    }
+}
+</style>
+{% endblock %} 
