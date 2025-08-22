@@ -16,6 +16,8 @@ def get_areas():
             cursor.close()
             connection.close()
             return jsonify({'success': True, 'areas': areas}), 200
+        # Fallback si no hay conexión
+        return jsonify({'success': False, 'message': 'Error de conexión a la base de datos'}), 500
     except Exception as e:
         print(f"Error al obtener áreas: {str(e)}")
         return jsonify({'success': False, 'message': 'Error al obtener áreas'}), 500
