@@ -272,14 +272,14 @@
                 <div class="form-group">
                         <label for="username" class="form-label">
                             <i class="fas fa-user"></i>
-                            <span>Usuario</span>
+                            <span>Usuario / Email / Teléfono</span>
                         </label>
                         <div class="input-wrapper">
                             <input type="text" 
                                    id="username" 
                                    name="username" 
                                    class="form-control" 
-                                   placeholder="Ingrese su nombre de usuario"
+                                   placeholder="Ingrese su usuario, email o teléfono"
                                    required 
                                    autocomplete="username">
                             <div class="input-icon">
@@ -338,7 +338,7 @@
                     <div class="divider">
                         <span>¿No tienes cuenta?</span>
                     </div>
-                    <a href="{{ url_for('auth.register') }}" class="register-btn">
+                    <a href="{{ url_for('register.register') }}" class="register-btn">
                         <i class="fas fa-user-plus"></i>
                         <span>Crear cuenta nueva</span>
                     </a>

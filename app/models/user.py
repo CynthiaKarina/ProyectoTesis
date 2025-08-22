@@ -10,24 +10,26 @@ class User(db.Model, UserMixin):
     __tablename__ = 'usuario'
     
     id_usuario = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(128))
-    nombre = db.Column(db.String(100))
-    apellido_paterno = db.Column(db.String(100))  # Apellido Paterno
-    apellido_materno = db.Column(db.String(100))  # Apellido Materno
-    telefono = db.Column(db.String(20))
-    ruta_imagen = db.Column(db.String(255))
-    fecha_registro = db.Column(db.DateTime, default=datetime.utcnow)
+    nombre = db.Column(db.String(35), nullable=False)
+    apellido_paterno = db.Column(db.String(35), nullable=False)
+    apellido_materno = db.Column(db.String(35), nullable=False)
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    username = db.Column(db.String(35), unique=True, nullable=False)
+    password = db.Column(db.String(255), nullable=False)
+    telefono = db.Column(db.String(20), unique=True, nullable=False)
+    id_institucion = db.Column(db.Integer, db.ForeignKey('institucion.id_institucion'), nullable=True)
+    matricula = db.Column(db.String(50), unique=True, nullable=True)
+    id_rol = db.Column(db.Integer, db.ForeignKey('roles.id_rol'), nullable=False, default=2)
+    fecha_cambio = db.Column(db.DateTime, default=db.func.current_timestamp())
+    ruta_imagen = db.Column(db.String(255), nullable=True)
+    fecha_registro = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    ultima_actualizacion_password = db.Column(db.DateTime, default=db.func.current_timestamp())
     activo = db.Column(db.Boolean, default=True)
+    id_area = db.Column(db.Integer, db.ForeignKey('area.id_area'), nullable=True)
     fecha_creacion = db.Column(db.DateTime, default=db.func.current_timestamp())
     fecha_modificacion = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
     ultimo_acceso = db.Column(db.DateTime, default=db.func.current_timestamp())
-    
-    # Claves foráneas
-    id_institucion = db.Column(db.Integer, db.ForeignKey('institucion.id_institucion'), nullable=True)
-    id_area = db.Column(db.Integer, db.ForeignKey('area.id_area'), nullable=True)
-    id_rol = db.Column(db.Integer, db.ForeignKey('roles.id_rol'), nullable=True)
+    rol_adicional = db.Column(db.Integer, nullable=True)
     
     # Relaciones
     institucion = db.relationship('Institucion', back_populates='usuarios', lazy=True)
@@ -73,7 +75,7 @@ class User(db.Model, UserMixin):
     
     def actualizar_password(self, nueva_password):
         self.password = nueva_password
-        self.ultima_actualizacion_password = datetime.now()
+        self.ultima_actualizacion_password = datetime.utcnow()
     
     @property
     def nombre_completo(self):
@@ -137,12 +139,16 @@ class User(db.Model, UserMixin):
             'apellido_paterno': self.apellido_paterno,
             'apellido_materno': self.apellido_materno,
             'telefono': self.telefono,
+            'matricula': self.matricula,
             'ruta_imagen': self.ruta_imagen,
             'activo': self.activo,
             'fecha_creacion': self.fecha_creacion.isoformat() if self.fecha_creacion else None,
+            'fecha_cambio': self.fecha_cambio.isoformat() if self.fecha_cambio else None,
+            'ultima_actualizacion_password': self.ultima_actualizacion_password.isoformat() if self.ultima_actualizacion_password else None,
             'institucion': self.institucion.nombre_institucion if self.institucion else None,
             'area': self.area.nombre_area if self.area else None,
             'rol': self.roles.nombre_rol if self.roles else None,
+            'rol_adicional': self.rol_adicional,
             'estadisticas': {
                 'total_solicitudes': self.total_solicitudes,
                 'solicitudes_aprobadas': self.solicitudes_aprobadas,

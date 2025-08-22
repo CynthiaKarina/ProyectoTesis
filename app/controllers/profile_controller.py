@@ -72,12 +72,36 @@ def ver_perfil():
         current_app.logger.error(f"Error obteniendo permisos del usuario: {str(e)}")
         flash('Error al cargar información de permisos', 'warning')
         
+    # Instituciones adicionales
+    extra_instituciones = []
+    try:
+        from app.database.connection import get_db_connection
+        conn = get_db_connection()
+        if conn:
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute(
+                """
+                SELECT i.id_institucion, i.nombre_institucion
+                FROM usuario_institucion ui
+                JOIN institucion i ON i.id_institucion = ui.id_institucion
+                WHERE ui.id_usuario = %s
+                ORDER BY i.nombre_institucion
+                """,
+                (user.id_usuario,)
+            )
+            extra_instituciones = cursor.fetchall()
+            cursor.close()
+            conn.close()
+    except Exception as e:
+        current_app.logger.warning(f"No fue posible obtener instituciones adicionales: {e}")
+
     return render_template('perfil.html', 
                          user=user,
                          user_permissions=user_permissions,
                          user_role_name=user_role_name,
                          is_user_admin=is_user_admin,
-                         permission_categories=permission_categories)
+                         permission_categories=permission_categories,
+                         extra_instituciones=extra_instituciones)
 
 
 @profile_bp.route('/editar-perfil', methods=['GET', 'POST'])
@@ -337,3 +361,105 @@ def actualizar_area():
         db.session.rollback()
         current_app.logger.error(f"Error actualizando área: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500 
+
+
+@profile_bp.route('/perfil/solicitar-investigador', methods=['POST'])
+@login_required
+def solicitar_investigador():
+    try:
+        user = current_user
+        ids = request.form.getlist('id_instituciones')
+        conn = None
+        try:
+            from app.database.connection import get_db_connection
+            conn = get_db_connection()
+            if conn and ids:
+                cursor = conn.cursor()
+                for inst in ids:
+                    try:
+                        cursor.execute(
+                            "INSERT IGNORE INTO usuario_institucion (id_usuario, id_institucion) VALUES (%s, %s)",
+                            (user.id_usuario, int(inst))
+                        )
+                    except Exception:
+                        continue
+                conn.commit()
+                cursor.close()
+        except Exception:
+            pass
+
+        # Crear solicitud de rol investigador
+        try:
+            from app.models.role_request import RoleRequest
+            from app import db
+            from app.utils.notifications import notify_super_admins
+            rr = RoleRequest(id_usuario=user.id_usuario, requested_role='investigador')
+            db.session.add(rr)
+            db.session.commit()
+            notify_super_admins(
+                subject='SIGRAL - Nueva solicitud de rol (investigador)',
+                message=f'Usuario ID {user.id_usuario} solicitó: investigador'
+            )
+            flash('Solicitud enviada. Un Super Admin revisará tu petición.', 'success')
+        except Exception as e:
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
+            flash(f'No fue posible enviar la solicitud: {e}', 'error')
+        return redirect(url_for('profile.ver_perfil'))
+    except Exception as e:
+        flash(f'Error al procesar la solicitud: {e}', 'error')
+        return redirect(url_for('profile.ver_perfil'))
+
+
+@profile_bp.route('/perfil/solicitar-rol', methods=['POST'])
+@login_required
+def solicitar_rol():
+    try:
+        user = current_user
+        requested_role = request.form.get('requested_role')
+        lab_id = request.form.get('lab_id')
+        ids = request.form.getlist('id_instituciones')
+        if requested_role not in ['investigador', 'administrativo', 'admin_laboratorio']:
+            flash('Tipo de usuario solicitado inválido', 'error')
+            return redirect(url_for('profile.ver_perfil'))
+
+        # guardar instituciones si solicita investigador
+        try:
+            if requested_role == 'investigador' and ids:
+                from app.database.connection import get_db_connection
+                conn = get_db_connection()
+                if conn:
+                    cursor = conn.cursor()
+                    for inst in ids:
+                        try:
+                            cursor.execute("INSERT IGNORE INTO usuario_institucion (id_usuario, id_institucion) VALUES (%s, %s)", (user.id_usuario, int(inst)))
+                        except Exception:
+                            continue
+                    conn.commit()
+                    cursor.close()
+        except Exception:
+            pass
+
+        # crear role_request
+        try:
+            from app.models.role_request import RoleRequest
+            from app import db
+            from app.utils.notifications import notify_super_admins
+            rr = RoleRequest(id_usuario=user.id_usuario, requested_role=requested_role,
+                             id_laboratorio=(int(lab_id) if lab_id and lab_id.strip() and requested_role=='admin_laboratorio' else None))
+            db.session.add(rr)
+            db.session.commit()
+            notify_super_admins(subject='SIGRAL - Nueva solicitud de rol', message=f'Usuario ID {user.id_usuario} solicitó: {requested_role}{f" (lab_id={lab_id})" if rr.id_laboratorio else ""}')
+            flash('Solicitud enviada. Un Super Admin revisará tu petición.', 'success')
+        except Exception as e:
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
+            flash(f'No fue posible enviar la solicitud: {e}', 'error')
+        return redirect(url_for('profile.ver_perfil'))
+    except Exception as e:
+        flash(f'Error al procesar la solicitud: {e}', 'error')
+        return redirect(url_for('profile.ver_perfil'))

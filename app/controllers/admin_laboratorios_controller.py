@@ -5,6 +5,7 @@ from app.models.area import Area
 from app.models.institucion import Institucion
 from app.models.tipo_laboratorio import Tipo_Laboratorio
 from app.models.user import User
+from app.models.laboratorio_admin import LaboratorioAdmin
 from app.models.laboratorio_imagen import LaboratorioImagen
 from app import db
 from datetime import datetime
@@ -125,6 +126,9 @@ def detalle_laboratorio(id):
         instituciones = Institucion.query.all()
         tipos_laboratorio = Tipo_Laboratorio.query.all()
         usuarios = User.query.filter(User.activo == True).all()
+        # Admins actuales
+        admins = LaboratorioAdmin.query.filter_by(id_laboratorio=id).all()
+        admin_users = [User.query.get(a.id_usuario) for a in admins]
         
         # TODO: Calcular estadísticas de equipamiento cuando se implemente
         # Por ahora valores por defecto
@@ -137,12 +141,47 @@ def detalle_laboratorio(id):
                              instituciones=instituciones,
                              tipos_laboratorio=tipos_laboratorio,
                              usuarios=usuarios,
+                             admin_users=admin_users,
                              total_equipamiento=total_equipamiento,
                              capacidad_total=capacidad_total)
-        
     except Exception as e:
         flash(f'Error al cargar detalles del laboratorio: {str(e)}', 'error')
         return redirect(url_for('admin_laboratorios.admin_laboratorios'))
+@admin_laboratorios_bp.route('/admin/laboratorios/<int:id>/admins', methods=['POST'])
+@login_required
+@permission_required('gestionar_laboratorios')
+def agregar_admin_laboratorio(id):
+    try:
+        id_usuario = int(request.form.get('id_usuario'))
+        if not User.query.get(id_usuario):
+            flash('Usuario no encontrado', 'error')
+            return redirect(url_for('admin_laboratorios.detalle_laboratorio', id=id))
+        exists = LaboratorioAdmin.query.filter_by(id_laboratorio=id, id_usuario=id_usuario).first()
+        if exists:
+            flash('Este usuario ya es administrador del laboratorio', 'info')
+            return redirect(url_for('admin_laboratorios.detalle_laboratorio', id=id))
+        db.session.add(LaboratorioAdmin(id_laboratorio=id, id_usuario=id_usuario))
+        db.session.commit()
+        flash('Administrador agregado correctamente', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al agregar administrador: {e}', 'error')
+    return redirect(url_for('admin_laboratorios.detalle_laboratorio', id=id))
+
+@admin_laboratorios_bp.route('/admin/laboratorios/<int:id>/admins/<int:id_usuario>', methods=['DELETE'])
+@login_required
+@permission_required('gestionar_laboratorios')
+def eliminar_admin_laboratorio(id, id_usuario):
+    try:
+        rel = LaboratorioAdmin.query.filter_by(id_laboratorio=id, id_usuario=id_usuario).first()
+        if not rel:
+            return jsonify({'success': False, 'message': 'Relación no encontrada'}), 404
+        db.session.delete(rel)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 
 

@@ -1,0 +1,134 @@
+.admin-stats {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: stretch;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    width: 100%;
+    min-width: 0;
+}
+
+.admin-stats::-webkit-scrollbar {
+    height: 6px;
+}
+
+.admin-stats::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.admin-stats::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.admin-stats::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    flex: 1;
+    min-width: 0;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    background: #f8f9fa;
+    color: #6c757d;
+    flex-shrink: 0;
+}
+
+.stat-icon.active {
+    background: #28a745;
+    color: white;
+}
+
+.stat-icon.inactive {
+    background: #dc3545;
+    color: white;
+}
+
+.stat-content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@media (max-width: 768px) {
+    .admin-stats {
+        gap: 1rem;
+    }
+
+    .stat-card {
+        padding: 1rem;
+    }
+
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.25rem;
+    }
+
+    .stat-number {
+        font-size: 1.25rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .stat-card {
+        padding: 0.75rem;
+    }
+
+    .stat-icon {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+    }
+
+    .stat-number {
+        font-size: 1.1rem;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+    }
+} 

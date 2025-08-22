@@ -20,7 +20,7 @@
 
 <!-- Contenedor principal -->
 <div class="register-container d-flex justify-content-center align-items-center">
-    <div class="login-form-container register-card">
+    <div class="register-form-container register-card">
         <!-- Encabezado -->
         <div class="login-form-header register-header">
             <div class="login-icon">
@@ -52,7 +52,7 @@
         {% endwith %}
 
         <!-- Formulario de registro -->
-        <form action="{{ url_for('auth.register') }}" method="POST" class="login-form" id="registerForm">
+        <form action="{{ url_for('register.register') }}" method="POST" class="login-form" id="registerForm">
             <!-- Fila 1 -->
             <div class="form-row">
                 <div class="form-group">
@@ -80,9 +80,16 @@
             <!-- Fila 2 -->
             <div class="form-row">
                 <div class="form-group">
-                    <label for="username" class="form-label"><i class="fas fa-id-card"></i><span> Matrícula</span></label>
+                    <label for="username" class="form-label"><i class="fas fa-user"></i><span> Usuario</span></label>
                     <div class="input-wrapper">
-                        <input type="text" id="username" name="username" class="form-control" placeholder="Ingresa tu matrícula" required>
+                        <input type="text" id="username" name="username" class="form-control" placeholder="Ingresa tu nombre de usuario" required>
+                    </div>
+                </div>
+
+                <div class="form-group" id="group_matricula" style="display:none">
+                    <label for="matricula" class="form-label"><i class="fas fa-id-card"></i><span id="label_matricula"> Matrícula</span></label>
+                    <div class="input-wrapper">
+                        <input type="text" id="matricula" name="matricula" class="form-control" placeholder="Ingresa tu matrícula">
                     </div>
                 </div>
 
@@ -99,21 +106,46 @@
                         <input type="tel" id="telefono" name="telefono" class="form-control" placeholder="Ingresa tu teléfono" required>
                     </div>
                 </div>
+            </div>
+
+            <!-- Tipo de usuario -->
+            <div class="form-row">
+                <div class="form-group" style="flex:1 1 100%">
+                    <label class="form-label"><i class="fas fa-users-cog"></i><span> Tipo de usuario</span></label>
+                    <div class="input-wrapper">
+                        <select id="user_type" name="user_type" class="form-control" required>
+                            <option value="">Selecciona un tipo de usuario</option>
+                            <option value="normal" selected>Usuario (sin afiliación)</option>
+                            <option value="estudiante">Estudiante</option>
+                            <option value="docente">Docente</option>
+                            <option value="investigador">Investigador</option>
+                            <option value="administrativo">Usuario administrativo (requiere aprobación)</option>
+                            <option value="admin_laboratorio">Administrador de laboratorio (requiere aprobación)</option>
+                        </select>
+                    </div>
                 </div>
+            </div>
 
             <!-- Fila 3 Selecciones -->
             <div class="form-row">
-                <div class="form-group">
-                    <label for="id_area" class="form-label"><i class="fas fa-graduation-cap"></i><span> Área</span></label>
-                    <select id="id_area" name="id_area" required class="form-control"></select>
+                <div class="form-group" id="group_area" style="display:none">
+                    <label for="id_area" class="form-label"><i class="fas fa-graduation-cap"></i><span id="label_area"> Área (Opcional)</span></label>
+                    <select id="id_area" name="id_area" class="form-control"></select>
                 </div>
 
-                <div class="form-group">
-                    <label for="id_institucion" class="form-label"><i class="fas fa-building"></i><span> Institución</span></label>
+                <div class="form-group" id="group_institucion" style="display:none">
+                    <label for="id_institucion" class="form-label"><i class="fas fa-building"></i><span id="label_institucion"> Institución (Opcional)</span></label>
                     <div class="input-wrapper">
-                        <select id="id_institucion" name="id_institucion" required class="form-control">
-                            <option value="">Selecciona una institución</option>
+                        <select id="id_institucion" name="id_institucion" class="form-control">
+                            <option value="">Sin institución específica</option>
                         </select>
+                    </div>
+                </div>
+                <div class="form-group" id="group_instituciones_multi" style="display:none">
+                    <label for="id_instituciones" class="form-label"><i class="fas fa-building"></i><span> Instituciones adicionales (solo investigador)</span></label>
+                    <div class="input-wrapper">
+                        <select id="id_instituciones" name="id_instituciones" class="form-control" multiple></select>
+                        <small class="text-muted">Selecciona una o más instituciones si perteneces a varias.</small>
                     </div>
                 </div>
             </div>
@@ -140,19 +172,43 @@
             <div class="requirements-card">
                 <h3><i class="fas fa-shield-alt"></i> Requisitos de la cuenta</h3>
                 <ul class="requirements-list">
-                    <li id="matricula-check"><i class="fas fa-check-circle"></i> Matrícula válida (mínimo 6 caracteres alfanuméricos)</li>
+                    <li id="username-check"><i class="fas fa-check-circle"></i> Usuario válido (mínimo 3 caracteres)</li>
+                    <li id="matricula-check"><i class="fas fa-check-circle"></i> Matrícula válida (8-10 caracteres alfanuméricos)</li>
                     <li id="email-check"><i class="fas fa-check-circle"></i> Correo electrónico válido</li>
                     <li id="phone-check"><i class="fas fa-check-circle"></i> Teléfono válido (10 dígitos)</li>
-                    <li id="password-length"><i class="fas fa-check-circle"></i> Contraseña de al menos 6 caracteres</li>
+                    <li id="password-length"><i class="fas fa-check-circle"></i> Contraseña de 8-12 caracteres</li>
+                    <li id="password-uppercase"><i class="fas fa-check-circle"></i> Al menos una letra mayúscula</li>
+                    <li id="password-lowercase"><i class="fas fa-check-circle"></i> Al menos una letra minúscula</li>
+                    <li id="password-special"><i class="fas fa-check-circle"></i> Al menos un carácter especial (.,*+$&#!)</li>
                     <li id="password-match"><i class="fas fa-check-circle"></i> Las contraseñas coinciden</li>
-                    <li id="area-check"><i class="fas fa-check-circle"></i> Área seleccionada</li>
-                    <li id="institucion-check"><i class="fas fa-check-circle"></i> Institución seleccionada</li>
+                    <li id="area-check"><i class="fas fa-check-circle"></i> Área seleccionada (opcional)</li>
+                    <li id="institucion-check"><i class="fas fa-check-circle"></i> Institución seleccionada (opcional)</li>
                 </ul>
+            </div>
+
+            <!-- Solicitudes de roles avanzados -->
+            <div class="form-row">
+                <div class="form-group" style="flex:1 1 100%">
+                    <label class="form-label"><i class="fas fa-user-shield"></i><span> Solicitar roles avanzados (requiere aprobación)</span></label>
+                    <div class="d-flex" style="gap:16px; flex-wrap:wrap">
+                        <label class="d-flex align-items-center" style="gap:8px; display:none">
+                            <input type="checkbox" name="wants_admin_inst" id="wants_admin_inst"> Usuario administrativo
+                        </label>
+                        <label class="d-flex align-items-center" style="gap:8px; display:none">
+                            <input type="checkbox" name="wants_lab_admin" id="wants_lab_admin"> Admin de laboratorio
+                        </label>
+                        <div id="labSelector" style="display:none; gap:8px" class="d-flex align-items-center">
+                            <select id="lab_id" name="lab_id" class="form-control" style="min-width:260px"></select>
+                            <small class="text-muted">Selecciona el laboratorio que administrará</small>
+                        </div>
+                        <small id="labHelpHint" class="text-muted" style="display:none">El campo laboratorio solo aplica cuando seleccionas el rol "Administrador de laboratorio".</small>
+                    </div>
+                </div>
             </div>
 
             <!-- Acciones -->
             <div class="form-actions flex-column-mobile">
-                <button type="submit" class="login-btn" id="submitBtn" disabled>
+                <button type="submit" class="login-btn" id="submitBtn">
                     <span class="btn-text"><i class="fas fa-user-plus"></i> Registrarse</span>
                 </button>
                 <a href="{{ url_for('auth.login') }}" class="register-btn mt-3">
@@ -172,8 +228,8 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
 <script>
     // Variables globales
-    let form, username, email, telefono, password, confirmPassword, area, institucion;
-    let matriculaCheck, emailCheck, phoneCheck, passwordLength, passwordMatch, areaCheck, institucionCheck;
+    let form, username, matricula, email, telefono, password, confirmPassword, area, institucion, userType;
+    let usernameCheck, matriculaCheck, emailCheck, phoneCheck, passwordLength, passwordUppercase, passwordLowercase, passwordSpecial, passwordMatch, areaCheck, institucionCheck;
     let strengthBar, submitBtn;
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -182,18 +238,27 @@
         // Obtener elementos del DOM
         form = document.getElementById('registerForm');
         username = document.getElementById('username');
+        matricula = document.getElementById('matricula');
         email = document.getElementById('email');
         telefono = document.getElementById('telefono');
         password = document.getElementById('password');
         confirmPassword = document.getElementById('confirm_password');
         area = document.getElementById('id_area');
         institucion = document.getElementById('id_institucion');
+        userType = document.getElementById('user_type');
+        const wantsLabAdmin = document.getElementById('wants_lab_admin');
+        const labSelector = document.getElementById('labSelector');
+        const labSelect = document.getElementById('lab_id');
         
         // Elementos de validación
+        usernameCheck = document.getElementById('username-check');
         matriculaCheck = document.getElementById('matricula-check');
         emailCheck = document.getElementById('email-check');
         phoneCheck = document.getElementById('phone-check');
         passwordLength = document.getElementById('password-length');
+        passwordUppercase = document.getElementById('password-uppercase');
+        passwordLowercase = document.getElementById('password-lowercase');
+        passwordSpecial = document.getElementById('password-special');
         passwordMatch = document.getElementById('password-match');
         areaCheck = document.getElementById('area-check');
         institucionCheck = document.getElementById('institucion-check');
@@ -204,7 +269,7 @@
         // Botón de envío
         submitBtn = document.getElementById('submitBtn');
 
-        // Verificar que todos los elementos existen
+        // Verificar que todos los elementos existen (matricula puede no existir aún)
         if (!form || !username || !email || !telefono || !password || !confirmPassword || !submitBtn) {
             console.error('Error: No se encontraron todos los elementos del formulario');
             return;
@@ -214,9 +279,65 @@
 
         // Configurar eventos de validación
         username.addEventListener('input', function() {
+            console.log('Validando usuario:', this.value);
+            validateForm();
+            actualizarProgreso();
+        });
+        
+        matricula.addEventListener('input', function() {
             console.log('Validando matrícula:', this.value);
             validateForm();
             actualizarProgreso();
+        });
+
+        userType.addEventListener('change', applyTypeUI);
+
+        // Escuchar cambios siempre (nativo) en institución/área
+        if (institucion) {
+            institucion.addEventListener('change', function() {
+                console.log('[UI] Cambio institución (listener base):', institucion.value);
+                const labSelectEl = document.getElementById('lab_id');
+                if (labSelectEl) labSelectEl.innerHTML = '<option value="">Selecciona un laboratorio</option>';
+                cargarLaboratoriosPorInstitucion();
+            });
+        }
+        if (area) {
+            area.addEventListener('change', function() {
+                console.log('[UI] Cambio área (listener base):', area.value);
+                const labSelectEl = document.getElementById('lab_id');
+                if (labSelectEl) labSelectEl.innerHTML = '<option value="">Selecciona un laboratorio</option>';
+                cargarLaboratoriosPorInstitucion();
+            });
+        }
+
+        // Si Select2 está disponible, escuchar el evento select2:select también
+        try {
+            if (typeof $ !== 'undefined') {
+                if ($('#id_institucion').length) {
+                    $('#id_institucion').on('select2:select', function() {
+                        console.log('[UI] Cambio institución (select2):', this.value);
+                        const labSelectEl = document.getElementById('lab_id');
+                        if (labSelectEl) labSelectEl.innerHTML = '<option value="">Selecciona un laboratorio</option>';
+                        cargarLaboratoriosPorInstitucion();
+                    });
+                }
+                if ($('#id_area').length) {
+                    $('#id_area').on('select2:select', function() {
+                        console.log('[UI] Cambio área (select2):', this.value);
+                        const labSelectEl = document.getElementById('lab_id');
+                        if (labSelectEl) labSelectEl.innerHTML = '<option value="">Selecciona un laboratorio</option>';
+                        cargarLaboratoriosPorInstitucion();
+                    });
+                }
+            }
+        } catch (e) { console.warn('No se pudo adjuntar listeners select2:', e); }
+
+        // Mostrar selector de laboratorio si solicita admin de laboratorio (compatibilidad)
+        wantsLabAdmin.addEventListener('change', function() {
+            labSelector.style.display = this.checked ? 'flex' : 'none';
+            if (this.checked) {
+                try { cargarLaboratoriosPorInstitucion(); } catch (e) { console.warn('No se pudo cargar labs (compat):', e); }
+            }
         });
         
         email.addEventListener('input', function() {
@@ -245,22 +366,27 @@
         });
 
         // Eventos para otros campos
-        document.getElementById('nombre').addEventListener('input', actualizarProgreso);
-        document.getElementById('apellido_paterno').addEventListener('input', actualizarProgreso);
-        document.getElementById('apellido_materno').addEventListener('input', actualizarProgreso);
+        const nombreEl = document.getElementById('nombre');
+        const apPatEl = document.getElementById('apellido_paterno');
+        const apMatEl = document.getElementById('apellido_materno');
+        if (nombreEl) nombreEl.addEventListener('input', () => { validateForm(); actualizarProgreso(); });
+        if (apPatEl) apPatEl.addEventListener('input', () => { validateForm(); actualizarProgreso(); });
+        if (apMatEl) apMatEl.addEventListener('input', () => { validateForm(); actualizarProgreso(); });
 
         // Validar antes de enviar
         form.addEventListener('submit', function(e) {
             console.log('Enviando formulario, validando...');
             validateForm();
             
-            const todosValidos = matriculaCheck.classList.contains('valid') &&
+            const todosValidos = usernameCheck.classList.contains('valid') &&
+                matriculaCheck.classList.contains('valid') &&
                 emailCheck.classList.contains('valid') &&
                 phoneCheck.classList.contains('valid') &&
                 passwordLength.classList.contains('valid') &&
-                passwordMatch.classList.contains('valid') &&
-                areaCheck.classList.contains('valid') &&
-                institucionCheck.classList.contains('valid');
+                passwordUppercase.classList.contains('valid') &&
+                passwordLowercase.classList.contains('valid') &&
+                passwordSpecial.classList.contains('valid') &&
+                passwordMatch.classList.contains('valid'); // Área e institución removidas porque son opcionales
                 
             if (!todosValidos) {
                 e.preventDefault();
@@ -274,23 +400,135 @@
         // Cargar datos
         cargarAreas();
         cargarInstituciones();
+        // Si viene ya marcado desde atrás, cargar labs
+        if (wantsLabAdmin.checked) cargarLaboratoriosPorInstitucion();
+        // Aplicar UI inicial según tipo
+        applyTypeUI();
         
-        // Inicializar progreso
+        // Inicializar UI y validaciones
+        applyTypeUI();
+        validateForm();
         actualizarProgreso();
     });
+
+    function setGroupVisibleById(groupId, visible) {
+        const el = document.getElementById(groupId);
+        if (el) el.style.display = visible ? '' : 'none';
+    }
+
+    function applyTypeUI() {
+        const type = userType ? userType.value : '';
+        const isStudent = type === 'estudiante';
+        const isResearcher = type === 'investigador';
+        const isTeacher = type === 'docente';
+        const isAdminLab = type === 'admin_laboratorio';
+        const isAdminInst = type === 'administrativo';
+
+        // Sincronizar checkboxes de compatibilidad para backend
+        const wantsAdminInst = document.getElementById('wants_admin_inst');
+        const wantsLabAdmin = document.getElementById('wants_lab_admin');
+        if (wantsAdminInst) wantsAdminInst.checked = isAdminInst;
+        if (wantsLabAdmin) wantsLabAdmin.checked = isAdminLab;
+
+        // Reset de valores cuando no hay rol seleccionado
+        if (!type) {
+            if (matricula) matricula.value = '';
+            if (area) { try { $(area).val('').trigger('change'); } catch (_) { area.value = ''; } }
+            if (institucion) { try { $(institucion).val('').trigger('change'); } catch (_) { institucion.value = ''; } }
+            const labSelectReset = document.getElementById('lab_id');
+            if (labSelectReset) labSelectReset.innerHTML = '<option value="">Selecciona un laboratorio</option>';
+        }
+
+        // Visibilidad de grupos
+        setGroupVisibleById('group_matricula', isStudent);
+        setGroupVisibleById('group_area',     isStudent || isTeacher || isResearcher || isAdminLab);
+        setGroupVisibleById('group_institucion', isStudent || isTeacher || isResearcher || isAdminLab || isAdminInst);
+        setGroupVisibleById('group_instituciones_multi', isResearcher);
+
+        // Asteriscos/estados visuales
+        const groupMat = document.getElementById('group_matricula');
+        const groupArea = document.getElementById('group_area');
+        const groupInst = document.getElementById('group_institucion');
+        if (groupMat) groupMat.classList.toggle('required', isStudent);
+        if (groupArea) groupArea.classList.toggle('required', (isResearcher || isAdminLab));
+        if (groupInst) groupInst.classList.toggle('required', (isAdminLab || isAdminInst || isResearcher));
+        // Requeridos y etiquetas
+        const areaLabel = document.getElementById('label_area');
+        const instLabel = document.getElementById('label_institucion');
+        const matLabel = document.getElementById('label_matricula');
+        if (matricula) matricula.required = isStudent;
+        if (area) area.required = (isResearcher || isAdminLab);
+        if (areaLabel) areaLabel.textContent = (isResearcher || isAdminLab) ? ' Área (Requerido)' : ' Área (Opcional)';
+        if (institucion) institucion.required = (isAdminLab || isAdminInst || isResearcher);
+        if (instLabel) instLabel.textContent = (isAdminLab || isAdminInst || isResearcher) ? ' Institución (Requerido)' : ' Institución (Opcional)';
+        if (matLabel) matLabel.textContent = isStudent ? ' Matrícula (Requerido)' : ' Matrícula (Opcional)';
+
+        // Carga condicional de catálogos al volverse visibles
+        try {
+            const instSelect = document.getElementById('id_institucion');
+            if ((isAdminLab || isAdminInst || isResearcher) && instSelect && instSelect.options.length <= 1) {
+                cargarInstituciones();
+            }
+        } catch (_) {}
+        try {
+            const areaSelect = document.getElementById('id_area');
+            if ((isStudent || isTeacher || isResearcher || isAdminLab) && areaSelect && areaSelect.options.length <= 1) {
+                cargarAreas();
+            }
+        } catch (_) {}
+
+        // Selector de laboratorio
+        const labSelector = document.getElementById('labSelector');
+        if (labSelector) {
+            labSelector.style.display = isAdminLab ? 'flex' : 'none';
+            const labHelp = document.getElementById('labHelpHint');
+            if (labHelp) labHelp.style.display = isAdminLab ? 'none' : 'block';
+            const labSelect = document.getElementById('lab_id');
+            if (isAdminLab) {
+                // Si ya hay institución seleccionada, cargar laboratorios de inmediato
+                cargarLaboratoriosPorInstitucion();
+            } else {
+                if (labSelect) labSelect.innerHTML = '<option value="">Selecciona un laboratorio</option>';
+                labSelector.classList.remove('invalid');
+            }
+        }
+
+        validateForm();
+        actualizarProgreso();
+    }
 
     function validateForm() {
         console.log('Ejecutando validateForm');
         
+        // Validar usuario
+        if (username && username.value.length >= 3) {
+            usernameCheck.classList.add('valid');
+            console.log('Usuario válido');
+        } else {
+            usernameCheck.classList.remove('valid');
+            console.log('Usuario inválido');
+        }
+        
         // Validar matrícula
-        const matriculaRegex = /^[A-Z0-9]{6,10}$/i;
-        if (username && matriculaRegex.test(username.value)) {
+        const matriculaRegex = /^[A-Z0-9]{8,10}$/i;
+        const isStudent = userType && userType.value === 'estudiante';
+        if (!isStudent) {
+            matriculaCheck.classList.add('valid');
+        } else if (matricula && matriculaRegex.test(matricula.value)) {
             matriculaCheck.classList.add('valid');
             console.log('Matrícula válida');
         } else {
             matriculaCheck.classList.remove('valid');
             console.log('Matrícula inválida');
         }
+
+        // Marcar grupos como invalid/valid visualmente
+        const groupMat = document.getElementById('group_matricula');
+        const groupArea = document.getElementById('group_area');
+        const groupInst = document.getElementById('group_institucion');
+        if (groupMat) groupMat.classList.toggle('invalid', matricula && matricula.required && !matricula.value.trim());
+        if (groupArea) groupArea.classList.toggle('invalid', area && area.required && (!area.value || area.value === ''));
+        if (groupInst) groupInst.classList.toggle('invalid', institucion && institucion.required && (!institucion.value || institucion.value === ''));
 
         // Validar email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -312,13 +550,40 @@
             console.log('Teléfono inválido');
         }
 
-        // Validar longitud de contraseña
-        if (password && password.value.length >= 6) {
+        // Validar longitud de contraseña (8-12 caracteres)
+        if (password && password.value.length >= 8 && password.value.length <= 64) {
             passwordLength.classList.add('valid');
-            console.log('Contraseña válida');
+            console.log('Longitud de contraseña válida');
         } else {
             passwordLength.classList.remove('valid');
-            console.log('Contraseña muy corta');
+            console.log('Longitud de contraseña inválida');
+        }
+        
+        // Validar letra mayúscula
+        if (password && /[A-Z]/.test(password.value)) {
+            passwordUppercase.classList.add('valid');
+            console.log('Mayúscula válida');
+        } else {
+            passwordUppercase.classList.remove('valid');
+            console.log('Falta mayúscula');
+        }
+        
+        // Validar letra minúscula
+        if (password && /[a-z]/.test(password.value)) {
+            passwordLowercase.classList.add('valid');
+            console.log('Minúscula válida');
+        } else {
+            passwordLowercase.classList.remove('valid');
+            console.log('Falta minúscula');
+        }
+        
+        // Validar carácter especial
+        if (password && /[.,*+$&#!]/.test(password.value)) {
+            passwordSpecial.classList.add('valid');
+            console.log('Carácter especial válido');
+        } else {
+            passwordSpecial.classList.remove('valid');
+            console.log('Falta carácter especial');
         }
 
         // Validar coincidencia de contraseñas
@@ -330,26 +595,37 @@
             console.log('Contraseñas no coinciden');
         }
 
-        // Validar área
+        // Validar área (opcional)
+        const isResearcher = userType && userType.value === 'investigador';
         if (area && area.value !== '') {
             areaCheck.classList.add('valid');
             console.log('Área seleccionada');
+        } else if (!isResearcher) {
+            areaCheck.classList.add('valid'); // Siempre válida porque es opcional
+            console.log('Área no seleccionada (opcional)');
         } else {
             areaCheck.classList.remove('valid');
-            console.log('Área no seleccionada');
+            console.log('Área requerida para investigador');
         }
 
-        // Validar institución
+        // Validar institución (opcional)
         if (institucion && institucion.value !== '') {
             institucionCheck.classList.add('valid');
             console.log('Institución seleccionada');
         } else {
-            institucionCheck.classList.remove('valid');
-            console.log('Institución no seleccionada');
+            institucionCheck.classList.add('valid'); // Siempre válida porque es opcional
+            console.log('Institución no seleccionada (opcional)');
         }
         
-        // Verificar si todos los campos básicos están llenos
-        const camposBasicos = [
+        // Verificar si los campos visibles requeridos están llenos según el tipo
+        const type = userType ? userType.value : 'normal';
+        const typeIsStudent = type === 'estudiante';
+        const typeIsResearcher = type === 'investigador';
+        const typeIsTeacher = type === 'docente';
+        const typeIsAdminLab = type === 'admin_laboratorio';
+        const typeIsAdminInst = type === 'administrativo';
+
+        const requeridos = [
             document.getElementById('nombre'),
             document.getElementById('apellido_paterno'),
             document.getElementById('apellido_materno'),
@@ -359,20 +635,24 @@
             password,
             confirmPassword
         ];
-        
-        const todosLosCamposLlenos = camposBasicos.every(campo => 
-            campo && campo.value.trim() !== ''
-        );
+        if (typeIsStudent) requeridos.push(matricula);
+        if (typeIsResearcher) requeridos.push(area);
+        if (typeIsAdminLab || typeIsAdminInst || typeIsResearcher) requeridos.push(institucion);
+
+        const todosLosCamposLlenos = requeridos.every(campo => campo && (campo.value || '').toString().trim() !== '');
         
         // Verificar si todas las validaciones están correctas
         const todasLasValidacionesCorrectas = 
-            matriculaCheck.classList.contains('valid') &&
+            usernameCheck.classList.contains('valid') &&
             emailCheck.classList.contains('valid') &&
             phoneCheck.classList.contains('valid') &&
             passwordLength.classList.contains('valid') &&
+            passwordUppercase.classList.contains('valid') &&
+            passwordLowercase.classList.contains('valid') &&
+            passwordSpecial.classList.contains('valid') &&
             passwordMatch.classList.contains('valid') &&
-            areaCheck.classList.contains('valid') &&
-            institucionCheck.classList.contains('valid');
+            // matrícula solo si es estudiante
+            (!typeIsStudent || matriculaCheck.classList.contains('valid'));
         
         // Habilitar/deshabilitar botón
         const formularioCompleto = todosLosCamposLlenos && todasLasValidacionesCorrectas;
@@ -395,10 +675,12 @@
         
         const val = password.value;
         let fuerza = 0;
-        if (val.length >= 6) fuerza += 1;
-        if (/[A-Z]/.test(val)) fuerza += 1;
-        if (/[0-9]/.test(val)) fuerza += 1;
-        if (/[^A-Za-z0-9]/.test(val)) fuerza += 1;
+        
+        // Validar según los nuevos criterios
+        if (val.length >= 8 && val.length <= 64) fuerza += 1; // Longitud correcta
+        if (/[A-Z]/.test(val)) fuerza += 1; // Mayúscula
+        if (/[a-z]/.test(val)) fuerza += 1; // Minúscula
+        if (/[.,*+$&#!]/.test(val)) fuerza += 1; // Carácter especial específico
         
         const porcentajes = [0, 25, 50, 75, 100];
         strengthBar.style.width = porcentajes[fuerza] + '%';
@@ -410,7 +692,7 @@
     }
 
     function actualizarProgreso() {
-        const campos = ['nombre', 'apellido_paterno', 'apellido_materno', 'username', 'email', 'telefono', 'id_area', 'id_institucion', 'password', 'confirm_password'];
+        const campos = ['nombre', 'apellido_paterno', 'apellido_materno', 'username', 'matricula', 'email', 'telefono', 'id_area', 'id_institucion', 'password', 'confirm_password'];
         let completados = 0;
         
         campos.forEach(campo => {
@@ -439,7 +721,7 @@
             const data = await response.json();
             
             const select = document.getElementById('id_area');
-                select.innerHTML = '<option value="">Selecciona un área</option>';
+                select.innerHTML = '<option value="">Sin área específica</option>';
                 
                 if (data.success && data.areas) {
                     data.areas.forEach(area => {
@@ -449,16 +731,26 @@
                         select.appendChild(option);
                     });
                 
-                // Inicializar Select2 después de cargar las opciones
-                $('#id_area').select2({
-                    placeholder: "Selecciona un área",
-                    allowClear: true,
-                    width: '100%'
-                }).on('change', function() {
-                    console.log('Área cambiada:', this.value);
-                    validateForm();
-                    actualizarProgreso();
-                });
+                // Siempre adjuntar listener nativo de cambio
+                if (select) {
+                    select.addEventListener('change', function() {
+                        console.log('Área cambiada:', select.value);
+                        validateForm();
+                        actualizarProgreso();
+                        const labSelect = document.getElementById('lab_id');
+                        if (labSelect) labSelect.innerHTML = '<option value="">Selecciona un laboratorio</option>';
+                        cargarLaboratoriosPorInstitucion();
+                    });
+                }
+
+                // Inicializar Select2 si está disponible
+                if (typeof $ !== 'undefined' && typeof $('#id_area').select2 === 'function') {
+                    $('#id_area').select2({
+                        placeholder: "Selecciona un área",
+                        allowClear: true,
+                        width: '100%'
+                    });
+                }
                 
                 console.log('Áreas cargadas exitosamente');
                 } else {
@@ -479,7 +771,7 @@
             const data = await response.json();
             
             const select = document.getElementById('id_institucion');
-                select.innerHTML = '<option value="">Selecciona una institución</option>';
+                select.innerHTML = '<option value="">Sin institución específica</option>';
                 
                 if (data.success && data.instituciones) {
                     data.instituciones.forEach(institucion => {
@@ -489,16 +781,38 @@
                         select.appendChild(option);
                     });
                 
-                // Inicializar Select2 después de cargar las opciones
-                $('#id_institucion').select2({
-                    placeholder: "Selecciona una institución",
-                    allowClear: true,
-                    width: '100%'
-                }).on('change', function() {
-                    console.log('Institución cambiada:', this.value);
-                    validateForm();
-                    actualizarProgreso();
-                });
+                // Siempre adjuntar listener nativo de cambio
+                if (select) {
+                    select.addEventListener('change', function() {
+                        console.log('Institución cambiada:', select.value);
+                        validateForm();
+                        actualizarProgreso();
+                        const labSelect = document.getElementById('lab_id');
+                        if (labSelect) labSelect.innerHTML = '<option value="">Selecciona un laboratorio</option>';
+                        cargarLaboratoriosPorInstitucion();
+                    });
+                }
+
+                // Inicializar Select2 si está disponible
+                if (typeof $ !== 'undefined' && typeof $('#id_institucion').select2 === 'function') {
+                    $('#id_institucion').select2({
+                        placeholder: "Selecciona una institución",
+                        allowClear: true,
+                        width: '100%'
+                    });
+                }
+                // Poblar multi-select con el mismo catálogo
+                const multi = document.getElementById('id_instituciones');
+                if (multi) {
+                    multi.innerHTML = '';
+                    data.instituciones.forEach(inst => {
+                        const opt = document.createElement('option');
+                        opt.value = inst.id_institucion;
+                        opt.textContent = inst.nombre_institucion;
+                        multi.appendChild(opt);
+                    });
+                    try { $('#id_instituciones').select2({ placeholder: "Selecciona instituciones", width: '100%' }); } catch(_) {}
+                }
                 
                 console.log('Instituciones cargadas exitosamente');
                 } else {
@@ -508,6 +822,48 @@
                 console.error('Error al cargar instituciones:', error);
             const select = document.getElementById('id_institucion');
                 select.innerHTML = '<option value="" disabled>Error al cargar instituciones</option>';
+        }
+    }
+
+    // Cargar laboratorios filtrados por institución (y opcionalmente área)
+    async function cargarLaboratoriosPorInstitucion() {
+        const labSelect = document.getElementById('lab_id');
+        if (!labSelect) return;
+
+        const idInst = (institucion && institucion.value) ? institucion.value : '';
+        const idArea = (area && area.value) ? area.value : '';
+
+        // Estado inicial
+        labSelect.innerHTML = '<option value="">Selecciona un laboratorio</option>';
+
+        if (!idInst) {
+            labSelect.innerHTML = '<option value="" disabled>Selecciona una institución primero</option>';
+            return;
+        }
+
+        try {
+            const params = new URLSearchParams();
+            if (idArea) params.set('id_area', idArea);
+            const url = `/api/laboratorios/by_institucion/${encodeURIComponent(idInst)}${params.toString() ? '?' + params.toString() : ''}`;
+            console.log('[Labs] Fetch URL:', url);
+            const resp = await fetch(url);
+            const data = await resp.json();
+            console.log('[Labs] Response:', data);
+
+            if (!data.success || !Array.isArray(data.laboratorios) || data.laboratorios.length === 0) {
+                labSelect.innerHTML = '<option value="" disabled>No existen laboratorios en la institución seleccionada. Contacta al administrador de la app</option>';
+                return;
+            }
+
+            // Si en el futuro filtramos por área, aquí podríamos filtrar data.laboratorios por idArea
+            data.laboratorios.forEach(lab => {
+                const option = document.createElement('option');
+                option.value = lab.id_laboratorio;
+                option.textContent = lab.nombre_laboratorio;
+                labSelect.appendChild(option);
+            });
+        } catch (error) {
+            labSelect.innerHTML = '<option value="" disabled>Error al cargar laboratorios</option>';
         }
     }
     

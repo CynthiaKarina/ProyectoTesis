@@ -30,6 +30,43 @@
             </ul>
         </li>
 
+        <!-- Notificaciones -->
+        <li class="dropdown">
+            <a href="#" class="dropdown-toggle" title="Notificaciones">
+                <i class="fas fa-bell"></i>
+                {% set notif_count = (pending_for_admin if pending_for_admin else 0) + (responses_for_user if responses_for_user else 0) %}
+                {% if notif_count > 0 %}
+                <span class="badge" style="background:#ef4444;color:white;border-radius:999px;padding:2px 6px; font-size:10px; position:relative; top:-10px; left:-6px;">{{ notif_count }}</span>
+                {% endif %}
+            </a>
+            <ul class="dropdown-menu" style="min-width:260px;">
+                {% if pending_for_admin %}
+                <li style="padding:8px 12px; display:flex; align-items:center; gap:8px;">
+                    <i class="fas fa-user-shield" style="color:#f97316;"></i>
+                    <div>
+                        <div><strong>Solicitudes pendientes</strong></div>
+                        <div style="font-size:12px;color:#6b7280;">{{ pending_for_admin }} por revisar</div>
+                    </div>
+                    <a href="{{ url_for('admin_roles.admin_roles') }}" class="btn btn-sm" style="margin-left:auto; background:#f97316;color:white;padding:4px 8px;border-radius:6px; text-decoration:none;">Abrir</a>
+                </li>
+                <li class="divider"></li>
+                {% endif %}
+                {% if responses_for_user %}
+                <li style="padding:8px 12px; display:flex; align-items:center; gap:8px;">
+                    <i class="fas fa-inbox" style="color:#0891b2;"></i>
+                    <div>
+                        <div><strong>Respuestas a tus solicitudes</strong></div>
+                        <div style="font-size:12px;color:#6b7280;">{{ responses_for_user }} nuevas</div>
+                    </div>
+                    <a href="{{ url_for('profile.ver_perfil') }}" class="btn btn-sm" style="margin-left:auto; background:#0891b2;color:white;padding:4px 8px;border-radius:6px; text-decoration:none;">Ver</a>
+                </li>
+                {% endif %}
+                {% if not notif_count %}
+                <li style="padding:8px 12px; font-size:12px; color:#6b7280;">Sin notificaciones</li>
+                {% endif %}
+            </ul>
+        </li>
+
         <!-- Menú de usuario -->
         <li class="dropdown user-menu">
             <a href="#" class="dropdown-toggle">

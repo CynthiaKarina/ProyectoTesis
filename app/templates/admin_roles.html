@@ -465,6 +465,116 @@
             </table>
         </div>
     </div>
+
+    <!-- Solicitudes de roles -->
+    <div class="roles-table-container mt-4">
+        <div class="table-header">
+            <div class="table-title">
+                <i class="fas fa-inbox"></i>
+                Solicitudes de roles (pendientes y recientes)
+            </div>
+            <form method="GET" class="d-flex" style="gap:10px; flex-wrap:wrap">
+                <select name="status" class="form-control" style="min-width:160px">
+                    <option value="">Todos los estados</option>
+                    <option value="pendiente" {{ 'selected' if req_status_filter=='pendiente' }}>Pendiente</option>
+                    <option value="aprobado" {{ 'selected' if req_status_filter=='aprobado' }}>Aprobado</option>
+                    <option value="rechazado" {{ 'selected' if req_status_filter=='rechazado' }}>Rechazado</option>
+                </select>
+                <select name="rtype" class="form-control" style="min-width:200px">
+                    <option value="">Todos los tipos</option>
+                    <option value="administrativo" {{ 'selected' if req_rtype_filter=='administrativo' }}>Usuario administrativo</option>
+                    <option value="admin_laboratorio" {{ 'selected' if req_rtype_filter=='admin_laboratorio' }}>Admin de laboratorio</option>
+                </select>
+                <button class="btn-modern btn-outline" type="submit"><i class="fas fa-filter"></i> Filtrar</button>
+            </form>
+        </div>
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Solicitud</th>
+                        <th>Laboratorio</th>
+                        <th>Estado</th>
+                        <th>Fecha</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in role_requests %}
+                    <tr>
+                        <td>
+                            {% set u = users_map.get(req.id_usuario) %}
+                            {% if u %}
+                                <div class="d-flex flex-column">
+                                    <span class="fw-bold">{{ u.nombre }} {{ u.apellido_paterno }}</span>
+                                    <small class="text-muted">{{ u.email }}</small>
+                                </div>
+                            {% else %}
+                                ID: {{ req.id_usuario }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if req.requested_role == 'administrativo' %}
+                                Usuario administrativo
+                            {% elif req.requested_role == 'admin_laboratorio' %}
+                                Admin de laboratorio
+                            {% else %}
+                                {{ req.requested_role }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if req.id_laboratorio %}
+                                {% set lb = labs_map.get(req.id_laboratorio) %}
+                                {{ lb.nombre_laboratorio if lb else ('ID ' ~ req.id_laboratorio) }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge {{ 'bg-info' if req.status == 'pendiente' else 'bg-secondary' }}">{{ req.status }}</span>
+                        </td>
+                        <td>{{ req.created_at.strftime('%Y-%m-%d %H:%M') if req.created_at }}</td>
+                        <td>
+                            {% if req.status == 'pendiente' %}
+                            <div class="action-buttons">
+                                <form method="POST" action="{{ url_for('admin_roles.resolver_role_request', request_id=req.id_request, action='aprobar') }}">
+                                    <button class="btn-action btn-edit" title="Aprobar"><i class="fas fa-check"></i></button>
+                                </form>
+                                {% if req.requested_role == 'admin_laboratorio' and req.id_laboratorio %}
+                                <form method="POST" action="{{ url_for('admin_roles.resolver_role_request', request_id=req.id_request, action='aprobar_asignar') }}">
+                                    <button class="btn-action btn-edit" title="Aprobar y asignar como encargado"><i class="fas fa-user-check"></i></button>
+                                </form>
+                                {% endif %}
+                                <form method="POST" action="{{ url_for('admin_roles.resolver_role_request', request_id=req.id_request, action='rechazar') }}">
+                                    <button class="btn-action btn-delete" title="Rechazar"><i class="fas fa-times"></i></button>
+                                </form>
+                            </div>
+                            {% else %}
+                                <em>Atendida</em>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">No hay solicitudes registradas</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <div class="text-muted">Total: {{ req_total }} | Página {{ req_page }} de {{ req_total_pages }}</div>
+            <div class="d-flex" style="gap:8px">
+                {% if req_page > 1 %}
+                    <a class="btn-modern btn-outline" href="?status={{ req_status_filter }}&rtype={{ req_rtype_filter }}&page={{ req_page-1 }}&per_page={{ req_per_page }}"><i class="fas fa-chevron-left"></i> Anterior</a>
+                {% endif %}
+                {% if req_page < req_total_pages %}
+                    <a class="btn-modern btn-outline" href="?status={{ req_status_filter }}&rtype={{ req_rtype_filter }}&page={{ req_page+1 }}&per_page={{ req_per_page }}">Siguiente <i class="fas fa-chevron-right"></i></a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Resto de los modales se mantienen igual -->

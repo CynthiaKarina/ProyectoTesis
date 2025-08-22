@@ -6,6 +6,7 @@ from flask_login import login_required, current_user
 from app.models.laboratorio import Laboratorio
 from app.models.institucion import Institucion
 from app.utils.permissions import permission_required
+from app.utils.notifications import notify_lab_admins_or_superadmins
 
 solicitud_bp = Blueprint('solicitud', __name__, url_prefix='/solicitud')
 
@@ -67,6 +68,16 @@ def registrar_solicitud(id_laboratorio):
         
         db.session.add(nueva_solicitud)
         db.session.commit()
+
+        # Notificar a admin(es) de laboratorio, o a Super Admin si el lab no tiene admin
+        try:
+            notify_lab_admins_or_superadmins(
+                lab_id=id_laboratorio,
+                subject='Nueva solicitud de laboratorio',
+                message=f'Se registró una solicitud para el laboratorio ID {id_laboratorio} el {fecha_solicitud}.'
+            )
+        except Exception:
+            pass
         
         flash('Solicitud registrada correctamente. Recibirá una confirmación pronto.', 'success')
         return redirect(url_for('laboratorio_api.get_laboratorio_detalles', id=id_laboratorio))

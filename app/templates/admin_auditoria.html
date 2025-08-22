@@ -1,0 +1,104 @@
+{% extends 'base_Admin.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2><i class="fas fa-clipboard-list"></i> Auditoría</h2>
+    <form method="GET" class="card p-3 mb-3" style="gap:12px">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Acción</label>
+                <select name="action" class="form-control">
+                    <option value="">Todas</option>
+                    {% for a in actions %}
+                    <option value="{{ a }}" {% if f_action==a %}selected{% endif %}>{{ a }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Actor ID</label>
+                <input type="number" name="actor_id" value="{{ f_actor_id }}" class="form-control" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Usuario afectado</label>
+                <input type="number" name="target_user_id" value="{{ f_target_user_id }}" class="form-control" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Desde</label>
+                <input type="date" name="date_from" value="{{ f_date_from }}" class="form-control" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Hasta</label>
+                <input type="date" name="date_to" value="{{ f_date_to }}" class="form-control" />
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <button class="btn btn-primary w-100" type="submit"><i class="fas fa-search"></i></button>
+            </div>
+        </div>
+    </form>
+
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-striped align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Acción</th>
+                        <th>Actor</th>
+                        <th>Usuario afectado</th>
+                        <th>De</th>
+                        <th>A</th>
+                        <th>Extra</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') if log.created_at else '' }}</td>
+                        <td>{{ log.action }}</td>
+                        <td>
+                            {% if log.actor_id %}
+                                {{ users_map.get(log.actor_id, 'ID ' ~ log.actor_id) }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if log.target_user_id %}
+                                {{ users_map.get(log.target_user_id, 'ID ' ~ log.target_user_id) }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>{{ log.from_value or '-' }}</td>
+                        <td>{{ log.to_value or '-' }}</td>
+                        <td>{{ log.extra or '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% if not logs %}
+                    <tr><td colspan="7" class="text-center py-4">Sin registros</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+                Total: {{ total }} | Página {{ page }} de {{ total_pages }}
+            </div>
+            <div class="d-flex" style="gap:8px">
+                {% set prev_page = page - 1 %}
+                {% set next_page = page + 1 %}
+                <a class="btn btn-outline-secondary {% if page<=1 %}disabled{% endif %}"
+                   href="{{ url_for('admin_users.ver_auditoria', action=f_action, actor_id=f_actor_id, target_user_id=f_target_user_id, date_from=f_date_from, date_to=f_date_to, page=prev_page, per_page=per_page) }}">
+                    Anterior
+                </a>
+                <a class="btn btn-outline-secondary {% if page>=total_pages %}disabled{% endif %}"
+                   href="{{ url_for('admin_users.ver_auditoria', action=f_action, actor_id=f_actor_id, target_user_id=f_target_user_id, date_from=f_date_from, date_to=f_date_to, page=next_page, per_page=per_page) }}">
+                    Siguiente
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+

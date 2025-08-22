@@ -1,0 +1,504 @@
+{% extends "base_Admin.html" if admin_access else "base_home.html" %}
+
+{% block title %}Materiales e Insumos - Portal Académico{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <!-- Header de la página -->
+    <div class="page-header">
+        <div class="header-content">
+            <h1>
+                <i class="fas fa-tools"></i>
+                Materiales e Insumos
+            </h1>
+            <p>Encuentra recursos, equipos y materiales para tu investigación</p>
+        </div>
+        
+        <!-- Estadísticas rápidas -->
+        <div class="quick-stats">
+            <div class="stat-card">
+                <i class="fas fa-boxes"></i>
+                <div class="stat-info">
+                    <span class="stat-number">1000+</span>
+                    <span class="stat-label">Items</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Categorías principales -->
+    <div class="categories-section">
+        <h2>Categorías de Materiales</h2>
+        <div class="categories-grid">
+            <div class="category-card equipos">
+                <div class="category-icon">
+                    <i class="fas fa-microscope"></i>
+                </div>
+                <div class="category-content">
+                    <h3>Equipos de Laboratorio</h3>
+                    <p>Microscopios, centrífugas, espectrómetros</p>
+                    <span class="item-count">250+ items</span>
+                </div>
+            </div>
+            
+            <div class="category-card reactivos">
+                <div class="category-icon">
+                    <i class="fas fa-flask"></i>
+                </div>
+                <div class="category-content">
+                    <h3>Reactivos Químicos</h3>
+                    <p>Ácidos, bases, solventes, indicadores</p>
+                    <span class="item-count">400+ items</span>
+                </div>
+            </div>
+            
+            <div class="category-card consumibles">
+                <div class="category-icon">
+                    <i class="fas fa-vial"></i>
+                </div>
+                <div class="category-content">
+                    <h3>Material Consumible</h3>
+                    <p>Pipetas, tubos de ensayo, placas petri</p>
+                    <span class="item-count">300+ items</span>
+                </div>
+            </div>
+            
+            <div class="category-card informatica">
+                <div class="category-icon">
+                    <i class="fas fa-laptop"></i>
+                </div>
+                <div class="category-content">
+                    <h3>Equipo Informático</h3>
+                    <p>Computadoras, servidores, software</p>
+                    <span class="item-count">50+ items</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Funciones principales -->
+    <div class="functions-section">
+        <div class="functions-grid">
+            <div class="function-card">
+                <div class="function-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="function-content">
+                    <h3>Buscar Materiales</h3>
+                    <p>Encuentra exactamente lo que necesitas</p>
+                    <button class="btn-function" onclick="searchMaterials()">
+                        <i class="fas fa-search"></i>
+                        Buscar Ahora
+                    </button>
+                </div>
+            </div>
+            
+            <div class="function-card">
+                <div class="function-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div class="function-content">
+                    <h3>Solicitar Materiales</h3>
+                    <p>Realiza solicitudes de préstamo o compra</p>
+                    <button class="btn-function" onclick="requestMaterials()">
+                        <i class="fas fa-plus"></i>
+                        Nueva Solicitud
+                    </button>
+                </div>
+            </div>
+            
+            <div class="function-card">
+                <div class="function-icon">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <div class="function-content">
+                    <h3>Mis Solicitudes</h3>
+                    <p>Revisa el estado de tus solicitudes</p>
+                    <button class="btn-function" onclick="viewRequests()">
+                        <i class="fas fa-list"></i>
+                        Ver Solicitudes
+                    </button>
+                </div>
+            </div>
+            
+            <div class="function-card">
+                <div class="function-icon">
+                    <i class="fas fa-warehouse"></i>
+                </div>
+                <div class="function-content">
+                    <h3>Inventario</h3>
+                    <p>Consulta disponibilidad en tiempo real</p>
+                    <button class="btn-function" onclick="viewInventory()">
+                        <i class="fas fa-boxes"></i>
+                        Ver Inventario
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Materiales destacados -->
+    <div class="featured-section">
+        <h2>Materiales Más Solicitados</h2>
+        <div class="featured-grid">
+            <div class="material-card">
+                <div class="material-image">
+                    <i class="fas fa-microscope"></i>
+                </div>
+                <div class="material-info">
+                    <h4>Microscopio Óptico</h4>
+                    <p>Microscopio binocular con objetivos 4x, 10x, 40x, 100x</p>
+                    <div class="availability available">
+                        <i class="fas fa-check-circle"></i>
+                        Disponible
+                    </div>
+                </div>
+                <div class="material-actions">
+                    <button class="btn-request" onclick="requestItem('microscope')">
+                        Solicitar
+                    </button>
+                </div>
+            </div>
+            
+            <div class="material-card">
+                <div class="material-image">
+                    <i class="fas fa-flask"></i>
+                </div>
+                <div class="material-info">
+                    <h4>Ácido Clorhídrico</h4>
+                    <p>HCl 1M, frasco de 500ml para análisis químico</p>
+                    <div class="availability limited">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Stock Limitado
+                    </div>
+                </div>
+                <div class="material-actions">
+                    <button class="btn-request" onclick="requestItem('hcl')">
+                        Solicitar
+                    </button>
+                </div>
+            </div>
+            
+            <div class="material-card">
+                <div class="material-image">
+                    <i class="fas fa-vial"></i>
+                </div>
+                <div class="material-info">
+                    <h4>Tubos de Ensayo</h4>
+                    <p>Set de 100 tubos de vidrio borosilicato 16x150mm</p>
+                    <div class="availability available">
+                        <i class="fas fa-check-circle"></i>
+                        Disponible
+                    </div>
+                </div>
+                <div class="material-actions">
+                    <button class="btn-request" onclick="requestItem('tubes')">
+                        Solicitar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.page-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.page-header {
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    color: #2d3748;
+    padding: 40px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-content h1 {
+    font-size: 2.5rem;
+    margin: 0 0 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.header-content p {
+    font-size: 1.1rem;
+    opacity: 0.8;
+    margin: 0;
+}
+
+.quick-stats {
+    display: flex;
+    gap: 20px;
+}
+
+.stat-card {
+    background: rgba(255,255,255,0.3);
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    min-width: 120px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.stat-card i {
+    font-size: 2rem;
+    color: #4a5568;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    display: block;
+    color: #2d3748;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.7;
+    color: #4a5568;
+}
+
+.categories-section, .functions-section, .featured-section {
+    margin-bottom: 40px;
+}
+
+.categories-section h2, .featured-section h2 {
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    color: #2d3748;
+}
+
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.category-card {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    text-align: center;
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+}
+
+.category-icon i {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    color: #667eea;
+}
+
+.category-content h3 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    color: #2d3748;
+}
+
+.category-content p {
+    color: #6c757d;
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+}
+
+.item-count {
+    background: #667eea;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.functions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+}
+
+.function-card {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.function-icon i {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    color: #48bb78;
+}
+
+.function-content h3 {
+    font-size: 1.3rem;
+    margin-bottom: 10px;
+    color: #2d3748;
+}
+
+.function-content p {
+    color: #6c757d;
+    margin-bottom: 20px;
+}
+
+.btn-function {
+    background: #48bb78;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 auto;
+}
+
+.btn-function:hover {
+    background: #38a169;
+    transform: translateY(-2px);
+}
+
+.featured-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+}
+
+.material-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.material-card:hover {
+    transform: translateY(-5px);
+}
+
+.material-image {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.material-image i {
+    font-size: 3rem;
+    color: #667eea;
+}
+
+.material-info h4 {
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+    color: #2d3748;
+}
+
+.material-info p {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+    line-height: 1.4;
+}
+
+.availability {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 15px;
+}
+
+.availability.available {
+    color: #48bb78;
+}
+
+.availability.limited {
+    color: #ed8936;
+}
+
+.material-actions {
+    text-align: center;
+}
+
+.btn-request {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-request:hover {
+    background: #5a67d8;
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+    }
+    
+    .categories-grid,
+    .functions-grid,
+    .featured-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+// Funciones de navegación
+function searchMaterials() {
+    alert('Funcionalidad de búsqueda de materiales - En desarrollo');
+}
+
+function requestMaterials() {
+    alert('Formulario de solicitud de materiales - En desarrollo');
+}
+
+function viewRequests() {
+    alert('Vista de mis solicitudes - En desarrollo');
+}
+
+function viewInventory() {
+    alert('Vista de inventario completo - En desarrollo');
+}
+
+function requestItem(itemId) {
+    alert(`Solicitar item: ${itemId} - En desarrollo`);
+}
+
+// Event listeners para categorías
+document.addEventListener('DOMContentLoaded', function() {
+    const categoryCards = document.querySelectorAll('.category-card');
+    
+    categoryCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const category = this.classList[1]; // equipos, reactivos, etc.
+            alert(`Explorar categoría: ${category} - En desarrollo`);
+        });
+    });
+});
+</script>
+{% endblock %}

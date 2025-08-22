@@ -1,18 +1,19 @@
 from app import db
 from datetime import datetime
+from sqlalchemy import func
 
 class Proyecto(db.Model):
     __tablename__ = 'proyecto'
 
-    id_proyecto = db.Column(db.BigInteger, primary_key=True)
+    id_proyecto = db.Column(db.BigInteger, primary_key=True, autoincrement=True)
     nombre_proyecto = db.Column(db.String(300), nullable=False)
     resumen = db.Column(db.Text)
     adjunto = db.Column(db.Boolean, default=False)
     fecha = db.Column(db.Date)
     tipo_proyecto = db.Column(db.String(100))
     estatus = db.Column(db.String(50), default='En Desarrollo')
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
-    fecha_modificacion = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    fecha_creacion = db.Column(db.DateTime, nullable=False, default=func.current_timestamp())
+    fecha_modificacion = db.Column(db.DateTime, nullable=False, default=func.current_timestamp(), onupdate=func.current_timestamp())
 
     def __repr__(self):
         return f'<Proyecto {self.nombre_proyecto}>'

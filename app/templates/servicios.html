@@ -1,0 +1,611 @@
+{% extends "base_Admin.html" if admin_access else "base_home.html" %}
+
+{% block title %}Servicios - Portal Académico{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <!-- Header de la página -->
+    <div class="page-header">
+        <div class="header-content">
+            <h1>
+                <i class="fas fa-cogs"></i>
+                Servicios Especializados
+            </h1>
+            <p>Accede a servicios técnicos y de apoyo para tu investigación</p>
+        </div>
+        
+        <!-- Estadísticas rápidas -->
+        <div class="quick-stats">
+            <div class="stat-card">
+                <i class="fas fa-concierge-bell"></i>
+                <div class="stat-info">
+                    <span class="stat-number">100+</span>
+                    <span class="stat-label">Servicios</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Categorías de servicios -->
+    <div class="services-categories">
+        <h2>Categorías de Servicios</h2>
+        <div class="categories-grid">
+            <div class="service-category analysis">
+                <div class="category-header">
+                    <i class="fas fa-search-plus"></i>
+                    <h3>Análisis y Pruebas</h3>
+                </div>
+                <div class="category-content">
+                    <ul>
+                        <li>Análisis químico</li>
+                        <li>Caracterización de materiales</li>
+                        <li>Pruebas microbiológicas</li>
+                        <li>Análisis espectroscópico</li>
+                    </ul>
+                    <button class="btn-category" onclick="exploreCategory('analysis')">
+                        Ver Servicios
+                    </button>
+                </div>
+            </div>
+            
+            <div class="service-category technical">
+                <div class="category-header">
+                    <i class="fas fa-tools"></i>
+                    <h3>Soporte Técnico</h3>
+                </div>
+                <div class="category-content">
+                    <ul>
+                        <li>Mantenimiento de equipos</li>
+                        <li>Calibración de instrumentos</li>
+                        <li>Reparaciones especializadas</li>
+                        <li>Instalación de software</li>
+                    </ul>
+                    <button class="btn-category" onclick="exploreCategory('technical')">
+                        Ver Servicios
+                    </button>
+                </div>
+            </div>
+            
+            <div class="service-category consulting">
+                <div class="category-header">
+                    <i class="fas fa-user-graduate"></i>
+                    <h3>Consultoría</h3>
+                </div>
+                <div class="category-content">
+                    <ul>
+                        <li>Asesoría metodológica</li>
+                        <li>Diseño experimental</li>
+                        <li>Análisis estadístico</li>
+                        <li>Revisión de protocolos</li>
+                    </ul>
+                    <button class="btn-category" onclick="exploreCategory('consulting')">
+                        Ver Servicios
+                    </button>
+                </div>
+            </div>
+            
+            <div class="service-category training">
+                <div class="category-header">
+                    <i class="fas fa-graduation-cap"></i>
+                    <h3>Capacitación</h3>
+                </div>
+                <div class="category-content">
+                    <ul>
+                        <li>Cursos especializados</li>
+                        <li>Talleres prácticos</li>
+                        <li>Seminarios técnicos</li>
+                        <li>Certificaciones</li>
+                    </ul>
+                    <button class="btn-category" onclick="exploreCategory('training')">
+                        Ver Servicios
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Servicios destacados -->
+    <div class="featured-services">
+        <h2>Servicios Más Solicitados</h2>
+        <div class="services-grid">
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-microscope"></i>
+                </div>
+                <div class="service-content">
+                    <h4>Microscopía Electrónica</h4>
+                    <p>Análisis de alta resolución con microscopio electrónico de barrido y transmisión</p>
+                    <div class="service-details">
+                        <div class="detail">
+                            <i class="fas fa-clock"></i>
+                            <span>2-3 días</span>
+                        </div>
+                        <div class="detail">
+                            <i class="fas fa-dollar-sign"></i>
+                            <span>$150/muestra</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="service-actions">
+                    <button class="btn-request" onclick="requestService('electron-microscopy')">
+                        Solicitar
+                    </button>
+                    <button class="btn-info" onclick="serviceInfo('electron-microscopy')">
+                        Más Info
+                    </button>
+                </div>
+            </div>
+            
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="service-content">
+                    <h4>Análisis Estadístico</h4>
+                    <p>Procesamiento y análisis estadístico de datos experimentales</p>
+                    <div class="service-details">
+                        <div class="detail">
+                            <i class="fas fa-clock"></i>
+                            <span>1-2 días</span>
+                        </div>
+                        <div class="detail">
+                            <i class="fas fa-dollar-sign"></i>
+                            <span>$80/análisis</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="service-actions">
+                    <button class="btn-request" onclick="requestService('statistical-analysis')">
+                        Solicitar
+                    </button>
+                    <button class="btn-info" onclick="serviceInfo('statistical-analysis')">
+                        Más Info
+                    </button>
+                </div>
+            </div>
+            
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-dna"></i>
+                </div>
+                <div class="service-content">
+                    <h4>Secuenciación de ADN</h4>
+                    <p>Secuenciación Sanger y NGS para proyectos de investigación genómica</p>
+                    <div class="service-details">
+                        <div class="detail">
+                            <i class="fas fa-clock"></i>
+                            <span>5-7 días</span>
+                        </div>
+                        <div class="detail">
+                            <i class="fas fa-dollar-sign"></i>
+                            <span>$25/reacción</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="service-actions">
+                    <button class="btn-request" onclick="requestService('dna-sequencing')">
+                        Solicitar
+                    </button>
+                    <button class="btn-info" onclick="serviceInfo('dna-sequencing')">
+                        Más Info
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones rápidas -->
+    <div class="quick-actions">
+        <h2>Acciones Rápidas</h2>
+        <div class="actions-grid">
+            <div class="action-card">
+                <i class="fas fa-plus-circle"></i>
+                <h4>Nueva Solicitud</h4>
+                <p>Solicita un servicio especializado</p>
+                <button class="btn-action" onclick="newServiceRequest()">
+                    Crear Solicitud
+                </button>
+            </div>
+            
+            <div class="action-card">
+                <i class="fas fa-list-alt"></i>
+                <h4>Mis Solicitudes</h4>
+                <p>Revisa el estado de tus servicios</p>
+                <button class="btn-action" onclick="viewMyRequests()">
+                    Ver Solicitudes
+                </button>
+            </div>
+            
+            <div class="action-card">
+                <i class="fas fa-calendar-alt"></i>
+                <h4>Agendar Cita</h4>
+                <p>Programa una consulta o servicio</p>
+                <button class="btn-action" onclick="scheduleAppointment()">
+                    Agendar
+                </button>
+            </div>
+            
+            <div class="action-card">
+                <i class="fas fa-question-circle"></i>
+                <h4>Ayuda y Soporte</h4>
+                <p>Obtén asistencia técnica</p>
+                <button class="btn-action" onclick="getSupport()">
+                    Contactar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.page-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.page-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-content h1 {
+    font-size: 2.5rem;
+    margin: 0 0 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.header-content p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin: 0;
+}
+
+.quick-stats {
+    display: flex;
+    gap: 20px;
+}
+
+.stat-card {
+    background: rgba(255,255,255,0.2);
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    min-width: 120px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.stat-card i {
+    font-size: 2rem;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    display: block;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.services-categories, .featured-services, .quick-actions {
+    margin-bottom: 40px;
+}
+
+.services-categories h2, .featured-services h2, .quick-actions h2 {
+    font-size: 1.8rem;
+    margin-bottom: 25px;
+    color: #2d3748;
+}
+
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+}
+
+.service-category {
+    background: white;
+    border-radius: 15px;
+    padding: 0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.service-category:hover {
+    transform: translateY(-5px);
+}
+
+.category-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+.category-header i {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.category-header h3 {
+    font-size: 1.3rem;
+    margin: 0;
+}
+
+.category-content {
+    padding: 25px;
+}
+
+.category-content ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px 0;
+}
+
+.category-content li {
+    padding: 8px 0;
+    border-bottom: 1px solid #e2e8f0;
+    color: #4a5568;
+}
+
+.category-content li:last-child {
+    border-bottom: none;
+}
+
+.category-content li:before {
+    content: "•";
+    color: #667eea;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.btn-category {
+    width: 100%;
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-category:hover {
+    background: #5a67d8;
+}
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 25px;
+}
+
+.service-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.service-card:hover {
+    transform: translateY(-5px);
+}
+
+.service-icon {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.service-icon i {
+    font-size: 2.5rem;
+    color: #48bb78;
+}
+
+.service-content h4 {
+    font-size: 1.3rem;
+    margin-bottom: 10px;
+    color: #2d3748;
+    text-align: center;
+}
+
+.service-content p {
+    color: #6c757d;
+    text-align: center;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.service-details {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 20px;
+}
+
+.detail {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #4a5568;
+    font-size: 0.9rem;
+}
+
+.detail i {
+    color: #667eea;
+}
+
+.service-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-request, .btn-info {
+    flex: 1;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-request {
+    background: #48bb78;
+    color: white;
+}
+
+.btn-request:hover {
+    background: #38a169;
+}
+
+.btn-info {
+    background: #e2e8f0;
+    color: #4a5568;
+}
+
+.btn-info:hover {
+    background: #cbd5e0;
+}
+
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.action-card {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.action-card:hover {
+    transform: translateY(-3px);
+}
+
+.action-card i {
+    font-size: 2.5rem;
+    color: #ed8936;
+    margin-bottom: 15px;
+}
+
+.action-card h4 {
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+    color: #2d3748;
+}
+
+.action-card p {
+    color: #6c757d;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+}
+
+.btn-action {
+    background: #ed8936;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-action:hover {
+    background: #dd7724;
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+    }
+    
+    .categories-grid,
+    .services-grid,
+    .actions-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .service-details {
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+    }
+    
+    .service-actions {
+        flex-direction: column;
+    }
+}
+</style>
+
+<script>
+// Funciones principales
+function exploreCategory(category) {
+    alert(`Explorar categoría de servicios: ${category} - En desarrollo`);
+}
+
+function requestService(serviceId) {
+    alert(`Solicitar servicio: ${serviceId} - En desarrollo`);
+}
+
+function serviceInfo(serviceId) {
+    alert(`Información detallada del servicio: ${serviceId} - En desarrollo`);
+}
+
+function newServiceRequest() {
+    alert('Crear nueva solicitud de servicio - En desarrollo');
+}
+
+function viewMyRequests() {
+    alert('Ver mis solicitudes de servicios - En desarrollo');
+}
+
+function scheduleAppointment() {
+    alert('Agendar cita para servicio - En desarrollo');
+}
+
+function getSupport() {
+    alert('Contactar soporte técnico - En desarrollo');
+}
+
+// Inicialización
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Página de servicios cargada');
+    
+    // Agregar efectos de hover adicionales si es necesario
+    const cards = document.querySelectorAll('.service-card, .action-card, .service-category');
+    
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
+        });
+    });
+});
+</script>
+{% endblock %}

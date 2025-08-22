@@ -38,6 +38,61 @@ def get_laboratorios():
         print(f"Error al obtener laboratorios: {str(e)}")
         return jsonify({'success': False, 'message': 'Error al obtener laboratorios'}), 500
 
+@laboratorio_api_bp.route('/api/laboratorios/by_institucion/<int:id_institucion>', methods=['GET'])
+def get_laboratorios_by_institucion(id_institucion: int):
+    """Obtener laboratorios asociados a una institución específica, opcionalmente filtrados por área."""
+    try:
+        id_area = request.args.get('id_area')
+
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({'success': False, 'message': 'Error de conexión a la base de datos'}), 500
+
+        cursor = connection.cursor(dictionary=True)
+
+        # Detectar el nombre real de la columna de institución en la tabla 'laboratorio'
+        column_name = None
+        try:
+            cursor.execute("SHOW COLUMNS FROM laboratorio LIKE 'id_institucion'")
+            has_id_institucion = cursor.fetchone() is not None
+            cursor.execute("SHOW COLUMNS FROM laboratorio LIKE 'institucion_id'")
+            has_institucion_id = cursor.fetchone() is not None
+            if has_id_institucion:
+                column_name = 'id_institucion'
+            elif has_institucion_id:
+                column_name = 'institucion_id'
+            else:
+                return jsonify({'success': False, 'message': 'No se encontró columna de institución en la tabla laboratorio'}), 500
+        except Exception as e_detect:
+            print(f"Error detectando columnas de institución en laboratorio: {e_detect}")
+            return jsonify({'success': False, 'message': 'Error al preparar la consulta de laboratorios'}), 500
+
+        # Construir consulta usando el nombre de columna detectado
+        query = (
+            f"""
+            SELECT l.id_laboratorio, l.nombre_laboratorio
+            FROM laboratorio l
+            WHERE l.{column_name} = %s
+            """
+        )
+        params = [id_institucion]
+
+        if id_area:
+            query += " AND l.id_area = %s"
+            params.append(id_area)
+
+        query += " ORDER BY l.nombre_laboratorio"
+
+        cursor.execute(query, params)
+        labs = cursor.fetchall()
+        cursor.close()
+        connection.close()
+
+        return jsonify({'success': True, 'laboratorios': labs}), 200
+    except Exception as e:
+        print(f"Error al obtener laboratorios por institución: {e}")
+        return jsonify({'success': False, 'message': f'Error al obtener laboratorios por institución: {str(e)}'}), 500
+
 @laboratorio_api_bp.route('/api/laboratorios/<int:id>', methods=['GET'])
 def get_laboratorio(id):
     """Obtener un laboratorio específico por ID"""

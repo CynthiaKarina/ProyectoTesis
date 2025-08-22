@@ -154,6 +154,44 @@
                                 <label>Horario:</label>
                                 <span>{{ laboratorio.horario or 'No especificado' }}</span>
                             </div>
+                            {% if has_permission('gestionar_laboratorios') %}
+                            <div class="info-item-detail">
+                                <label>Admins del laboratorio:</label>
+                                <div>
+                                {% if admin_users and admin_users|length > 0 %}
+                                    <ul>
+                                        {% for au in admin_users %}
+                                        <li class="d-flex align-items-center" style="gap:8px">
+                                            <span>
+                                                {{ au.nombre_completo }} — {{ au.email }}
+                                                {% if laboratorio.id_encargado and laboratorio.id_encargado == au.id_usuario %}
+                                                    <span class="badge bg-info">Encargado</span>
+                                                {% endif %}
+                                            </span>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="quitarAdmin({{ laboratorio.id_laboratorio }}, {{ au.id_usuario }})">
+                                                <i class="fas fa-user-minus"></i>
+                                                Quitar
+                                            </button>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <em class="text-muted">Sin administradores</em>
+                                {% endif %}
+                                </div>
+                            </div>
+                            <div class="info-item-detail">
+                                <form method="post" action="{{ url_for('admin_laboratorios.agregar_admin_laboratorio', id=laboratorio.id_laboratorio) }}" class="d-flex" style="gap:10px">
+                                    <select name="id_usuario" class="form-control" required>
+                                        <option value="">Selecciona usuario…</option>
+                                        {% for u in usuarios %}
+                                        <option value="{{ u.id_usuario }}">{{ u.nombre_completo }} — {{ u.email }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button class="btn btn-primary" type="submit"><i class="fas fa-user-plus"></i> Agregar admin</button>
+                                </form>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -953,6 +991,22 @@ function showNotification(message, type) {
             notification.remove();
         }
     }, 5000);
+}
+</script>
+<script>
+async function quitarAdmin(labId, userId) {
+    if (!confirm('¿Quitar este administrador del laboratorio?')) return;
+    try {
+        const resp = await fetch(`/admin/laboratorios/${labId}/admins/${userId}`, { method: 'DELETE' });
+        const data = await resp.json();
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.message || 'No se pudo quitar el admin');
+        }
+    } catch (e) {
+        alert('Error de red al quitar admin');
+    }
 }
 </script>
 

@@ -146,8 +146,28 @@ def actualizar_rol_usuario():
     usuario = User.query.get(user_id)
     if not usuario:
         return jsonify({'error': 'Usuario no encontrado'}), 404
+    rol_anterior = usuario.id_rol
     usuario.id_rol = id_rol
     db.session.commit()
+    # Auditoría básica en DB y logger
+    try:
+        from flask_login import current_user
+        from flask import current_app
+        from app.models.audit_log import AuditLog
+        db.session.add(AuditLog(
+            action='cambio_rol_usuario',
+            actor_id=getattr(current_user, 'id_usuario', None),
+            target_user_id=usuario.id_usuario,
+            from_value=str(rol_anterior),
+            to_value=str(id_rol),
+            extra=None
+        ))
+        db.session.commit()
+        current_app.logger.info(
+            f"[AUDITORIA ROL] actor_id={getattr(current_user, 'id_usuario', None)} usuario_id={usuario.id_usuario} rol_anterior={rol_anterior} rol_nuevo={id_rol} fecha={datetime.now().isoformat()}"
+        )
+    except Exception:
+        pass
     return jsonify({'success': True, 'mensaje': 'Rol actualizado'})
 
 @admin_users_bp.route('/admin/usuarios/descargar-instituciones')
@@ -793,3 +813,85 @@ def importar_usuarios():
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': f'Error en importación: {str(e)}'}), 500
+
+
+# Vista simple de auditoría de cambios (roles y futuras acciones)
+@admin_users_bp.route('/admin/auditoria')
+@login_required
+@permission_required('gestionar_usuarios')
+def ver_auditoria():
+    try:
+        from app.models.audit_log import AuditLog
+        # Filtros
+        action = request.args.get('action', '').strip()
+        actor_id = request.args.get('actor_id', '').strip()
+        target_user_id = request.args.get('target_user_id', '').strip()
+        date_from = request.args.get('date_from', '').strip()
+        date_to = request.args.get('date_to', '').strip()
+        page = max(int(request.args.get('page', 1) or 1), 1)
+        per_page = max(min(int(request.args.get('per_page', 20) or 20), 100), 5)
+
+        q = db.session.query(AuditLog)
+        if action:
+            q = q.filter(AuditLog.action == action)
+        if actor_id:
+            try:
+                q = q.filter(AuditLog.actor_id == int(actor_id))
+            except Exception:
+                pass
+        if target_user_id:
+            try:
+                q = q.filter(AuditLog.target_user_id == int(target_user_id))
+            except Exception:
+                pass
+        # Fechas
+        from datetime import datetime, timedelta
+        def parse_date(d):
+            try:
+                return datetime.strptime(d, '%Y-%m-%d')
+            except Exception:
+                return None
+        if date_from:
+            df = parse_date(date_from)
+            if df:
+                q = q.filter(AuditLog.created_at >= df)
+        if date_to:
+            dt = parse_date(date_to)
+            if dt:
+                q = q.filter(AuditLog.created_at < (dt + timedelta(days=1)))
+
+        total = q.count()
+        q = q.order_by(AuditLog.created_at.desc())
+        logs = q.offset((page - 1) * per_page).limit(per_page).all()
+
+        # Mapear usuarios actor/target
+        actor_ids = {l.actor_id for l in logs if getattr(l, 'actor_id', None)}
+        target_ids = {l.target_user_id for l in logs if getattr(l, 'target_user_id', None)}
+        all_ids = sorted(actor_ids.union(target_ids))
+        users_map = {}
+        if all_ids:
+            users = db.session.query(User).filter(User.id_usuario.in_(all_ids)).all()
+            for u in users:
+                users_map[u.id_usuario] = f"{u.nombre or u.username} ({u.email})"
+
+        # Acciones distintas para el filtro
+        actions = [row[0] for row in db.session.query(AuditLog.action).distinct().all()]
+
+        total_pages = (total + per_page - 1) // per_page
+        return render_template(
+            'admin_auditoria.html',
+            logs=logs,
+            users_map=users_map,
+            actions=actions,
+            total=total,
+            page=page,
+            per_page=per_page,
+            total_pages=total_pages,
+            f_action=action,
+            f_actor_id=actor_id,
+            f_target_user_id=target_user_id,
+            f_date_from=date_from,
+            f_date_to=date_to,
+        )
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

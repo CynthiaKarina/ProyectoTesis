@@ -218,6 +218,23 @@
                 </div>
             </div>
         </div>
+
+        <!-- Auditoría -->
+        <div class="admin-card" data-category="audit">
+            <div class="admin-card-header">
+                <i class="fas fa-clipboard-list"></i>
+                <h2>Auditoría</h2>
+            </div>
+            <div class="admin-card-content">
+                <p>Consulta el historial de cambios (roles y más)</p>
+                <div class="admin-card-actions">
+                    <button class="admin-button" onclick="navigateToSection('{{ url_for('admin_users.ver_auditoria') }}')">
+                        <i class="fas fa-clipboard-list"></i>
+                        Ver auditoría
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
