@@ -19,6 +19,8 @@ def get_instituciones():
             cursor.close()
             connection.close()
             return jsonify({'success': True, 'instituciones': instituciones}), 200
+        # Fallback si no hay conexión
+        return jsonify({'success': False, 'message': 'Error de conexión a la base de datos'}), 500
     except Exception as e:
         print(f"Error al obtener instituciones: {str(e)}")
         return jsonify({'success': False, 'message': 'Error al obtener instituciones'}), 500
