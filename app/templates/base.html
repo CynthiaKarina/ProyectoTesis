@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Mi Aplicación{% endblock %}</title>
+    <title>{% block title %}{{ config.get('SYSTEM_SHORT','SIGRAL') }}{% endblock %}</title>
     <!-- Agregar Font Awesome para los iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     {% block extra_css %}{% endblock %}
@@ -13,6 +13,12 @@
     <div class="container">
         <nav class="navbar">
             <ul class="nav-menu">
+                <li class="brand" style="margin-right:12px;">
+                    <a href="{{ url_for('home.index') }}" style="display:flex; align-items:center; gap:6px; text-decoration:none; color:inherit;">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span><strong>{{ config.get('SYSTEM_SHORT','SIGRAL') }}</strong></span>
+                    </a>
+                </li>
                 <!-- Inicio -->
                 <li>
                     <a href="{{ url_for('home.index') }}" class="{% if request.endpoint == 'home.index' %}active{% endif %}">
@@ -114,6 +120,19 @@
         <main>
             {% block content %}{% endblock %}
         </main>
+        <footer style="margin-top:24px; padding:12px 0; color:#6b7280; font-size:13px; border-top:1px solid #e5e7eb; text-align:center;">
+            <div><strong>{{ config.get('SYSTEM_SHORT','SIGRAL') }}</strong> · {{ config.get('SYSTEM_NAME','Sistema Integrado de Gestión de Recursos Académicos en el Estado') }}</div>
+        </footer>
+    </div>
+
+    <!-- Overlay de carga global (aparece si la operación tarda > 5s) -->
+    <div id="global-loader" style="display:none; position:fixed; inset:0; background:rgba(255,255,255,.8); z-index:99999;">
+        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); text-align:center; color:#111827;">
+            <div style="font-size:28px; margin-bottom:8px;">
+                <i class="fas fa-spinner fa-spin"></i>
+            </div>
+            <div style="font-weight:600;">Procesando...</div>
+        </div>
     </div>
 
     <script>
@@ -147,6 +166,98 @@
                 }
             });
         });
+    </script>
+
+    <script>
+        // Loader global con retardo de 5s y bloqueo de interacción
+        (function(){
+            const LOADER_DELAY_MS = 5000;
+            const overlay = document.getElementById('global-loader');
+            let pending = 0;
+            let showTimer = null;
+
+            function scheduleShow(){
+                clearTimeout(showTimer);
+                showTimer = setTimeout(() => {
+                    if (pending > 0) {
+                        overlay.style.display = 'block';
+                    }
+                }, LOADER_DELAY_MS);
+            }
+
+            function hideLoader(){
+                clearTimeout(showTimer);
+                overlay.style.display = 'none';
+            }
+
+            function startTask(){
+                pending++;
+                if (pending === 1) scheduleShow();
+            }
+
+            function endTask(){
+                pending = Math.max(0, pending - 1);
+                if (pending === 0) hideLoader();
+            }
+
+            // Exponer helpers opcionales
+            window.startLongTask = startTask;
+            window.endLongTask = endTask;
+
+            // Interceptar fetch
+            if (window.fetch) {
+                const _fetch = window.fetch;
+                window.fetch = function(){
+                    startTask();
+                    return _fetch.apply(this, arguments)
+                        .finally(() => endTask());
+                }
+            }
+
+            // Interceptar XHR
+            (function(){
+                const _open = XMLHttpRequest.prototype.open;
+                const _send = XMLHttpRequest.prototype.send;
+                XMLHttpRequest.prototype.open = function(){
+                    this.__track = true; // marcar seguimiento
+                    return _open.apply(this, arguments);
+                }
+                XMLHttpRequest.prototype.send = function(){
+                    if (this.__track) startTask();
+                    this.addEventListener('loadend', () => endTask());
+                    return _send.apply(this, arguments);
+                }
+            })();
+
+            // Formularios: mostrar loader tras 5s si no cambió de página
+            document.addEventListener('submit', function(e){
+                const form = e.target.closest('form');
+                if (!form) return;
+                startTask();
+                // deshabilitar botones para evitar dobles envíos
+                try { form.querySelectorAll('button, input[type="submit"]').forEach(el => el.disabled = true); } catch(_) {}
+            }, true);
+
+            // Navegación por enlaces internos
+            document.addEventListener('click', function(e){
+                const a = e.target.closest('a');
+                if (!a) return;
+                const href = a.getAttribute('href') || '';
+                const target = a.getAttribute('target') || '';
+                if (!href || href.startsWith('#') || target === '_blank' || a.hasAttribute('download')) return;
+                // Inicio de posible navegación
+                startTask();
+            }, true);
+
+            // Ocultar al descargar/navegar
+            window.addEventListener('beforeunload', function(){
+                // Mostrar inmediatamente para navegaciones lentas
+                overlay.style.display = 'block';
+            });
+
+            // Fallback de seguridad para no dejar loader pegado
+            window.addEventListener('load', function(){ hideLoader(); pending = 0; });
+        })();
     </script>
 
     <!-- Agregar esta función helper -->

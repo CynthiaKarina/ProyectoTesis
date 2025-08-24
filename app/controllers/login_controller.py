@@ -107,6 +107,7 @@ def login_post():
             (user.password and isinstance(user.password, str) and user.password == password) or
             (user.password and check_password_hash(user.password, password))
         ):
+            # Si la sesión previa debe invalidarse por cambio de rol, podemos forzar re-login por fecha_cambio en cookies si fuera necesario.
             # ✅ REGISTRAR USUARIO EN FLASK-LOGIN (ESTO FALTABA!)
             login_user(user, remember=remember)
             
@@ -115,7 +116,23 @@ def login_post():
             session['user_id'] = user.id_usuario
             session['nombre'] = user.nombre if user.nombre else user.username
             session['id_rol'] = user.id_rol  # Guardar el id del rol
+            try:
+                session['role_stamp'] = user.fecha_cambio.isoformat() if getattr(user, 'fecha_cambio', None) else ''
+            except Exception:
+                session['role_stamp'] = ''
             
+            # Actualizar último acceso
+            try:
+                user.ultimo_acceso = datetime.utcnow()
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+            # Log de inicio de sesión
+            try:
+                from app.utils.audit import log_user_action
+                log_user_action(user.id_usuario, 'login', extra=f'remember={remember}')
+            except Exception:
+                pass
             # Preparar datos del usuario para localStorage
             user_data = prepare_user_data_for_localstorage(user)
             

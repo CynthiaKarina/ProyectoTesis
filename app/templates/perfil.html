@@ -57,7 +57,11 @@
                     </div>
                     <div class="meta-item">
                         <i class="fas fa-calendar-alt"></i>
-                        <span>Miembro desde {{ user.fecha_creacion if user.fecha_creacion else 'N/A' }}</span>
+                        <span>Miembro desde {{ user.fecha_registro.strftime('%Y-%m-%d') if user.fecha_registro else 'N/A' }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-clock"></i>
+                        <span>Último inicio: {{ user.ultimo_acceso.strftime('%Y-%m-%d %H:%M') if user.ultimo_acceso else 'N/A' }}</span>
                     </div>
                 </div>
             </div>
@@ -126,6 +130,28 @@
                 </div>
             </div>
 
+            <!-- Historial de actividad -->
+            <div class="profile-card">
+                <div class="card-header">
+                    <i class="fas fa-history"></i>
+                    <h3>Actividad reciente</h3>
+                </div>
+                <div>
+                    {% set logs = (user.audit_logs | default([], true) | list) %}
+                    {% if logs %}
+                    <ul style="margin:0; padding-left:18px;">
+                        {% for a in logs[:20] %}
+                        <li>
+                            {{ a.created_at.strftime('%Y-%m-%d %H:%M') if a.created_at else '' }} · {{ a.action }}
+                            {% if a.extra %}<span style="color:#6b7280;">({{ a.extra }})</span>{% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="text-muted">Sin registros de actividad.</div>
+                    {% endif %}
+                </div>
+            </div>
             <!-- Información Institucional -->
             <div class="profile-card">
                 <div class="card-header">

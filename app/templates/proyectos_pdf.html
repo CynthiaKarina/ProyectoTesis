@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 12px; }
+        h1 { font-size: 18px; margin-bottom: 8px; }
+        .meta { color: #555; margin-bottom: 16px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ccc; padding: 6px; }
+        th { background: #f3f4f6; text-align: left; }
+    </style>
+    <title>Mis Proyectos</title>
+    </head>
+<body>
+    <h1>Mis Proyectos</h1>
+    <div class="meta">Usuario: {{ (user.nombre ~ ' ' ~ user.apellido_paterno ~ ' ' ~ user.apellido_materno)|trim if user else '' }}</div>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Tipo</th>
+                <th>Estado</th>
+                <th>Fecha</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in proyectos %}
+            <tr>
+                <td>{{ p.id_proyecto }}</td>
+                <td>{{ p.nombre_proyecto }}</td>
+                <td>{{ p.tipo_proyecto or '' }}</td>
+                <td>{{ p.estatus }}</td>
+                <td>{{ p.fecha_formateada }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
+

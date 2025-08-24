@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Nuevo Proyecto</title>
+    <style>
+        body { font-family: Arial, sans-serif; background:#f9fafb; padding:16px; }
+        .card { max-width:720px; margin:0 auto; background:#fff; border-radius:8px; padding:16px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+        .row { display:flex; gap:12px; }
+        .col { flex:1; }
+        label { display:block; font-weight:600; margin:8px 0 4px; }
+        input[type="text"], input[type="date"], select, textarea { width:100%; padding:8px; border:1px solid #e5e7eb; border-radius:6px; }
+        textarea { min-height:120px; }
+        .actions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+        .btn { padding:10px 12px; border:none; border-radius:8px; cursor:pointer; text-decoration:none; }
+        .btn-primary { background:#0ea5e9; color:#fff; }
+        .btn-secondary { background:#6b7280; color:#fff; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2 style="margin:0 0 12px 0;">Crear nuevo proyecto</h2>
+        <form method="POST" action="{{ url_for('admin_proyectos.crear_proyecto_simple') }}">
+            <label for="nombre_proyecto">Nombre del proyecto</label>
+            <input type="text" id="nombre_proyecto" name="nombre_proyecto" required minlength="5" maxlength="300" pattern="^[A-Za-zÁÉÍÓÚÑáéíóúñ0-9\- ,.:;()\/]+$" title="Solo letras, números y signos básicos">
+
+            <label for="resumen">Resumen</label>
+            <textarea id="resumen" name="resumen" placeholder="Describe brevemente el objetivo y alcance" maxlength="2000"></textarea>
+
+            <div class="row">
+                <div class="col">
+                    <label for="tipo_proyecto">Tipo de proyecto</label>
+                    <select id="tipo_proyecto" name="tipo_proyecto" required>
+                        {% for t in tipos_proyecto %}
+                        <option value="{{ t }}">{{ t }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col">
+                    <label for="estatus">Estatus</label>
+                    <select id="estatus" name="estatus" required>
+                        {% for e in estados_disponibles %}
+                        <option value="{{ e }}" {{ 'selected' if e == 'En Desarrollo' else '' }}>{{ e }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <label for="fecha">Fecha</label>
+                    <input type="date" id="fecha" name="fecha">
+                </div>
+                <div class="col" style="display:flex; align-items:flex-end;">
+                    <label style="display:flex; gap:6px; align-items:center;">
+                        <input type="checkbox" name="adjunto"> Tiene adjunto
+                    </label>
+                </div>
+            </div>
+
+            {% if usuarios_opciones %}
+            <label for="integrantes">Integrantes (opcional)</label>
+            <select id="integrantes" name="integrantes" multiple size="5">
+                {% for u in usuarios_opciones %}
+                <option value="{{ u.id }}">{{ u.nombre }}</option>
+                {% endfor %}
+            </select>
+            <small style="display:block; color:#6b7280;">Mantén presionada la tecla Ctrl (Cmd en Mac) para seleccionar varios integrantes.</small>
+            {% endif %}
+
+            <div class="actions">
+                <a href="{{ url_for('home.index') }}" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Crear</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
+

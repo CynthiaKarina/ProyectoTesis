@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Editar Proyecto</title>
+    <style>
+        body { font-family: Arial, sans-serif; background:#f9fafb; padding:16px; }
+        .card { max-width:720px; margin:0 auto; background:#fff; border-radius:8px; padding:16px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+        .row { display:flex; gap:12px; }
+        .col { flex:1; }
+        label { display:block; font-weight:600; margin:8px 0 4px; }
+        input[type="text"], input[type="date"], select, textarea { width:100%; padding:8px; border:1px solid #e5e7eb; border-radius:6px; }
+        textarea { min-height:120px; }
+        .actions { display:flex; gap:8px; justify-content:space-between; margin-top:12px; }
+        .btn { padding:10px 12px; border:none; border-radius:8px; cursor:pointer; text-decoration:none; }
+        .btn-primary { background:#0ea5e9; color:#fff; }
+        .btn-secondary { background:#6b7280; color:#fff; }
+        .btn-danger { background:#ef4444; color:#fff; }
+        .muted { color:#6b7280; font-size:12px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2 style="margin:0 0 12px 0;">Editar proyecto</h2>
+        <form method="POST" action="{{ url_for('admin_proyectos.editar_proyecto_guardar', id_proyecto=proyecto.id_proyecto) }}">
+            <label for="nombre_proyecto">Nombre del proyecto</label>
+            <input type="text" id="nombre_proyecto" name="nombre_proyecto" value="{{ proyecto.nombre_proyecto }}" required minlength="5" maxlength="300">
+
+            <label for="resumen">Resumen</label>
+            <textarea id="resumen" name="resumen" maxlength="2000">{{ proyecto.resumen }}</textarea>
+
+            <div class="row">
+                <div class="col">
+                    <label for="tipo_proyecto">Tipo de proyecto</label>
+                    <select id="tipo_proyecto" name="tipo_proyecto" required>
+                        {% for t in tipos_proyecto %}
+                        <option value="{{ t }}" {{ 'selected' if proyecto.tipo_proyecto == t else '' }}>{{ t }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col">
+                    <label for="estatus">Estatus</label>
+                    <select id="estatus" name="estatus" required {{ 'disabled' if es_final else '' }}>
+                        {% for e in estados_disponibles %}
+                        <option value="{{ e }}" {{ 'selected' if proyecto.estatus == e else '' }}>{{ e }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if es_final %}<div class="muted">Proyecto finalizado: no editable</div>{% endif %}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <label for="fecha">Fecha</label>
+                    <input type="date" id="fecha" name="fecha" value="{{ proyecto.fecha.strftime('%Y-%m-%d') if proyecto.fecha else '' }}">
+                </div>
+                <div class="col" style="display:flex; align-items:flex-end;">
+                    <label style="display:flex; gap:6px; align-items:center;">
+                        <input type="checkbox" name="adjunto" {{ 'checked' if proyecto.adjunto else '' }}> Tiene adjunto
+                    </label>
+                </div>
+            </div>
+
+            <div class="actions">
+                <a href="{{ url_for('home.index') }}" class="btn btn-secondary">Volver</a>
+                <div style="display:flex; gap:8px;">
+                    <button type="submit" class="btn btn-primary" {{ 'disabled' if es_final else '' }}>Guardar cambios</button>
+                    <form method="POST" action="{{ url_for('admin_proyectos.finalizar_proyecto', id_proyecto=proyecto.id_proyecto) }}" style="display:inline;">
+                        <button type="submit" class="btn btn-danger" {{ 'disabled' if es_final else '' }}>Última versión</button>
+                    </form>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {% if audit_rows %}
+    <div class="card" style="margin-top:16px;">
+        <h3 style="margin:0 0 8px 0;">Historial de cambios</h3>
+        <table style="width:100%; border-collapse:collapse;">
+            <thead>
+                <tr>
+                    <th style="text-align:left; border-bottom:1px solid #e5e7eb; padding:6px;">Fecha</th>
+                    <th style="text-align:left; border-bottom:1px solid #e5e7eb; padding:6px;">Acción</th>
+                    <th style="text-align:left; border-bottom:1px solid #e5e7eb; padding:6px;">Detalles</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in audit_rows %}
+                <tr>
+                    <td style="padding:6px; border-bottom:1px solid #f3f4f6;">{{ a.fecha.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td style="padding:6px; border-bottom:1px solid #f3f4f6;">{{ a.accion }}</td>
+                    <td style="padding:6px; border-bottom:1px solid #f3f4f6;">{{ a.detalles or '' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</body>
+</html>
+

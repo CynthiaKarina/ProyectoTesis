@@ -408,6 +408,312 @@
         </div>
     </div>
 
+    <!-- Paneles según rol/permiso -->
+    <div class="role-dashboards" style="margin: 16px 0;">
+        {% if responses_for_user and responses_for_user > 0 %}
+        <div class="profile-card" style="padding:16px; margin-bottom:16px; border-left:4px solid #7c3aed;">
+            <div class="card-header" style="display:flex; align-items:center; gap:8px;">
+                <i class="fas fa-bell"></i>
+                <h3 style="margin:0;">Tienes notificaciones</h3>
+            </div>
+            <div style="margin-top:8px; color:#374151;">
+                <p>
+                    Hay respuestas a tus solicitudes de roles.
+                    {% if latest_role_response %}
+                        Última: <strong>{{ latest_role_response.rol }}</strong> ({{ latest_role_response.estado }})
+                        {% if latest_role_response.lab %} · {{ latest_role_response.lab }}{% endif %}.
+                        <span style="color:#6b7280; font-size:12px;">Si fue aprobada, tu sesión se cerró para actualizar permisos.</span>
+                    {% endif %}
+                </p>
+                <div style="display:flex; gap:8px;">
+                    <a href="/admin/roles" class="btn" style="background:#7c3aed;color:#fff; padding:8px 10px;border-radius:8px; text-decoration:none;">Ir a Roles</a>
+                    <a href="{{ url_for('solicitud.mis_solicitudes') }}" class="btn" style="background:#111827;color:#fff; padding:8px 10px;border-radius:8px; text-decoration:none;">Mis Solicitudes</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if is_super_user() or has_permission('gestionar_roles') %}
+        <div class="profile-card" style="padding:16px; margin-bottom:16px; border-left:4px solid #0ea5e9;">
+            <div class="card-header" style="display:flex; align-items:center; gap:8px;">
+                <i class="fas fa-user-shield"></i>
+                <h3 style="margin:0;">Panel Super Admin</h3>
+            </div>
+            {% if super_kpis %}
+            <div style="display:flex; gap:12px; margin-top:8px; flex-wrap:wrap;">
+                <div class="stat-pill" style="background:#f3f4f6; padding:6px 10px; border-radius:999px;">
+                    <i class="fas fa-users"></i> Usuarios: {{ super_kpis.usuarios_total }}
+                </div>
+                <div class="stat-pill" style="background:#f3f4f6; padding:6px 10px; border-radius:999px;">
+                    <i class="fas fa-bell"></i> Solicitudes: {{ super_kpis.solicitudes_pendientes }}
+                </div>
+                <div class="stat-pill" style="background:#ecfeff; padding:6px 10px; border-radius:999px;">
+                    <i class="fas fa-user-plus"></i> Nuevos 7d: {{ super_kpis.usuarios_7d or 0 }}
+                </div>
+                <div class="stat-pill" style="background:#f0fdf4; padding:6px 10px; border-radius:999px;">
+                    <i class="fas fa-clipboard-list"></i> Solicitudes 7d: {{ super_kpis.solicitudes_7d or 0 }}
+                </div>
+                <div class="stat-pill" style="background:#eef2ff; padding:6px 10px; border-radius:999px;">
+                    <i class="fas fa-project-diagram"></i> Proyectos activos: {{ super_kpis.proyectos_activos or 0 }}
+                </div>
+            </div>
+            {% endif %}
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap:12px; margin-top:12px;">
+                <a href="/admin/usuarios" class="btn" style="background:#111827;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-users-cog"></i> Gestionar Usuarios</a>
+                <a href="/admin/roles" class="btn" style="background:#374151;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-key"></i> Roles y Permisos</a>
+                <a href="/admin/instituciones" class="btn" style="background:#047857;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-university"></i> Instituciones</a>
+                <a href="/admin/laboratorios" class="btn" style="background:#1d4ed8;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-flask"></i> Laboratorios</a>
+                <a href="/admin/proyectos" class="btn" style="background:#b45309;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-project-diagram"></i> Proyectos</a>
+                <a href="/admin/roles#solicitudes" class="btn" style="background:#6d28d9;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-check-circle"></i> Aprobaciones</a>
+                <a href="/admin/proyectos/exportar" class="btn" style="background:#0f766e;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-file-excel"></i> Exportar Proyectos</a>
+                <a href="/admin/proyectos/plantilla" class="btn" style="background:#2563eb;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-download"></i> Plantilla Proyectos</a>
+                <a href="/admin/reportes-mensuales" class="btn" style="background:#111827;color:#fff; padding:10px;border-radius:8px; text-decoration:none; position:relative;">
+                    <i class="fas fa-file-alt"></i> Reportes mensuales
+                    {% if super_kpis and super_kpis.reportes_anio is not none %}
+                    <span style="background:#f59e0b;color:#111827; border-radius:999px; padding:2px 6px; font-size:10px; position:absolute; top:-6px; right:-6px;">{{ super_kpis.reportes_anio }}</span>
+                    {% endif %}
+                </a>
+                {% if is_super_user() %}
+                <a href="/admin/emails" class="btn" style="background:#8b5cf6;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-envelope-open-text"></i> Plantillas de correos</a>
+                {% endif %}
+                <a href="/admin/emails" class="btn" style="background:#8b5cf6;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-envelope-open-text"></i> Plantillas de correos</a>
+            </div>
+            {% if admin_activity %}
+            <div style="margin-top:14px;">
+                <h4 style="margin:0 0 8px 0; display:flex; align-items:center; gap:6px;"><i class="fas fa-history"></i> Actividad reciente</h4>
+                <ul style="margin:0; padding-left:18px; color:#374151;">
+                    {% for ev in admin_activity %}
+                    <li style="margin-bottom:4px; font-size:14px;">
+                        {{ ev.created_at.strftime('%Y-%m-%d %H:%M') if ev.created_at else '' }} · {{ ev.action }}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if has_admin_access() and not is_super_user() %}
+        <div class="profile-card" style="padding:16px; margin-bottom:16px; border-left:4px solid #059669;">
+            <div class="card-header" style="display:flex; align-items:center; gap:8px;">
+                <i class="fas fa-building"></i>
+                <h3 style="margin:0;">{{ 'Panel Admin Institucional' if 'institucional' in r else 'Panel Administrador' }}</h3>
+            </div>
+            {% if admin_kpis %}
+            <div style="display:flex; gap:12px; margin-top:8px; flex-wrap:wrap;">
+                <div class="stat-pill" style="background:#f3f4f6; padding:6px 10px; border-radius:999px;">
+                    <i class="fas fa-users"></i> Usuarios Inst.: {{ admin_kpis.usuarios_institucion or 0 }}
+                </div>
+                <div class="stat-pill" style="background:#f3f4f6; padding:6px 10px; border-radius:999px;">
+                    <i class="fas fa-flask"></i> Labs Inst.: {{ admin_kpis.laboratorios_institucion or 0 }}
+                </div>
+                <div class="stat-pill" style="background:#eef2ff; padding:6px 10px; border-radius:999px;">
+                    <i class="fas fa-clipboard-list"></i> Solicitudes: {{ admin_kpis.solicitudes_total or 0 }}
+                </div>
+                <div class="stat-pill" style="background:#fffbeb; padding:6px 10px; border-radius:999px;">
+                    <i class="fas fa-hourglass-half"></i> Pendientes: {{ admin_kpis.solicitudes_pendientes or 0 }}
+                </div>
+                <div class="stat-pill" style="background:#ecfdf5; padding:6px 10px; border-radius:999px;">
+                    <i class="fas fa-check"></i> Aprobadas: {{ admin_kpis.solicitudes_aprobadas or 0 }}
+                </div>
+                <div class="stat-pill" style="background:#fef2f2; padding:6px 10px; border-radius:999px;">
+                    <i class="fas fa-times"></i> Rechazadas: {{ admin_kpis.solicitudes_rechazadas or 0 }}
+                </div>
+                <div class="stat-pill" style="background:#eff6ff; padding:6px 10px; border-radius:999px;">
+                    <i class="fas fa-flag-checkered"></i> Completadas: {{ admin_kpis.solicitudes_completadas or 0 }}
+                </div>
+                <div class="stat-pill" style="background:#ecfeff; padding:6px 10px; border-radius:999px;">
+                    <i class="fas fa-user-plus"></i> Nuevos 7d: {{ admin_kpis.usuarios_7d or 0 }}
+                </div>
+                <div class="stat-pill" style="background:#f0fdf4; padding:6px 10px; border-radius:999px;">
+                    <i class="fas fa-clipboard-list"></i> Solicitudes 7d: {{ admin_kpis.solicitudes_7d or 0 }}
+                </div>
+            </div>
+            {% endif %}
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap:12px; margin-top:12px;">
+                <a href="/admin/instituciones" class="btn" style="background:#059669;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-university"></i> Mis Instituciones</a>
+                <a href="/admin/laboratorios" class="btn" style="background:#2563eb;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-flask"></i> Laboratorios</a>
+                <a href="/admin/usuarios" class="btn" style="background:#1f2937;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-users"></i> Usuarios</a>
+                <a href="/admin/proyectos" class="btn" style="background:#d97706;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-chart-line"></i> Reportes</a>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if has_admin_access() and not is_super_user() %}
+        <div class="profile-card" style="padding:16px; margin-bottom:16px;">
+            <div class="card-header" style="display:flex; align-items:center; gap:8px; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <i class="fas fa-history"></i>
+                    <h3 style="margin:0;">Actividad reciente (mi institución)</h3>
+                </div>
+                <div>
+                    <a href="{{ url_for('home.index', inst_activity='ultima_semana') }}" class="btn" style="background:#e5e7eb; color:#111827; padding:6px 8px; border-radius:6px; text-decoration:none; font-size:12px;">Última semana</a>
+                    <a href="{{ url_for('home.index', inst_activity='ultimo_mes') }}" class="btn" style="background:#e5e7eb; color:#111827; padding:6px 8px; border-radius:6px; text-decoration:none; font-size:12px;">Último mes</a>
+                    <a href="{{ url_for('solicitud.solicitudes_institucion') }}" class="btn" style="background:#2563eb; color:#fff; padding:6px 8px; border-radius:6px; text-decoration:none; font-size:12px;">Ver todas</a>
+                    {% if admin_inst_pending_roles and admin_inst_pending_roles > 0 %}
+                    <a href="/admin/roles#solicitudes" class="btn" style="background:#7c3aed; color:#fff; padding:6px 8px; border-radius:6px; text-decoration:none; font-size:12px;">Roles pendientes ({{ admin_inst_pending_roles }})</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% if admin_activity_inst %}
+            <ul style="margin:8px 0 0 18px; color:#374151;">
+                {% for s in admin_activity_inst %}
+                <li style="margin-bottom:4px; font-size:14px;">
+                    {{ s.fecha_creacion.strftime('%Y-%m-%d') if s.fecha_creacion else '' }} · Solicitud #{{ s.id_solicitud }} · Estado: {{ s.estado_nombre }}
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div style="margin-top:8px; color:#6b7280; font-size:14px;">Sin actividad en el período seleccionado.</div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% set r = (get_user_role() or '')|lower %}
+        {% if 'laboratorio' in r or 'responsable' in r or 'encargado' in r %}
+        <div class="profile-card" style="padding:16px; margin-bottom:16px; border-left:4px solid #f59e0b;">
+            <div class="card-header" style="display:flex; align-items:center; gap:8px;">
+                <i class="fas fa-tools"></i>
+                <h3 style="margin:0;">Panel Encargado Técnico</h3>
+            </div>
+            {% if tech_kpis %}
+            <div style="display:flex; gap:12px; margin-top:8px; flex-wrap:wrap;">
+                <div class="stat-pill" style="background:#f3f4f6; padding:6px 10px; border-radius:999px;">
+                    <i class="fas fa-flask"></i> Labs asignados: {{ tech_kpis.laboratorios_asignados or 0 }}
+                </div>
+            </div>
+            {% endif %}
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap:12px; margin-top:12px;">
+                <a href="/admin/laboratorios" class="btn" style="background:#2563eb;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-flask"></i> Mis Laboratorios</a>
+                <a href="/admin/laboratorios/equipamiento/asignar" class="btn" style="background:#6b7280;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-boxes"></i> Inventario</a>
+                <a href="/admin/laboratorios" class="btn" style="background:#ef4444;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-tools"></i> Mantenimientos</a>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if 'investigador' in r %}
+        <div class="profile-card" style="padding:16px; margin-bottom:16px; border-left:4px solid #2563eb;">
+            <div class="card-header" style="display:flex; align-items:center; gap:8px;">
+                <i class="fas fa-user-graduate"></i>
+                <h3 style="margin:0;">Acciones para Investigador</h3>
+            </div>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap:12px; margin-top:12px;">
+                <a href="{{ url_for('home.navegar_pagina', nombre='proyectos') }}" class="btn" style="background:#0ea5e9;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-project-diagram"></i> Proyectos</a>
+                <a href="{{ url_for('home.navegar_pagina', nombre='servicios') }}" class="btn" style="background:#10b981;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-vials"></i> Recursos</a>
+                <a href="{{ url_for('home.navegar_pagina', nombre='instituciones') }}" class="btn" style="background:#6366f1;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-link"></i> Vinculaciones</a>
+                {% if has_permission('crear_proyecto') %}
+                <a href="{{ url_for('admin_proyectos.crear_proyecto_form') }}" class="btn" style="background:#0ea5e9;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-plus-circle"></i> Crear proyecto</a>
+                {% endif %}
+                <a href="{{ url_for('admin_proyectos.descargar_mis_proyectos_pdf') }}" class="btn" style="background:#ef4444;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-file-pdf"></i> Descargar PDF</a>
+            </div>
+            {% if investigador_proyectos %}
+            <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;">
+                <div class="stat-pill" style="background:#e0f2fe; padding:6px 10px; border-radius:999px;">
+                    <i class="fas fa-tasks"></i> Activos: {{ investigador_proyectos|length }}
+                </div>
+            </div>
+            {% endif %}
+            {% if investigador_proyectos %}
+            <div style="margin-top:14px;">
+                <h4 style="margin:0 0 8px 0; display:flex; align-items:center; gap:6px;">
+                    <i class="fas fa-tasks"></i> Mis proyectos activos
+                </h4>
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:10px;">
+                    {% for p in investigador_proyectos %}
+                    <a href="{{ url_for('home.navegar_pagina', nombre='proyectos') }}" class="profile-card" style="text-decoration:none; border-left:4px solid {{ p.color }}; padding:12px;">
+                        <div style="display:flex; align-items:flex-start; gap:8px; color:#111827;">
+                            <i class="{{ p.icono }}" style="color: {{ p.color }};"></i>
+                            <div>
+                                <div style="font-weight:600;">{{ p.nombre }}</div>
+                                <div style="font-size:12px; color:#6b7280;">{{ p.estado }} · {{ p.fecha }} · {{ p.integrantes }} integrantes</div>
+                                <div style="font-size:12px; color:#374151; margin-top:6px;">{{ p.resumen }}</div>
+                                {% if p.soy_propietario %}
+                                <div style="margin-top:8px; display:flex; gap:6px;">
+                                    <a href="{{ url_for('admin_proyectos.editar_proyecto_form', id_proyecto=p.id) }}" class="btn" style="background:#111827;color:#fff; padding:6px 8px;border-radius:6px; text-decoration:none; font-size:12px;">Editar</a>
+                                    <form method="POST" action="{{ url_for('admin_proyectos.finalizar_proyecto', id_proyecto=p.id) }}" onsubmit="return confirm('¿Marcar como última versión? No podrás editar después.');">
+                                        <button type="submit" class="btn" style="background:#ef4444;color:#fff; padding:6px 8px;border-radius:6px; text-decoration:none; font-size:12px;">Última versión</button>
+                                    </form>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if 'empresa' in r or 'colaborador' in r %}
+        <div class="profile-card" style="padding:16px; margin-bottom:16px; border-left:4px solid #334155;">
+            <div class="card-header" style="display:flex; align-items:center; gap:8px;">
+                <i class="fas fa-industry"></i>
+                <h3 style="margin:0;">Empresa / Colaborador</h3>
+            </div>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap:12px; margin-top:12px;">
+                <a href="{{ url_for('home.navegar_pagina', nombre='investigadores') }}" class="btn" style="background:#334155;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-user-tie"></i> Investigadores</a>
+                <a href="{{ url_for('home.navegar_pagina', nombre='servicios') }}" class="btn" style="background:#0f766e;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-concierge-bell"></i> Servicios</a>
+                <a href="{{ url_for('home.navegar_pagina', nombre='proyectos') }}" class="btn" style="background:#b45309;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-handshake"></i> Colaboraciones</a>
+            </div>
+        </div>
+        {% endif %}
+
+        {# Panel Administrativo (personal administrativo sin acceso completo de admin) #}
+        {% if 'administrativo' in r and not has_admin_access() %}
+        <div class="profile-card" style="padding:16px; margin-bottom:16px;">
+            <div class="card-header" style="display:flex; align-items:center; gap:8px;">
+                <i class="fas fa-clipboard-check"></i>
+                <h3 style="margin:0;">Panel Administrativo</h3>
+            </div>
+            {% if administrativo_kpis %}
+            <div style="display:flex; gap:12px; margin-top:8px; flex-wrap:wrap;">
+                <div class="stat-pill" style="background:#fffbeb; padding:6px 10px; border-radius:999px;">
+                    <i class="fas fa-hourglass-half"></i> Pendientes: {{ administrativo_kpis.pendientes or 0 }}
+                </div>
+                <div class="stat-pill" style="background:#e0f2fe; padding:6px 10px; border-radius:999px;">
+                    <i class="fas fa-search"></i> En revisión: {{ administrativo_kpis.en_revision or 0 }}
+                </div>
+            </div>
+            {% endif %}
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap:12px; margin-top:12px;">
+                <a href="{{ url_for('solicitud.mis_solicitudes') }}" class="btn" style="background:#f59e0b;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
+                <a href="{{ url_for('laboratorio.index') }}" class="btn" style="background:#2563eb;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-flask"></i> Laboratorios</a>
+                <a href="/admin/usuarios" class="btn" style="background:#374151;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-users"></i> Usuarios Operativos</a>
+            </div>
+        </div>
+        {% endif %}
+
+        {# Panel Estudiante específico #}
+        {% if 'estudiante' in r %}
+        <div class="profile-card" style="padding:16px; margin-bottom:16px;">
+            <div class="card-header" style="display:flex; align-items:center; gap:8px;">
+                <i class="fas fa-user-graduate"></i>
+                <h3 style="margin:0;">Estudiante</h3>
+            </div>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap:12px; margin-top:12px;">
+                <a href="{{ url_for('laboratorio.index') }}" class="btn" style="background:#2563eb;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-flask"></i> Explorar Laboratorios</a>
+                <a href="{{ url_for('solicitud.mis_solicitudes') }}" class="btn" style="background:#0ea5e9;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-clipboard-list"></i> Mis Solicitudes</a>
+                <a href="{{ url_for('profile.mi_perfil') }}" class="btn" style="background:#10b981;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-id-card"></i> Mi Perfil</a>
+            </div>
+        </div>
+        {% endif %}
+
+        {# Panel Usuario Estándar: si no calza con otros roles #}
+        {% if not (is_super_user() or has_permission('gestionar_roles') or ('laboratorio' in r or 'responsable' in r) or ('investigador' in r) or ('empresa' in r or 'colaborador' in r) or has_admin_access()) %}
+        <div class="profile-card" style="padding:16px; margin-bottom:16px;">
+            <div class="card-header" style="display:flex; align-items:center; gap:8px;">
+                <i class="fas fa-user"></i>
+                <h3 style="margin:0;">Usuario Estándar</h3>
+            </div>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap:12px; margin-top:12px;">
+                <a href="{{ url_for('laboratorio.index') }}" class="btn" style="background:#2563eb;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-flask"></i> Explorar Laboratorios</a>
+                <a href="{{ url_for('solicitud.mis_solicitudes') }}" class="btn" style="background:#0ea5e9;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-clipboard-list"></i> Mis Solicitudes</a>
+                <a href="{{ url_for('profile.mi_perfil') }}" class="btn" style="background:#10b981;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-id-card"></i> Mi Perfil</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
     <!-- Acceso Rápido Mejorado -->
     <div class="quick-access-section">
         <div class="section-header">

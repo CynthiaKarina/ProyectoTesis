@@ -24,3 +24,8 @@ class Config:
     # Salt para tokens de email (restablecer contraseña, etc.)
     SECURITY_EMAIL_SALT = os.environ.get('SECURITY_EMAIL_SALT', 'sigral-email-salt')
     SECURITY_APPROVAL_SALT = os.environ.get('SECURITY_APPROVAL_SALT', 'sigral-approval-salt')
+
+    # Identidad del sistema y URL base
+    SYSTEM_NAME = os.environ.get('SYSTEM_NAME', 'Sistema Integrado de Gestión de Recursos Académicos en el Estado')
+    SYSTEM_SHORT = os.environ.get('SYSTEM_SHORT', 'SIGRAL')
+    BASE_URL = os.environ.get('BASE_URL', '')

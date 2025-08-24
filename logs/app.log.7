@@ -1,0 +1,64 @@
+2025-08-24 01:10:34,397 INFO: Query base creada: SELECT laboratorio.id_laboratorio AS laboratorio_id_laboratorio, laboratorio.nombre_laboratorio AS laboratorio_nombre_laboratorio, laboratorio.disponibilidad AS laboratorio_disponibilidad, laboratorio.descripcion AS laboratorio_descripcion, laboratorio.imagen_url AS laboratorio_imagen_url, laboratorio.capacidad AS laboratorio_capacidad, laboratorio.horario AS laboratorio_horario, laboratorio.ubicacion AS laboratorio_ubicacion, laboratorio.telefono AS laboratorio_telefono, laboratorio.email_contacto AS laboratorio_email_contacto, laboratorio.superficie_m2 AS laboratorio_superficie_m2, laboratorio.equipamiento AS laboratorio_equipamiento, laboratorio.normas_uso AS laboratorio_normas_uso, laboratorio.requiere_capacitacion AS laboratorio_requiere_capacitacion, laboratorio.id_institucion AS laboratorio_id_institucion, laboratorio.id_area AS laboratorio_id_area, laboratorio.id_tipo_laboratorio AS laboratorio_id_tipo_laboratorio, laboratorio.id_encargado AS laboratorio_id_encargado, laboratorio.fecha_creacion AS laboratorio_fecha_creacion, laboratorio.fecha_modificacion AS laboratorio_fecha_modificacion 
+FROM laboratorio [in C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\app\controllers\laboratorio_controller.py:32]
+2025-08-24 01:10:34,465 INFO: Áreas encontradas: 21 [in C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\app\controllers\laboratorio_controller.py:55]
+2025-08-24 01:10:34,465 INFO: Instituciones encontradas: 7 [in C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\app\controllers\laboratorio_controller.py:56]
+2025-08-24 01:10:34,510 INFO: Laboratorios encontrados: 18 [in C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\app\controllers\laboratorio_controller.py:60]
+2025-08-24 01:11:35,498 ERROR: Error preparando datos del usuario para localStorage: 'str' object has no attribute 'isoformat' [in C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\app\controllers\login_controller.py:55]
+2025-08-24 01:59:31,954 INFO: [NOTIF SUPER ADMIN] SIGRAL - Nueva solicitud de rol | Destinatarios: ['test.sigral@gmail.com'] | Usuario ID 28 solicitó: investigador [in C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\app\utils\notifications.py:56]
+2025-08-24 01:59:48,581 ERROR: Error preparando datos del usuario para localStorage: 'str' object has no attribute 'isoformat' [in C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\app\controllers\login_controller.py:55]
+2025-08-24 02:22:39,609 INFO: Inicio de la aplicación [in C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\app\__init__.py:175]
+2025-08-24 02:23:20,592 ERROR: Exception on /home [GET] [in C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask\app.py:875]
+Traceback (most recent call last):
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask_cors\extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask_login\utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\app\controllers\home_controller.py", line 299, in index
+    return render_template('home.html', usuario=current_user, admin_access=admin_access, stats=stats,
+                           role_requests=role_requests, role_requests_view=role_requests_view,
+    ...<10 lines>...
+                           admin_inst_pending_roles=admin_inst_pending_roles,
+                           latest_role_response=latest_role_response)
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask\templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask\templating.py", line 131, in _render
+    rv = template.render(context)
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\jinja2\environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\app\templates\home.html", line 1, in top-level template code
+    {% extends "base_Admin.html" if admin_access else "base_home.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\app\templates\base_home.html", line 1, in top-level template code
+    {% extends "base.html" %}
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\app\templates\base.html", line 115, in top-level template code
+    {% block content %}{% endblock %}
+    ^^^^^^^^^^^^^
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\app\templates\home.html", line 707, in block 'content'
+    <a href="{{ url_for('profile.mi_perfil') }}" class="btn" style="background:#10b981;color:#fff; padding:10px;border-radius:8px; text-decoration:none;"><i class="fas fa-id-card"></i> Mi Perfil</a>
+    ^^^^^^^^^
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask\app.py", line 1121, in url_for
+    return self.handle_url_build_error(error, endpoint, values)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask\app.py", line 1110, in url_for
+    rv = url_adapter.build(  # type: ignore[union-attr]
+        endpoint,
+    ...<3 lines>...
+        force_external=_external,
+    )
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\werkzeug\routing\map.py", line 924, in build
+    raise BuildError(endpoint, values, method, self)
+werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'profile.mi_perfil'. Did you mean 'profile.ver_perfil' instead?

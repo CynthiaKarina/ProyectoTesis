@@ -1,0 +1,90 @@
+2025-08-24 04:18:18,871 ERROR: Exception on /mi-perfil [GET] [in C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask\app.py:875]
+Traceback (most recent call last):
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask_cors\extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask_login\utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\app\controllers\profile_controller.py", line 98, in ver_perfil
+    return render_template('perfil.html',
+                         user=user,
+    ...<3 lines>...
+                         permission_categories=permission_categories,
+                         extra_instituciones=extra_instituciones)
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask\templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask\templating.py", line 131, in _render
+    rv = template.render(context)
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\jinja2\environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\app\templates\perfil.html", line 1, in top-level template code
+    {% extends 'base_Admin.html' %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\app\templates\base_Admin.html", line 198, in top-level template code
+    {% block content %}{% endblock %}
+    ^^^^^^^^^^^^^
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\app\templates\perfil.html", line 60, in block 'content'
+    <span>Miembro desde {{ user.fecha_registro.strftime('%Y-%m-%d') if user.fecha_registro else 'N/A' }}</span>
+    ^
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\jinja2\utils.py", line 92, in from_obj
+    if hasattr(obj, "jinja_pass_arg"):
+       ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'str object' has no attribute 'strftime'
+2025-08-24 04:18:22,146 ERROR: Exception on /mi-perfil [GET] [in C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask\app.py:875]
+Traceback (most recent call last):
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask_cors\extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask_login\utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\app\controllers\profile_controller.py", line 98, in ver_perfil
+    return render_template('perfil.html',
+                         user=user,
+    ...<3 lines>...
+                         permission_categories=permission_categories,
+                         extra_instituciones=extra_instituciones)
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask\templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\flask\templating.py", line 131, in _render
+    rv = template.render(context)
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\jinja2\environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\app\templates\perfil.html", line 1, in top-level template code
+    {% extends 'base_Admin.html' %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\app\templates\base_Admin.html", line 198, in top-level template code
+    {% block content %}{% endblock %}
+    ^^^^^^^^^^^^^
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\app\templates\perfil.html", line 60, in block 'content'
+    <span>Miembro desde {{ user.fecha_registro.strftime('%Y-%m-%d') if user.fecha_registro else 'N/A' }}</span>
+    ^
+  File "C:\Users\Cynthia Karina\Documents\Maestría\Tesis\Proyecto\prueba\Lib\site-packages\jinja2\utils.py", line 92, in from_obj
+    if hasattr(obj, "jinja_pass_arg"):
+       ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'str object' has no attribute 'strftime'

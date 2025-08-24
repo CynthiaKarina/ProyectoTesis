@@ -15,6 +15,17 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
 admin_users_bp = Blueprint('admin_users', __name__)
+@admin_users_bp.route('/admin/usuarios/inactividad/ejecutar', methods=['POST'])
+@login_required
+@permission_required('gestionar_usuarios')
+def ejecutar_inactividad():
+    try:
+        from app.utils.inactivity import process_inactive_accounts_from_env
+        result = process_inactive_accounts_from_env()
+        flash(f"Inactividad procesada. Advertidos: {result.get('warned',0)}, Eliminados: {result.get('deleted',0)}", 'success')
+    except Exception as e:
+        flash(f'Error ejecutando proceso de inactividad: {e}', 'error')
+    return redirect(url_for('admin_users.admin_usuarios'))
 
 @admin_users_bp.route('/admin/usuarios')
 @login_required

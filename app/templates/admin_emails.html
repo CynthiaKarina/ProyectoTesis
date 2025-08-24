@@ -1,0 +1,183 @@
+{% extends "base_Admin.html" %}
+{% block title %}{{ config.get('SYSTEM_SHORT','SIGRAL') }} · Plantillas de correo{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='improved-styles.css', v='2') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='admin-mejoras.css', v='2') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+{% endblock %}
+{% block content %}
+<div class="profile-card" style="max-width:1100px; margin:0 auto; padding:20px;">
+  <div class="card-header" style="display:flex; align-items:center; gap:8px;">
+    <i class="fas fa-envelope-open-text"></i>
+    <h3 style="margin:0;">Plantillas de correo</h3>
+  </div>
+  <p style="color:#374151; margin-top:8px;">Solo para Super Administradores. Variables: <code>{{ '{' }}display_name{{ '}' }}</code>, <code>{{ '{' }}activation_url{{ '}' }}</code>, <code>{{ '{' }}reset_url{{ '}' }}</code>, <code>{{ '{' }}system_short{{ '}' }}</code>, <code>{{ '{' }}system_name{{ '}' }}</code>, <code>{{ '{' }}base_url{{ '}' }}</code>.</p>
+
+  <form method="post" action="{{ url_for('admin_emails.guardar_emails') }}">
+    {% for item in items %}
+    <div class="card" style="margin:16px 0; border:1px solid #e5e7eb; border-radius:8px;">
+      <div class="card-header" style="padding:12px 16px; background:#f9fafb; border-bottom:1px solid #e5e7eb; display:flex; align-items:center; justify-content:space-between;">
+        <strong>{{ item.name }}</strong>
+        <span style="font-size:12px; color:#6b7280; margin-left:8px;">Variables: {{ item.placeholders|join(', ') }}</span>
+      </div>
+      <div class="card-body" style="padding:16px;">
+        <div style="margin-bottom:10px;">
+          <label style="display:block; font-weight:600; margin-bottom:6px;">Asunto</label>
+          <input type="text" name="{{ item.key }}__subject" value="{{ item.subject }}" style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:6px;" required />
+        </div>
+        <div style="margin-bottom:10px;">
+          <label style="display:block; font-weight:600; margin-bottom:6px;">HTML</label>
+          <textarea name="{{ item.key }}__html" rows="8" style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:6px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;">{{ item.html }}</textarea>
+        </div>
+
+        <details open>
+          <summary style="cursor:pointer; color:#2563eb;">Envio de prueba / Vista previa</summary>
+          <div style="margin-top:10px; display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:10px;">
+            {% for ph in item.placeholders %}
+            <div>
+              <label style="display:block; font-weight:600; margin-bottom:6px;">{{ ph }}</label>
+              <input type="text" class="ph-input" data-ph="{{ ph }}" placeholder="Valor para {{ ph }}" style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:6px;" />
+            </div>
+            {% endfor %}
+            <div>
+              <label style="display:block; font-weight:600; margin-bottom:6px;">system_name</label>
+              <input type="text" class="ph-input ph-global" data-ph="system_name" placeholder="Nombre del sistema" style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:6px;" value="{{ config.get('SYSTEM_NAME','Sistema Integrado de Gestión de Recursos Académicos en el Estado') }}" />
+            </div>
+            <div>
+              <label style="display:block; font-weight:600; margin-bottom:6px;">system_short</label>
+              <input type="text" class="ph-input ph-global" data-ph="system_short" placeholder="Acrónimo" style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:6px;" value="{{ config.get('SYSTEM_SHORT','SIGRAL') }}" />
+            </div>
+            <div>
+              <label style="display:block; font-weight:600; margin-bottom:6px;">base_url</label>
+              <input type="text" class="ph-input ph-global" data-ph="base_url" placeholder="https://tu-dominio" style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:6px;" value="{{ request.url_root.rstrip('/') }}" />
+            </div>
+            <div>
+              <label style="display:block; font-weight:600; margin-bottom:6px;">Enviar a (correo)</label>
+              <input type="email" class="test-to" placeholder="correo@dominio.com" style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:6px;" />
+            </div>
+          </div>
+          <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+            <button type="button" class="btn fill-examples" style="background:#10b981;color:#fff; padding:8px 12px; border-radius:6px; border:none;">Autocompletar ejemplos</button>
+            <button type="button" class="btn preview-btn" style="background:#6b7280;color:#fff; padding:8px 12px; border-radius:6px; border:none;">Vista previa</button>
+            <form method="post" action="{{ url_for('admin_emails.test_send_email') }}" class="test-send-form" style="display:inline;">
+              <input type="hidden" name="tmpl_key" value="{{ item.key }}" />
+              <input type="hidden" name="subject_override" value="" />
+              <input type="hidden" name="html_override" value="" />
+              {% for ph in item.placeholders %}
+              <input type="hidden" name="ph__{{ ph }}" value="" />
+              {% endfor %}
+              <input type="hidden" name="test_to_email" value="" />
+              <button type="submit" class="btn" style="background:#2563eb;color:#fff; padding:8px 12px; border-radius:6px; border:none;">Enviar prueba</button>
+            </form>
+          </div>
+          <div class="help-box" style="margin-top:10px; padding:10px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:6px; color:#374151; font-size:14px;">
+            <strong>Ayuda:</strong>
+            <ul style="margin:6px 0 0 18px;">
+              <li>Completa todos los placeholders para poder enviar la prueba.</li>
+              <li>El botón “Autocompletar ejemplos” llena valores de muestra.</li>
+              <li>Puedes personalizar asunto y HTML arriba; guarda para persistir.</li>
+            </ul>
+          </div>
+          <div class="subject-preview" style="margin-top:10px; padding:8px; border:1px dashed #d1d5db; border-radius:6px; background:#ffffff; color:#374151;">
+            <strong>Asunto (vista previa):</strong>
+            <span class="subject-text" style="margin-left:6px; color:#111827;"></span>
+          </div>
+          <iframe class="preview-frame" style="width:100%; height:320px; border:1px solid #e5e7eb; border-radius:6px; margin-top:10px; background:white;"></iframe>
+        </details>
+      </div>
+    </div>
+    {% endfor %}
+
+    <div style="display:flex; gap:8px;">
+      <button type="submit" class="btn" style="background:#2563eb;color:#fff; padding:10px 16px; border-radius:8px; border:none;">Guardar</button>
+      <a href="{{ url_for('home.index') }}" class="btn" style="background:#6b7280;color:#fff; padding:10px 16px; border-radius:8px; text-decoration:none;">Cancelar</a>
+    </div>
+  </form>
+</div>
+
+<script>
+(function(){
+  function renderPreview(card){
+    const subject = card.querySelector('input[name$="__subject"]').value;
+    const html = card.querySelector('textarea[name$="__html"]').value;
+    const placeholders = card.querySelectorAll('.ph-input');
+    let htmlOut = html;
+    let subjectOut = subject;
+    placeholders.forEach(inp => {
+      const ph = inp.getAttribute('data-ph');
+      const val = inp.value || '';
+      const token = '{{' + ' ' + ph + ' ' + '}}';
+      const re = new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+      htmlOut = htmlOut.replace(re, val);
+      subjectOut = subjectOut.replace(re, val);
+    });
+    const frame = card.querySelector('.preview-frame');
+    if(frame && frame.contentWindow){
+      frame.contentWindow.document.open();
+      frame.contentWindow.document.write(htmlOut);
+      frame.contentWindow.document.close();
+    }
+    const subj = card.querySelector('.subject-preview .subject-text');
+    if(subj){ subj.textContent = subjectOut; }
+    return {subjectOut, htmlOut};
+  }
+
+  document.querySelectorAll('.card').forEach(card => {
+    const previewBtn = card.querySelector('.preview-btn');
+    const testForm = card.querySelector('.test-send-form');
+    const toInput = card.querySelector('.test-to');
+    const fillBtn = card.querySelector('.fill-examples');
+    const subjInput = card.querySelector('input[name$="__subject"]');
+    const htmlInput = card.querySelector('textarea[name$="__html"]');
+    if(previewBtn){
+      previewBtn.addEventListener('click', () => renderPreview(card));
+    }
+    if(fillBtn){
+      fillBtn.addEventListener('click', () => {
+        card.querySelectorAll('.ph-input').forEach(inp => {
+          const ph = inp.getAttribute('data-ph');
+          // ejemplos básicos
+          const examples = {
+            display_name: 'María López',
+            activation_url: 'https://ejemplo.com/activar/ABC123',
+            reset_url: 'https://ejemplo.com/reset/XYZ789'
+          };
+          inp.value = examples[ph] || ('ejemplo_' + ph);
+        });
+        renderPreview(card);
+      });
+    }
+    // Actualización en vivo al escribir
+    if(subjInput){ subjInput.addEventListener('input', () => renderPreview(card)); }
+    if(htmlInput){ htmlInput.addEventListener('input', () => renderPreview(card)); }
+    card.querySelectorAll('.ph-input').forEach(inp => {
+      inp.addEventListener('input', () => renderPreview(card));
+    });
+    if(testForm){
+      testForm.addEventListener('submit', (e) => {
+        const res = renderPreview(card);
+        testForm.querySelector('input[name="subject_override"]').value = res.subjectOut;
+        testForm.querySelector('input[name="html_override"]').value = res.htmlOut;
+        const placeholders = card.querySelectorAll('.ph-input');
+        let missing = [];
+        placeholders.forEach(inp => {
+          const ph = inp.getAttribute('data-ph');
+          const hidden = testForm.querySelector('input[name="ph__'+ph+'"]');
+          if(hidden) hidden.value = inp.value || '';
+          if(!(inp.value || '').trim()) missing.push(ph);
+        });
+        if(missing.length){
+          e.preventDefault();
+          alert('Faltan valores para: ' + missing.join(', '));
+          return;
+        }
+        testForm.querySelector('input[name="test_to_email"]').value = toInput ? (toInput.value || '') : '';
+      });
+    }
+  });
+})();
+</script>
+{% endblock %}
+
+

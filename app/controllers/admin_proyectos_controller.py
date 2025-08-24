@@ -1,9 +1,10 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, make_response
 from flask_login import login_required, current_user
 from app.models.proyecto import Proyecto
+from app.models.user import User
 from app import db
 from datetime import datetime, date
-from app.utils.permissions import permission_required, any_permission_required
+from app.utils.permissions import permission_required, any_permission_required, has_permission
 import io
 import csv
 import openpyxl
@@ -12,6 +13,8 @@ from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from sqlalchemy import or_
 import os
 from werkzeug.utils import secure_filename
+# Importación de xhtml2pdf se realiza dentro de la función para evitar errores si no está instalado
+
 
 admin_proyectos_bp = Blueprint('admin_proyectos', __name__)
 
@@ -100,6 +103,350 @@ def admin_proyectos():
     except Exception as e:
         flash(f'Error al cargar la página de administración: {str(e)}', 'error')
         return redirect(url_for('home.index'))
+
+
+@admin_proyectos_bp.route('/proyectos/nuevo', methods=['GET'])
+@login_required
+@permission_required('crear_proyecto')
+def crear_proyecto_form():
+    """Formulario simple para creación de proyectos (usuarios con permiso crear_proyecto)."""
+    try:
+        # Valores por defecto para selects
+        estados_disponibles = ['En Desarrollo', 'Completado', 'Suspendido', 'Cancelado', 'En Revision', 'Aprobado']
+        tipos_proyecto_disponibles = [
+            'Investigación', 'Desarrollo', 'Innovación', 'Educativo',
+            'Empresarial', 'Social', 'Tecnológico', 'Científico'
+        ]
+        # Opciones de usuarios para integrantes (filtrar por institución si existe)
+        try:
+            query = db.session.query(User)
+            if hasattr(current_user, 'id_institucion') and current_user.id_institucion:
+                query = query.filter(User.id_institucion == current_user.id_institucion)
+            usuarios = query.order_by(User.nombre.asc()).limit(200).all()
+            usuarios_opciones = [
+                {
+                    'id': u.id_usuario,
+                    'nombre': f"{(u.nombre or '').strip()} {(u.apellido_paterno or '').strip()} {(u.apellido_materno or '').strip()}".strip() or u.username
+                } for u in usuarios if hasattr(u, 'id_usuario')
+            ]
+        except Exception:
+            usuarios_opciones = []
+
+        return render_template(
+            'proyecto_nuevo.html',
+            estados_disponibles=estados_disponibles,
+            tipos_proyecto=tipos_proyecto_disponibles,
+            usuarios_opciones=usuarios_opciones
+        )
+    except Exception as e:
+        flash(f'Error al cargar el formulario: {str(e)}', 'error')
+        return redirect(url_for('home.index'))
+
+
+@admin_proyectos_bp.route('/proyectos/nuevo', methods=['POST'])
+@login_required
+@permission_required('crear_proyecto')
+def crear_proyecto_simple():
+    """Procesa el formulario simple y crea un proyecto asociado al usuario actual."""
+    try:
+        nombre = (request.form.get('nombre_proyecto') or '').strip()
+        if not nombre:
+            flash('El nombre del proyecto es obligatorio.', 'error')
+            return redirect(url_for('admin_proyectos.crear_proyecto_form'))
+        if len(nombre) < 5 or len(nombre) > 300:
+            flash('El nombre debe tener entre 5 y 300 caracteres.', 'warning')
+            return redirect(url_for('admin_proyectos.crear_proyecto_form'))
+
+        resumen = (request.form.get('resumen') or '').strip()
+        tipo = (request.form.get('tipo_proyecto') or '').strip()
+        estatus = (request.form.get('estatus') or 'En Desarrollo').strip()
+        tipos_validos = ['Investigación', 'Desarrollo', 'Innovación', 'Educativo', 'Empresarial', 'Social', 'Tecnológico', 'Científico']
+        estados_validos = ['En Desarrollo', 'Completado', 'Suspendido', 'Cancelado', 'En Revision', 'Aprobado']
+        if tipo and tipo not in tipos_validos:
+            flash('Tipo de proyecto inválido.', 'warning')
+            return redirect(url_for('admin_proyectos.crear_proyecto_form'))
+        if estatus not in estados_validos:
+            flash('Estatus de proyecto inválido.', 'warning')
+            return redirect(url_for('admin_proyectos.crear_proyecto_form'))
+        adjunto = True if request.form.get('adjunto') in ['on', 'true', '1'] else False
+        fecha_str = (request.form.get('fecha') or '').strip()
+        fecha_val = None
+        if fecha_str:
+            try:
+                fecha_val = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+            except ValueError:
+                flash('Formato de fecha inválido. Use YYYY-MM-DD', 'warning')
+
+        # Verificar duplicado
+        existente = Proyecto.query.filter_by(nombre_proyecto=nombre).first()
+        if existente:
+            flash('Ya existe un proyecto con ese nombre.', 'error')
+            return redirect(url_for('admin_proyectos.crear_proyecto_form'))
+
+        # Crear proyecto
+        nuevo = Proyecto(
+            nombre_proyecto=nombre,
+            resumen=resumen,
+            tipo_proyecto=tipo,
+            estatus=estatus or 'En Desarrollo',
+            adjunto=adjunto,
+            fecha=fecha_val,
+            fecha_creacion=datetime.utcnow(),
+            fecha_modificacion=datetime.utcnow()
+        )
+        # Configurar visibilidad/aprobación
+        try:
+            from flask_login import current_user
+            nuevo.owner_id = getattr(current_user, 'id_usuario', None)
+            # Estudiante requiere aprobación; Investigador con rol director/docente/autor podría omitir
+            nuevo.requiere_aprobacion = True
+            from app.utils.permissions import get_user_role
+            role = (get_user_role() or '').lower()
+            if 'investigador' in role:
+                # Si el creador es investigador, permitir marcar no aprobación inmediata si es responsable
+                nuevo.requiere_aprobacion = False
+                nuevo.publico = True
+                nuevo.aprobado_por = getattr(current_user, 'id_usuario', None)
+                nuevo.aprobado_en = datetime.utcnow()
+        except Exception:
+            pass
+        db.session.add(nuevo)
+        db.session.flush()
+
+        # Asociar al usuario actual en tabla puente si existe
+        try:
+            from app.models.proyecto_usuario import ProyectoUsuario
+            if hasattr(current_user, 'id_usuario') and current_user.id_usuario and nuevo.id_proyecto:
+                vinculo = ProyectoUsuario(id_proyecto=nuevo.id_proyecto, id_usuario=current_user.id_usuario, rol_en_proyecto='Propietario')
+                db.session.add(vinculo)
+        except Exception:
+            pass
+
+        # Si requiere aprobación, crear solicitud de publicación
+        try:
+            if getattr(nuevo, 'requiere_aprobacion', True):
+                from app.models.proyecto_request import ProyectoRequest
+                pr = ProyectoRequest(id_proyecto=nuevo.id_proyecto, id_solicitante=current_user.id_usuario, tipo='publicacion', cambios='Creación inicial')
+                db.session.add(pr)
+        except Exception:
+            pass
+
+        # Integrantes adicionales seleccionados en el formulario
+        try:
+            from app.models.proyecto_usuario import ProyectoUsuario
+            integrantes_ids = request.form.getlist('integrantes')
+            if integrantes_ids:
+                # Normalizar ids y evitar duplicar al propietario
+                unique_ids = set()
+                for raw_id in integrantes_ids:
+                    try:
+                        uid = int(raw_id)
+                        if uid > 0 and uid != getattr(current_user, 'id_usuario', 0):
+                            unique_ids.add(uid)
+                    except ValueError:
+                        continue
+                for uid in unique_ids:
+                    db.session.add(ProyectoUsuario(id_proyecto=nuevo.id_proyecto, id_usuario=uid, rol_en_proyecto='Integrante'))
+        except Exception:
+            pass
+
+        # Audit: crear
+        try:
+            from app.models.proyecto_audit import ProyectoAudit
+            db.session.add(ProyectoAudit(
+                id_proyecto=nuevo.id_proyecto,
+                id_usuario=getattr(current_user, 'id_usuario', None),
+                accion='crear',
+                detalles=f'Creado por usuario {getattr(current_user, "id_usuario", None)}'
+            ))
+        except Exception:
+            pass
+
+        db.session.commit()
+        flash('Proyecto creado exitosamente.', 'success')
+        return redirect(url_for('home.index'))
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al crear el proyecto: {str(e)}', 'error')
+        return redirect(url_for('admin_proyectos.crear_proyecto_form'))
+
+
+@admin_proyectos_bp.route('/mis-proyectos/pdf')
+@login_required
+def descargar_mis_proyectos_pdf():
+    """Descargar en PDF los proyectos del usuario actual"""
+    try:
+        try:
+            from xhtml2pdf import pisa
+        except ImportError:
+            flash('Generación de PDF no disponible. Instala xhtml2pdf (pip install xhtml2pdf) y reinicia.', 'warning')
+            return redirect(url_for('home.index'))
+
+        usuario_id = current_user.id_usuario if hasattr(current_user, 'id_usuario') else None
+        if not usuario_id:
+            flash('Usuario no autenticado.', 'error')
+            return redirect(url_for('home.index'))
+
+        # Obtener proyectos del usuario vía tabla puente si existe
+        from app.models.proyecto_usuario import ProyectoUsuario
+        proyectos = (db.session.query(Proyecto)
+                     .join(ProyectoUsuario, ProyectoUsuario.id_proyecto == Proyecto.id_proyecto)
+                     .filter(ProyectoUsuario.id_usuario == usuario_id)
+                     .order_by(Proyecto.fecha_modificacion.desc())
+                     .all())
+
+        # Renderizar HTML simple
+        html = render_template('proyectos_pdf.html', proyectos=proyectos, user=current_user)
+
+        # Convertir a PDF
+        result = io.BytesIO()
+        pisa_status = pisa.CreatePDF(src=html, dest=result)
+        if pisa_status.err:
+            return jsonify({'success': False, 'message': 'Error al generar PDF'}), 500
+
+        result.seek(0)
+        response = make_response(result.read())
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = 'attachment; filename=mis_proyectos.pdf'
+        return response
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Error al generar PDF: {str(e)}'}), 500
+
+
+@admin_proyectos_bp.route('/proyectos/editar/<int:id_proyecto>', methods=['GET'])
+@login_required
+def editar_proyecto_form(id_proyecto):
+    """Formulario de edición para propietarios del proyecto."""
+    try:
+        proyecto = Proyecto.query.get_or_404(id_proyecto)
+        # Verificar que el usuario sea propietario
+        from app.models.proyecto_usuario import ProyectoUsuario
+        rel = ProyectoUsuario.query.filter_by(id_proyecto=id_proyecto, id_usuario=current_user.id_usuario).first()
+        if not rel or (rel.rol_en_proyecto or '').lower() != 'propietario':
+            flash('Solo el propietario puede editar este proyecto.', 'error')
+            return redirect(url_for('home.index'))
+
+        estados_disponibles = ['En Desarrollo', 'Completado', 'Suspendido', 'Cancelado', 'En Revision', 'Aprobado']
+        tipos_proyecto_disponibles = [
+            'Investigación', 'Desarrollo', 'Innovación', 'Educativo',
+            'Empresarial', 'Social', 'Tecnológico', 'Científico'
+        ]
+        es_final = proyecto.estatus == 'Completado'
+        # Historial de auditoría
+        try:
+            from app.models.proyecto_audit import ProyectoAudit
+            audit_rows = (ProyectoAudit.query
+                          .filter_by(id_proyecto=id_proyecto)
+                          .order_by(ProyectoAudit.fecha.desc())
+                          .limit(20)
+                          .all())
+        except Exception:
+            audit_rows = []
+        return render_template('proyecto_editar.html', proyecto=proyecto, estados_disponibles=estados_disponibles, tipos_proyecto=tipos_proyecto_disponibles, es_final=es_final, audit_rows=audit_rows)
+    except Exception as e:
+        flash(f'Error al cargar edición: {str(e)}', 'error')
+        return redirect(url_for('home.index'))
+
+
+@admin_proyectos_bp.route('/proyectos/editar/<int:id_proyecto>', methods=['POST'])
+@login_required
+def editar_proyecto_guardar(id_proyecto):
+    """Guardar cambios (solo propietario y si no está finalizado)."""
+    try:
+        proyecto = Proyecto.query.get_or_404(id_proyecto)
+        from app.models.proyecto_usuario import ProyectoUsuario
+        rel = ProyectoUsuario.query.filter_by(id_proyecto=id_proyecto, id_usuario=current_user.id_usuario).first()
+        if not rel or (rel.rol_en_proyecto or '').lower() != 'propietario':
+            flash('Solo el propietario puede editar este proyecto.', 'error')
+            return redirect(url_for('home.index'))
+        if proyecto.estatus == 'Completado':
+            flash('Este proyecto está finalizado y no se puede editar.', 'warning')
+            return redirect(url_for('admin_proyectos.editar_proyecto_form', id_proyecto=id_proyecto))
+
+        nombre = (request.form.get('nombre_proyecto') or '').strip()
+        if not nombre or len(nombre) < 5 or len(nombre) > 300:
+            flash('El nombre debe tener entre 5 y 300 caracteres.', 'warning')
+            return redirect(url_for('admin_proyectos.editar_proyecto_form', id_proyecto=id_proyecto))
+
+        tipos_validos = ['Investigación', 'Desarrollo', 'Innovación', 'Educativo', 'Empresarial', 'Social', 'Tecnológico', 'Científico']
+        estados_validos = ['En Desarrollo', 'Completado', 'Suspendido', 'Cancelado', 'En Revision', 'Aprobado']
+
+        tipo = (request.form.get('tipo_proyecto') or '').strip()
+        estatus = (request.form.get('estatus') or 'En Desarrollo').strip()
+        if tipo and tipo not in tipos_validos:
+            flash('Tipo de proyecto inválido.', 'warning')
+            return redirect(url_for('admin_proyectos.editar_proyecto_form', id_proyecto=id_proyecto))
+        if estatus not in estados_validos:
+            flash('Estatus de proyecto inválido.', 'warning')
+            return redirect(url_for('admin_proyectos.editar_proyecto_form', id_proyecto=id_proyecto))
+
+        proyecto.nombre_proyecto = nombre
+        proyecto.resumen = (request.form.get('resumen') or '').strip()
+        proyecto.tipo_proyecto = tipo
+        proyecto.estatus = estatus
+        proyecto.adjunto = True if request.form.get('adjunto') in ['on', 'true', '1'] else False
+
+        fecha_str = (request.form.get('fecha') or '').strip()
+        if fecha_str:
+            try:
+                proyecto.fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+            except ValueError:
+                flash('Formato de fecha inválido. Use YYYY-MM-DD', 'warning')
+
+        proyecto.fecha_modificacion = datetime.utcnow()
+        # Audit: editar (guardamos cambios relevantes)
+        try:
+            from app.models.proyecto_audit import ProyectoAudit
+            db.session.add(ProyectoAudit(
+                id_proyecto=proyecto.id_proyecto,
+                id_usuario=getattr(current_user, 'id_usuario', None),
+                accion='editar',
+                detalles=f'Cambios en nombre/tipo/estatus/fecha por usuario {getattr(current_user, "id_usuario", None)}'
+            ))
+        except Exception:
+            pass
+
+        db.session.commit()
+        flash('Cambios guardados correctamente.', 'success')
+        return redirect(url_for('admin_proyectos.editar_proyecto_form', id_proyecto=id_proyecto))
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al guardar cambios: {str(e)}', 'error')
+        return redirect(url_for('admin_proyectos.editar_proyecto_form', id_proyecto=id_proyecto))
+
+
+@admin_proyectos_bp.route('/proyectos/editar/<int:id_proyecto>/finalizar', methods=['POST'])
+@login_required
+def finalizar_proyecto(id_proyecto):
+    """Marcar proyecto como última versión (bloquea edición)."""
+    try:
+        proyecto = Proyecto.query.get_or_404(id_proyecto)
+        from app.models.proyecto_usuario import ProyectoUsuario
+        rel = ProyectoUsuario.query.filter_by(id_proyecto=id_proyecto, id_usuario=current_user.id_usuario).first()
+        if not rel or (rel.rol_en_proyecto or '').lower() != 'propietario':
+            flash('Solo el propietario puede finalizar este proyecto.', 'error')
+            return redirect(url_for('home.index'))
+        proyecto.estatus = 'Completado'
+        proyecto.fecha_modificacion = datetime.utcnow()
+        # Audit: finalizar
+        try:
+            from app.models.proyecto_audit import ProyectoAudit
+            db.session.add(ProyectoAudit(
+                id_proyecto=proyecto.id_proyecto,
+                id_usuario=getattr(current_user, 'id_usuario', None),
+                accion='finalizar',
+                detalles='Marcado como última versión'
+            ))
+        except Exception:
+            pass
+
+        db.session.commit()
+        flash('Proyecto marcado como última versión. Ya no es editable.', 'success')
+        return redirect(url_for('admin_proyectos.editar_proyecto_form', id_proyecto=id_proyecto))
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al finalizar el proyecto: {str(e)}', 'error')
+        return redirect(url_for('admin_proyectos.editar_proyecto_form', id_proyecto=id_proyecto))
 
 @admin_proyectos_bp.route('/admin/proyectos/crear', methods=['POST'])
 @login_required

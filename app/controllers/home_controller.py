@@ -7,6 +7,8 @@ from app.models.user import User
 from app.models.institucion import Institucion
 from app.models.area import Area
 from app.models.laboratorio import Laboratorio
+from sqlalchemy import func
+from datetime import datetime, timedelta
 
 home_bp = Blueprint('home', __name__)
 
@@ -14,12 +16,12 @@ home_bp = Blueprint('home', __name__)
 @login_required  # ✅ USAR FLASK-LOGIN CORRECTAMENTE
 def index():
     # ✅ VERIFICAR ACCESO ADMINISTRATIVO USANDO EL SISTEMA DE PERMISOS
-    from app.utils.permissions import has_admin_access
+    from app.utils.permissions import has_admin_access, is_super_user, has_permission
     admin_access = has_admin_access()
     
     # Obtener estadísticas reales de la base de datos
     stats = get_home_statistics()
-
+    
     # Inyectar solicitudes pendientes para Super Admin (o quien tenga permiso gestionar_roles)
     role_requests = []
     role_requests_view = []
@@ -61,6 +63,7 @@ def index():
     
     # Inyectar respuestas de solicitudes para el usuario actual (aprobado/rechazado)
     my_role_responses = []
+    latest_role_response = None
     try:
         from app.models.role_request import RoleRequest
         if getattr(current_user, 'id_usuario', None):
@@ -72,19 +75,241 @@ def index():
                 .limit(5)
                 .all()
             )
+            if my_role_responses:
+                try:
+                    r0 = my_role_responses[0]
+                    lab_name = None
+                    try:
+                        if getattr(r0, 'requested_role', '') == 'admin_laboratorio' and getattr(r0, 'id_laboratorio', None):
+                            lab_obj = Laboratorio.query.get(r0.id_laboratorio)
+                            if lab_obj:
+                                lab_name = lab_obj.nombre_laboratorio
+                    except Exception:
+                        lab_name = None
+                    latest_role_response = {
+                        'rol': getattr(r0, 'requested_role', ''),
+                        'estado': getattr(r0, 'status', ''),
+                        'lab': lab_name
+                    }
+                except Exception:
+                    latest_role_response = None
     except Exception as e:
         print(f"Error obteniendo respuestas de solicitudes del usuario: {e}")
         my_role_responses = []
     
     # Contadores para el navbar
     pending_for_admin = len(role_requests_view)
-    responses_for_user = len(my_role_responses)
+    # Calcular respuestas no vistas del usuario
+    try:
+        seen_id = session.get('seen_role_response_id', 0)
+        latest_id = max([getattr(r, 'id_request', 0) for r in my_role_responses]) if my_role_responses else 0
+        if latest_id and latest_id != seen_id:
+            responses_for_user = sum(1 for r in my_role_responses if getattr(r, 'id_request', 0) > seen_id)
+        else:
+            responses_for_user = 0
+    except Exception:
+        responses_for_user = len(my_role_responses)
+
+    # KPIs por rol
+    super_kpis = {}
+    admin_kpis = {}
+    tech_kpis = {}
+    administrativo_kpis = {}
+    investigador_proyectos = []
+    admin_activity = []
+    admin_activity_inst = []
+    admin_inst_pending_roles = 0
+    try:
+        # Super Admin KPIs + actividad reciente
+        if is_super_user() or has_permission('gestionar_roles'):
+            try:
+                from app.models.user import User
+                from app.models.role_request import RoleRequest
+                from app.models.proyecto import Proyecto
+                from app.models.monthly_report import MonthlyReport
+                from app.models.audit_log import AuditLog
+                super_kpis = {
+                    'usuarios_total': db.session.query(User).count(),
+                    'solicitudes_pendientes': db.session.query(RoleRequest).filter_by(status='pendiente').count()
+                }
+                # Actividad de los últimos 7 días
+                since = datetime.utcnow() - timedelta(days=7)
+                nuevos_usuarios = db.session.query(User).filter(User.fecha_creacion >= since).count()
+                solicitudes_7d = db.session.query(RoleRequest).filter(RoleRequest.created_at >= since).count()
+                proyectos_activos = db.session.query(Proyecto).filter(Proyecto.estatus.in_(['En Desarrollo','Aprobado'])).count()
+                # Reportes del año actual
+                try:
+                    current_year = datetime.utcnow().year
+                    reports_year = db.session.query(MonthlyReport).filter(MonthlyReport.period_year==current_year).count()
+                except Exception:
+                    reports_year = 0
+                super_kpis.update({
+                    'usuarios_7d': nuevos_usuarios,
+                    'solicitudes_7d': solicitudes_7d,
+                    'proyectos_activos': proyectos_activos,
+                    'reportes_anio': reports_year
+                })
+                # Últimos eventos de auditoría (si existen)
+                try:
+                    admin_activity = (
+                        db.session.query(AuditLog)
+                        .order_by(AuditLog.created_at.desc())
+                        .limit(10)
+                        .all()
+                    )
+                except Exception:
+                    admin_activity = []
+            except Exception:
+                super_kpis = {}
+        # Admin Institucional KPIs + actividad con filtro
+        if has_admin_access() and not (is_super_user() or has_permission('gestionar_roles')):
+            try:
+                from app.models.user import User
+                from app.models.laboratorio import Laboratorio
+                from app.models.solicitud import Solicitud
+                from app.models.role_request import RoleRequest
+                inst_id = getattr(current_user, 'id_institucion', None)
+                if inst_id:
+                    period = request.args.get('inst_activity', 'ultima_semana')
+                    if period == 'ultimo_mes':
+                        since = datetime.utcnow() - timedelta(days=30)
+                    else:
+                        since = datetime.utcnow() - timedelta(days=7)
+                    total_solicitudes = db.session.query(Solicitud).filter_by(id_institucion=inst_id).count()
+                    pendientes = db.session.query(Solicitud).filter_by(id_institucion=inst_id, id_estatus=1).count()
+                    aprobadas = db.session.query(Solicitud).filter_by(id_institucion=inst_id, id_estatus=3).count()
+                    rechazadas = db.session.query(Solicitud).filter_by(id_institucion=inst_id, id_estatus=4).count()
+                    completadas = db.session.query(Solicitud).filter_by(id_institucion=inst_id, id_estatus=6).count()
+                    usuarios_7d = db.session.query(User).filter(User.id_institucion==inst_id, User.fecha_creacion>=since).count()
+                    solicitudes_7d = db.session.query(Solicitud).filter(Solicitud.id_institucion==inst_id, Solicitud.fecha_creacion>=since).count()
+
+                    admin_kpis = {
+                        'usuarios_institucion': db.session.query(User).filter_by(id_institucion=inst_id).count(),
+                        'laboratorios_institucion': db.session.query(Laboratorio).filter_by(id_institucion=inst_id).count(),
+                        'solicitudes_total': total_solicitudes,
+                        'solicitudes_pendientes': pendientes,
+                        'solicitudes_aprobadas': aprobadas,
+                        'solicitudes_rechazadas': rechazadas,
+                        'solicitudes_completadas': completadas,
+                        'usuarios_7d': usuarios_7d,
+                        'solicitudes_7d': solicitudes_7d
+                    }
+                    try:
+                        # Actividad reciente por institución con filtro de período
+                        admin_activity_inst = (
+                            db.session.query(Solicitud)
+                            .filter(Solicitud.id_institucion==inst_id, Solicitud.fecha_creacion>=since)
+                            .order_by(Solicitud.fecha_creacion.desc())
+                            .limit(20)
+                            .all()
+                        )
+                    except Exception:
+                        admin_activity_inst = []
+
+                    # Contar solicitudes de rol pendientes de usuarios de mi institución
+                    try:
+                        admin_inst_pending_roles = (
+                            db.session.query(RoleRequest)
+                            .join(User, User.id_usuario == RoleRequest.id_usuario)
+                            .filter(RoleRequest.status=='pendiente', User.id_institucion==inst_id)
+                            .count()
+                        )
+                    except Exception:
+                        admin_inst_pending_roles = 0
+            except Exception:
+                admin_kpis = {}
+        # Encargado técnico KPIs
+        try:
+            from app.models.laboratorio_admin import LaboratorioAdmin
+            from app.models.laboratorio import Laboratorio
+            uid = getattr(current_user, 'id_usuario', None)
+            if uid:
+                # Preferir tabla puente; fallback a id_encargado
+                labs_admin = db.session.query(LaboratorioAdmin).filter_by(id_usuario=uid).count()
+                labs_encargado = db.session.query(Laboratorio).filter_by(id_encargado=uid).count()
+                tech_kpis = {
+                    'laboratorios_asignados': labs_admin or labs_encargado
+                }
+        except Exception:
+            tech_kpis = {}
+        # Administrativo KPIs (operativos)
+        try:
+            from app.models.solicitud import Solicitud
+            inst_id = getattr(current_user, 'id_institucion', None)
+            if inst_id:
+                administrativo_kpis = {
+                    'pendientes': db.session.query(Solicitud).filter_by(id_institucion=inst_id, id_estatus=1).count(),
+                    'en_revision': db.session.query(Solicitud).filter_by(id_institucion=inst_id, id_estatus=2).count(),
+                    'hoy': db.session.query(Solicitud).filter(Solicitud.id_institucion==inst_id).count()
+                }
+        except Exception:
+            administrativo_kpis = {}
+        # Investigador: mis proyectos activos
+        try:
+            from app.models.proyecto import Proyecto
+            from app.models.proyecto_usuario import ProyectoUsuario
+            uid = getattr(current_user, 'id_usuario', None)
+            if uid:
+                q = (db.session.query(Proyecto)
+                     .join(ProyectoUsuario, ProyectoUsuario.id_proyecto == Proyecto.id_proyecto)
+                     .filter(ProyectoUsuario.id_usuario == uid)
+                     .filter(Proyecto.estatus.in_(['En Desarrollo', 'Aprobado']))
+                     .order_by(Proyecto.fecha_modificacion.desc())
+                     .limit(6))
+                proyectos_list = q.all()
+                proj_ids = [p.id_proyecto for p in proyectos_list]
+                integrantes_map = {}
+                rol_map = {}
+                if proj_ids:
+                    # Conteo de integrantes por proyecto
+                    rows = (
+                        db.session.query(ProyectoUsuario.id_proyecto, func.count(ProyectoUsuario.id_usuario))
+                        .filter(ProyectoUsuario.id_proyecto.in_(proj_ids))
+                        .group_by(ProyectoUsuario.id_proyecto)
+                        .all()
+                    )
+                    integrantes_map = {pid: cnt for pid, cnt in rows}
+                    # Rol del usuario actual en cada proyecto
+                    roles = (
+                        db.session.query(ProyectoUsuario)
+                        .filter(ProyectoUsuario.id_usuario == uid, ProyectoUsuario.id_proyecto.in_(proj_ids))
+                        .all()
+                    )
+                    rol_map = {r.id_proyecto: (r.rol_en_proyecto or '') for r in roles}
+
+                investigador_proyectos = []
+                for p in proyectos_list:
+                    pid = p.id_proyecto
+                    investigador_proyectos.append({
+                        'id': pid,
+                        'nombre': p.nombre_proyecto,
+                        'estado': p.estado_proyecto,
+                        'icono': p.icono_estado,
+                        'color': p.color_estado,
+                        'resumen': p.resumen_corto,
+                        'fecha': p.fecha_formateada,
+                        'integrantes': integrantes_map.get(pid, 1),
+                        'soy_propietario': (rol_map.get(pid, '').lower() == 'propietario')
+                    })
+        except Exception:
+            investigador_proyectos = []
+    except Exception:
+        pass
     
     return render_template('home.html', usuario=current_user, admin_access=admin_access, stats=stats,
                            role_requests=role_requests, role_requests_view=role_requests_view,
                            my_role_responses=my_role_responses,
                            pending_for_admin=pending_for_admin,
-                           responses_for_user=responses_for_user)
+                           responses_for_user=responses_for_user,
+                           super_kpis=super_kpis,
+                           admin_kpis=admin_kpis,
+                           tech_kpis=tech_kpis,
+                           administrativo_kpis=administrativo_kpis,
+                           investigador_proyectos=investigador_proyectos,
+                           admin_activity=admin_activity,
+                           admin_activity_inst=admin_activity_inst,
+                           admin_inst_pending_roles=admin_inst_pending_roles,
+                           latest_role_response=latest_role_response)
 
 @home_bp.route('/pagina/<nombre>')
 @login_required

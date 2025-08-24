@@ -165,17 +165,23 @@ def resolver_role_request(request_id, action):
                 target_role = Roles.query.filter(Roles.nombre_rol.ilike('%investig%')).first()
 
         if target_role:
-            # Si el usuario recién creado no tiene rol, asignar; si ya tiene, usar rol_adicional
+            # Política solicitada: el usuario solo tiene un rol; actualizar id_rol siempre
             try:
-                if not user.id_rol:
-                    user.id_rol = target_role.id_rol
-                else:
-                    # usar rol_adicional si existe el campo, sino actualizar id_rol
-                    if hasattr(user, 'rol_adicional') and (user.rol_adicional is None):
-                        user.rol_adicional = target_role.id_rol
-                    else:
-                        user.id_rol = target_role.id_rol
+                from datetime import datetime
+                user.id_rol = target_role.id_rol
+                # Limpiar rol_adicional si existe el campo
+                if hasattr(user, 'rol_adicional'):
+                    user.rol_adicional = None
+                # Actualizar marca de cambio para invalidar sesiones previas
+                if hasattr(user, 'fecha_cambio'):
+                    user.fecha_cambio = datetime.utcnow()
                 db.session.commit()
+                # Log de asignación de rol
+                try:
+                    from app.utils.audit import log_user_action
+                    log_user_action(user.id_usuario, f'asignar_rol:{req.requested_role}', extra=f'request_id={req.id_request}')
+                except Exception:
+                    pass
                 flash('Rol asignado correctamente.', 'success')
             except Exception as e:
                 db.session.rollback()
@@ -214,16 +220,48 @@ def resolver_role_request(request_id, action):
         user = User.query.get(req.id_usuario)
         if user and getattr(user, 'email', None):
             estado_txt = 'aprobada' if req.status == 'aprobado' else 'rechazada'
-            html = f"""
-            <div style='font-family:Arial,sans-serif;line-height:1.6'>
-              <h3 style='margin:0 0 8px 0'>Resultado de tu solicitud de rol</h3>
-              <p>Hola {getattr(user, 'nombre', user.username) or user.username},</p>
-              <p>Tu solicitud para el rol <strong>{req.requested_role}</strong> ha sido <strong>{estado_txt}</strong>.</p>
-              {f"<p>Laboratorio asignado: {Laboratorio.query.get(req.id_laboratorio).nombre_laboratorio}</p>" if req.requested_role == 'admin_laboratorio' and req.id_laboratorio else ''}
-              <p style='color:#6b7280;font-size:12px'>Este es un mensaje automático.</p>
-            </div>
-            """
-            send_email(subject='SIGRAL - Resultado de tu solicitud de rol', to_email=user.email, html_body=html)
+            # Determinar nombre de rol final asignado (si aprobado)
+            try:
+                nuevo_rol_nombre = user.roles.nombre_rol if user.roles else req.requested_role
+            except Exception:
+                nuevo_rol_nombre = req.requested_role
+            detalle_lab = ''
+            try:
+                if req.requested_role == 'admin_laboratorio' and req.id_laboratorio:
+                    lab = Laboratorio.query.get(req.id_laboratorio)
+                    if lab:
+                        detalle_lab = f"<p>Laboratorio asignado: {lab.nombre_laboratorio}</p>"
+            except Exception:
+                detalle_lab = ''
+
+            extra_sesion = ''
+            if req.status == 'aprobado':
+                extra_sesion = "<p>Por seguridad, tu sesión actual fue cerrada y deberás iniciar sesión nuevamente para reflejar los nuevos permisos.</p>"
+
+            try:
+                from app.models.monthly_report import SystemKV
+                subj = (SystemKV.query.get('email.role_request_result.subject') or SystemKV(key='email.role_request_result.subject', value='SIGRAL - Resultado de tu solicitud de rol')).value
+                html_tmpl = (SystemKV.query.get('email.role_request_result.html') or SystemKV(key='email.role_request_result.html', value='<div style="font-family: Arial, sans-serif; line-height:1.6;"><h3>Resultado de tu solicitud de rol</h3><p>Hola {{ display_name }},</p><p>Tu solicitud para el rol <strong>{{ role_name }}</strong> ha sido <strong>{{ status }}</strong>.</p>{{ lab_name }}{{ session_notice }}<p style="color:#6b7280;font-size:12px">Este es un mensaje automático.</p></div>')).value
+                display_name = (getattr(user, 'nombre', None) or user.username or '')
+                html = (html_tmpl
+                        .replace('{{ display_name }}', display_name)
+                        .replace('{{ role_name }}', nuevo_rol_nombre or '')
+                        .replace('{{ status }}', estado_txt or '')
+                        .replace('{{ lab_name }}', detalle_lab or '')
+                        .replace('{{ session_notice }}', extra_sesion or ''))
+                send_email(subject=subj, to_email=user.email, html_body=html)
+            except Exception:
+                html = f"""
+                <div style='font-family:Arial,sans-serif;line-height:1.6'>
+                  <h3 style='margin:0 0 8px 0'>Resultado de tu solicitud de rol</h3>
+                  <p>Hola {getattr(user, 'nombre', user.username) or user.username},</p>
+                  <p>Tu solicitud para el rol <strong>{nuevo_rol_nombre}</strong> ha sido <strong>{estado_txt}</strong>.</p>
+                  {detalle_lab}
+                  {extra_sesion}
+                  <p style='color:#6b7280;font-size:12px'>Este es un mensaje automático.</p>
+                </div>
+                """
+                send_email(subject='SIGRAL - Resultado de tu solicitud de rol', to_email=user.email, html_body=html)
     except Exception as e:
         # No bloquear el flujo por fallo de correo
         try:
@@ -237,15 +275,8 @@ def resolver_role_request(request_id, action):
 @login_required
 @permission_required('crear_rol')
 def crear_rol():
-    nombre_rol = request.form.get('nombre_rol')
-    descripcion = request.form.get('descripcion')
-    if not nombre_rol:
-        flash('El nombre del rol es obligatorio', 'error')
-        return redirect(url_for('admin_roles.admin_roles'))
-    nuevo_rol = Roles(nombre_rol=nombre_rol, descripcion=descripcion)
-    db.session.add(nuevo_rol)
-    db.session.commit()
-    flash('Rol creado exitosamente', 'success')
+    # Bloqueado por política: los roles son fijos y se gestionan por semillas
+    flash('La creación de nuevos roles está deshabilitada por política del sistema.', 'warning')
     return redirect(url_for('admin_roles.admin_roles'))
 
 @admin_roles_bp.route('/admin/roles/asignar_permisos', methods=['POST'])
@@ -269,29 +300,16 @@ def asignar_permisos():
 @permission_required('editar_rol')
 def editar_rol():
     id_rol = request.form.get('id_rol')
-    nombre_rol = request.form.get('nombre_rol')
     descripcion = request.form.get('descripcion')
-    if not nombre_rol:
-        flash('El nombre del rol es obligatorio', 'error')
-        return redirect(url_for('admin_roles.admin_roles'))
     rol = Roles.query.get_or_404(id_rol)
-    rol.nombre_rol = nombre_rol
+    # Política: no permitir renombrar roles; solo actualizar descripción
     rol.descripcion = descripcion
     db.session.commit()
-    flash('Rol actualizado exitosamente', 'success')
+    flash('Descripción del rol actualizada. El nombre del rol no se puede modificar.', 'success')
     return redirect(url_for('admin_roles.admin_roles'))
 
 @admin_roles_bp.route('/admin/roles/eliminar/<int:id>', methods=['DELETE'])
 @login_required
 @permission_required('eliminar_rol')
 def eliminar_rol(id):
-    rol = Roles.query.get_or_404(id)
-    # Verificar si está en uso
-    usuarios_con_rol = db.session.query(User).filter(User.id_rol == id).count()
-    if usuarios_con_rol > 0:
-        return jsonify({'error': 'No se puede eliminar un rol que tiene usuarios asignados'}), 400
-    # Eliminar permisos del rol
-    PermisoRol.query.filter_by(id_rol=id).delete()
-    db.session.delete(rol)
-    db.session.commit()
-    return jsonify({'success': True, 'mensaje': 'Rol eliminado correctamente'}) 
+    return jsonify({'error': 'La eliminación de roles está deshabilitada por política del sistema.'}), 403

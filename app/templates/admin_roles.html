@@ -408,10 +408,6 @@
                     <i class="fas fa-key"></i>
                     <span class="d-none d-sm-inline">Gestionar Permisos</span>
                 </a>
-                <button class="btn-modern btn-primary" onclick="openCreateRoleModal()">
-                    <i class="fas fa-plus"></i>
-                    <span class="d-none d-sm-inline">Nuevo Rol</span>
-                </button>
             </div>
         </div>
         
@@ -454,9 +450,7 @@
                                 <button class="btn-action btn-edit" onclick="openEditRoleModal({{ rol.id_rol }}, '{{ rol.nombre_rol|replace("'", "\\'") }}', '{{ (rol.descripcion or '')|replace("'", "\\'") }}')" title="Editar rol">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button class="btn-action btn-delete" onclick="deleteRole({{ rol.id_rol }}, '{{ rol.nombre_rol|replace("'", "\\'") }}')" title="Eliminar rol">
-                                    <i class="fas fa-trash"></i>
-                                </button>
+                                
                             </div>
                         </td>
                     </tr>
@@ -578,95 +572,6 @@
 </div>
 
 <!-- Resto de los modales se mantienen igual -->
-<!-- Modal para crear nuevo rol -->
-<div class="modal-overlay" id="createRoleModal">
-    <div class="modal-container">
-        <div class="modal-header">
-            <h3>
-                <i class="fas fa-plus-circle"></i>
-                Crear Nuevo Rol
-            </h3>
-            <div class="modal-subtitle">
-                Agregar un nuevo rol al sistema
-            </div>
-            <button class="btn-close-modal" onclick="closeCreateRoleModal()">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        
-        <form method="POST" action="{{ url_for('admin_roles.crear_rol') }}" class="needs-validation" novalidate>
-            <div class="modal-body">
-                <div class="instruction-card">
-                    <div class="instruction-icon">
-                        <i class="fas fa-info-circle"></i>
-                    </div>
-                    <div class="instruction-content">
-                        <h4>Información</h4>
-                        <p>Una vez creado el rol, podrás asignarle permisos específicos desde la gestión de permisos.</p>
-                    </div>
-                </div>
-                
-                <div class="form-section">
-                    <div class="section-title">
-                        <i class="fas fa-user-tag"></i>
-                        Datos del Rol
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="nombre_rol" class="form-label">
-                                <i class="fas fa-tag"></i>
-                                Nombre del rol
-                            </label>
-                            <div class="input-wrapper">
-                                <input type="text" class="form-control" id="nombre_rol" name="nombre_rol" 
-                                       placeholder="Ingrese el nombre del rol" required>
-                                <div class="input-icon">
-                                    <i class="fas fa-tag"></i>
-                                </div>
-                            </div>
-                            <div class="invalid-feedback">
-                                Por favor ingresa un nombre para el rol.
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="descripcion" class="form-label">
-                                <i class="fas fa-align-left"></i>
-                                Descripción (opcional)
-                            </label>
-                            <div class="input-wrapper">
-                                <textarea class="form-control" id="descripcion" name="descripcion" 
-                                         placeholder="Describa el propósito y funciones de este rol" rows="4"></textarea>
-                                <div class="input-icon">
-                                    <i class="fas fa-align-left"></i>
-                                </div>
-                            </div>
-                            <div class="form-help">
-                                Una descripción clara ayuda a otros administradores a entender el propósito del rol.
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="modal-footer">
-                <div class="form-actions">
-                    <button type="button" class="btn-cancel" onclick="closeCreateRoleModal()">
-                        <i class="fas fa-times"></i>
-                        Cancelar
-                    </button>
-                    <button type="submit" class="btn-submit">
-                        <i class="fas fa-save"></i>
-                        Crear Rol
-                    </button>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
 
 <!-- Modal para editar rol -->
 <div class="modal-overlay" id="editRoleModal">
@@ -706,20 +611,20 @@
                     
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="edit_nombre_rol" class="form-label">
-                                <i class="fas fa-tag"></i>
-                                Nombre del rol
+                            <label for="edit_nombre_rol" class="form-label" style="display:flex; align-items:center; gap:6px;">
+                                <span><i class="fas fa-tag"></i> Nombre del rol</span>
+                                <span title="El nombre del rol es fijo por política del sistema y no puede modificarse." style="color:#6b7280; cursor:help;">
+                                    <i class="fas fa-info-circle"></i>
+                                </span>
                             </label>
                             <div class="input-wrapper">
                                 <input type="text" class="form-control" id="edit_nombre_rol" name="nombre_rol" 
-                                       placeholder="Ingrese el nombre del rol" required>
+                                       placeholder="Nombre del rol (no editable)" required readonly>
                                 <div class="input-icon">
                                     <i class="fas fa-tag"></i>
                                 </div>
                             </div>
-                            <div class="invalid-feedback">
-                                Por favor ingresa un nombre para el rol.
-                            </div>
+                            <div class="form-help">El nombre del rol es fijo por política del sistema.</div>
                         </div>
                     </div>
                     

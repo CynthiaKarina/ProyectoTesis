@@ -4,6 +4,8 @@ import time
 from typing import Optional
 from flask import current_app
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
+from app.models.monthly_report import SystemKV
+from flask import request
 
 
 def _get_serializer() -> URLSafeTimedSerializer:
@@ -95,54 +97,64 @@ def send_email(subject: str, to_email: str, html_body: str, text_body: Optional[
                 except Exception:
                     pass
                 return False
+def _global_placeholders() -> dict:
+    try:
+        base_url = ''
+        try:
+            base_url = request.url_root
+        except Exception:
+            base_url = current_app.config.get('BASE_URL', '')
+        return {
+            'system_name': current_app.config.get('SYSTEM_NAME', 'Sistema Integrado de Gestión de Recursos Académicos en el Estado'),
+            'system_short': current_app.config.get('SYSTEM_SHORT', 'SIGRAL'),
+            'base_url': base_url.rstrip('/') if isinstance(base_url, str) else ''
+        }
+    except Exception:
+        return {'system_name': 'Sistema Integrado de Gestión de Recursos Académicos en el Estado', 'system_short': 'SIGRAL', 'base_url': ''}
+
+
+def _replace_tokens(text: str, values: dict) -> str:
+    if not isinstance(text, str):
+        return text
+    all_vals = dict(_global_placeholders())
+    all_vals.update(values or {})
+    out = text
+    for k, v in all_vals.items():
+        token = '{{ ' + k + ' }}'
+        out = out.replace(token, str(v))
+    return out
+
+
+def render_email_template(subject_tmpl: str, html_tmpl: str, values: dict) -> tuple[str, str]:
+    subject = _replace_tokens(subject_tmpl, values)
+    html = _replace_tokens(html_tmpl, values)
+    return subject, html
+
 
 
 def send_welcome_email(to_email: str, nombre: Optional[str] = None) -> bool:
     display_name = nombre or ''
-    subject = 'Bienvenido(a) a SIGRAL'
-    html_body = f"""
-    <div style="font-family: Arial, sans-serif; line-height:1.6;">
-      <h2>¡Hola {display_name}!</h2>
-      <p>Tu cuenta ha sido creada exitosamente.</p>
-      <p>Puedes iniciar sesión cuando quieras desde el portal.</p>
-      <p style="color:#666; font-size:12px;">Si tú no solicitaste esta cuenta, por favor ignora este correo.</p>
-    </div>
-    """
+    subject_tmpl = (SystemKV.query.get('email.welcome.subject') or SystemKV(key='email.welcome.subject', value='Bienvenido(a) a {{ system_short }}')).value
+    html_tmpl = (SystemKV.query.get('email.welcome.html') or SystemKV(key='email.welcome.html', value='<div style="font-family: Arial, sans-serif; line-height:1.6;"><h2>¡Hola {{ display_name }}!</h2><p>Tu cuenta ha sido creada exitosamente en {{ system_name }}.</p><p>Puedes iniciar sesión cuando quieras desde el portal.</p><p style="color:#666; font-size:12px;">Si tú no solicitaste esta cuenta, por favor ignora este correo.</p></div>')).value
+    subject, html_body = render_email_template(subject_tmpl, html_tmpl, {'display_name': display_name})
     text_body = f"Hola {display_name}, tu cuenta ha sido creada exitosamente."
     return send_email(subject, to_email, html_body, text_body)
 
 
 def send_password_reset_email(to_email: str, nombre: Optional[str], reset_url: str) -> bool:
     display_name = nombre or ''
-    subject = 'Restablece tu contraseña - SIGRAL'
-    html_body = f"""
-    <div style="font-family: Arial, sans-serif; line-height:1.6;">
-      <h2>Hola {display_name}</h2>
-      <p>Recibimos una solicitud para restablecer tu contraseña.</p>
-      <p>Haz clic en el siguiente botón para crear una nueva contraseña:</p>
-      <p><a href="{reset_url}" style="background:#2563eb;color:white;padding:10px 16px;text-decoration:none;border-radius:6px;">Restablecer contraseña</a></p>
-      <p>Si el botón no funciona, copia y pega este enlace en tu navegador:</p>
-      <p style="word-break: break-all;">{reset_url}</p>
-      <p style="color:#666; font-size:12px;">Este enlace expira en 60 minutos. Si no fuiste tú, ignora este correo.</p>
-    </div>
-    """
+    subject_tmpl = (SystemKV.query.get('email.password_reset.subject') or SystemKV(key='email.password_reset.subject', value='Restablece tu contraseña - {{ system_short }}')).value
+    html_tmpl = (SystemKV.query.get('email.password_reset.html') or SystemKV(key='email.password_reset.html', value='<div style="font-family: Arial, sans-serif; line-height:1.6;"><h2>Hola {{ display_name }}</h2><p>Recibimos una solicitud para restablecer tu contraseña en {{ system_short }}.</p><p>Haz clic en el siguiente botón para crear una nueva contraseña:</p><p><a href="{{ reset_url }}" style="background:#2563eb;color:white;padding:10px 16px;text-decoration:none;border-radius:6px;">Restablecer contraseña</a></p><p>Si el botón no funciona, copia y pega este enlace en tu navegador:</p><p style="word-break: break-all;">{{ reset_url }}</p><p style="color:#666; font-size:12px;">Este enlace expira en 60 minutos. Si no fuiste tú, ignora este correo.</p></div>')).value
+    subject, html_body = render_email_template(subject_tmpl, html_tmpl, {'display_name': display_name, 'reset_url': reset_url})
     text_body = f"Hola {display_name}, para restablecer tu contraseña visita: {reset_url} (expira en 60 minutos)."
     return send_email(subject, to_email, html_body, text_body)
 
 
 def send_activation_email(to_email: str, nombre: Optional[str], activation_url: str) -> bool:
     display_name = nombre or ''
-    subject = 'Activa tu cuenta - SIGRAL'
-    html_body = f"""
-    <div style=\"font-family: Arial, sans-serif; line-height:1.6;\">
-      <h2>¡Bienvenido(a) {display_name}!</h2>
-      <p>Para empezar a usar tu cuenta, por favor actívala haciendo clic en el siguiente botón:</p>
-      <p><a href=\"{activation_url}\" style=\"background:#16a34a;color:white;padding:10px 16px;text-decoration:none;border-radius:6px;\">Activar cuenta</a></p>
-      <p>Si el botón no funciona, copia y pega este enlace en tu navegador:</p>
-      <p style=\"word-break: break-all;\">{activation_url}</p>
-      <p style=\"color:#666; font-size:12px;\">Este enlace expira en 60 minutos.</p>
-    </div>
-    """
+    subject_tmpl = (SystemKV.query.get('email.activation.subject') or SystemKV(key='email.activation.subject', value='Activa tu cuenta - {{ system_short }}')).value
+    html_tmpl = (SystemKV.query.get('email.activation.html') or SystemKV(key='email.activation.html', value='<div style="font-family: Arial, sans-serif; line-height:1.6;"><h2>¡Bienvenido(a) {{ display_name }}!</h2><p>Para empezar a usar tu cuenta en {{ system_name }}, por favor actívala haciendo clic en el siguiente botón:</p><p><a href="{{ activation_url }}" style="background:#16a34a;color:white;padding:10px 16px;text-decoration:none;border-radius:6px;">Activar cuenta</a></p><p>Si el botón no funciona, copia y pega este enlace en tu navegador:</p><p style="word-break: break-all;">{{ activation_url }}</p><p style="color:#666; font-size:12px;">Este enlace expira en 60 minutos.</p></div>')).value
+    subject, html_body = render_email_template(subject_tmpl, html_tmpl, {'display_name': display_name, 'activation_url': activation_url})
     text_body = f"Hola {display_name}, activa tu cuenta aquí (expira en 60 minutos): {activation_url}"
     return send_email(subject, to_email, html_body, text_body)
 

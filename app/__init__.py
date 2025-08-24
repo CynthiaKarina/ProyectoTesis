@@ -51,8 +51,18 @@ def create_app():
         from app.models.tipo_solicitud import Tipo_Solicitud
         from app.models.tipo_laboratorio import Tipo_Laboratorio
         from app.models.proyecto import Proyecto
+        from app.models.proyecto_usuario import ProyectoUsuario
+        from app.models.proyecto_audit import ProyectoAudit
+        from app.models.monthly_report import SystemKV, MonthlyReport
+        from app.models.proyecto_request import ProyectoRequest
         # Crear todas las tablas
         db.create_all()
+        # Semillas idempotentes de datos esenciales
+        try:
+            from app.utils.bootstrap_data import ensure_core_data
+            ensure_core_data()
+        except Exception:
+            pass
         
     from app.controllers.login_controller import auth_bp
     from app.controllers.home_controller import home_bp
@@ -72,6 +82,9 @@ def create_app():
     from app.controllers.admin_laboratorios_controller import admin_laboratorios_bp
     from app.controllers.admin_instituciones_controller import admin_instituciones_bp
     from app.controllers.admin_proyectos_controller import admin_proyectos_bp
+    from app.controllers.admin_reports_controller import admin_reports_bp
+    from app.controllers.proyecto_requests_controller import proj_req_bp
+    from app.controllers.admin_emails_controller import admin_emails_bp
 
     #API
     from app.apis.user_api import user_api_bp
@@ -99,6 +112,9 @@ def create_app():
     app.register_blueprint(admin_laboratorios_bp)
     app.register_blueprint(admin_instituciones_bp)
     app.register_blueprint(admin_proyectos_bp)
+    app.register_blueprint(admin_reports_bp)
+    app.register_blueprint(proj_req_bp)
+    app.register_blueprint(admin_emails_bp)
 
     @app.context_processor
     def utility_processor():
@@ -125,6 +141,30 @@ def create_app():
             'has_admin_access': has_admin_access,
             'get_user_permissions': get_user_permissions
         }
+
+    # Middleware simple para invalidar sesiones si cambió el rol
+    @app.before_request
+    def enforce_role_change_invalidation():
+        try:
+            from flask_login import current_user
+            if not current_user or not current_user.is_authenticated:
+                return
+            # Comparar sello guardado en sesión con fecha_cambio actual
+            sess_stamp = session.get('role_stamp', '')
+            try:
+                current_stamp = current_user.fecha_cambio.isoformat() if getattr(current_user, 'fecha_cambio', None) else ''
+            except Exception:
+                current_stamp = ''
+            if sess_stamp != current_stamp:
+                # Invalidar sesión
+                from flask_login import logout_user
+                logout_user()
+                session.clear()
+                from flask import redirect, url_for, flash
+                flash('Tu rol fue actualizado. Por seguridad, inicia sesión nuevamente.', 'info')
+                return redirect(url_for('auth.login'))
+        except Exception:
+            return
     
     # Configurar logging
     if not app.debug and not app.testing:

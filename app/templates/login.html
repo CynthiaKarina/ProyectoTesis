@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión</title>
+    <title>{{ config.get('SYSTEM_SHORT','SIGRAL') }} · Iniciar Sesión</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='improved-styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -235,7 +235,7 @@
                         <i class="fas fa-sign-in-alt"></i>
                     </div>
                     <h2 class="login-title">Iniciar Sesión</h2>
-                    <p class="login-subtitle">Ingresa tus credenciales para acceder al portal</p>
+                    <p class="login-subtitle">Ingresa tus credenciales para acceder a {{ config.get('SYSTEM_SHORT','SIGRAL') }}</p>
                 </div>
 
                 <!-- Mensajes flash -->
@@ -357,6 +357,9 @@
                         <i class="fas fa-envelope"></i>
                         Contactar soporte
                     </a>
+                    <div style="margin-top:10px; color:#6b7280; font-size:12px; text-align:center; width:100%;">
+                        <strong>{{ config.get('SYSTEM_SHORT','SIGRAL') }}</strong> · {{ config.get('SYSTEM_NAME','Sistema Integrado de Gestión de Recursos Académicos en el Estado') }}
+                    </div>
                 </div>
             </div>
         </div>

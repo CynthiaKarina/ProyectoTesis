@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Solicitudes de Proyectos</title>
+    <style>
+        body { font-family: Arial, sans-serif; background:#f9fafb; padding:16px; }
+        .card { background:#fff; border-radius:8px; padding:16px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+        .filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+        .filters input, .filters select { padding:8px; border:1px solid #e5e7eb; border-radius:6px; }
+        table { width:100%; border-collapse: collapse; }
+        th, td { border-bottom: 1px solid #f3f4f6; padding:8px; text-align:left; }
+        th { background:#f9fafb; font-weight:600; }
+        .btn { padding:6px 8px; border:none; border-radius:6px; cursor:pointer; text-decoration:none; }
+        .btn-approve { background:#10b981; color:#fff; }
+        .btn-reject { background:#ef4444; color:#fff; }
+        .pagination { display:flex; gap:6px; justify-content:flex-end; margin-top:12px; }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    </head>
+<body>
+    <div class="card">
+        <h2 style="margin:0 0 12px 0;">Solicitudes de Proyectos</h2>
+        <form class="filters" method="GET">
+            <select name="status">
+                <option value="" {{ 'selected' if not status }}>Todos</option>
+                <option value="pendiente" {{ 'selected' if status=='pendiente' }}>Pendientes</option>
+                <option value="aprobado" {{ 'selected' if status=='aprobado' }}>Aprobadas</option>
+                <option value="rechazado" {{ 'selected' if status=='rechazado' }}>Rechazadas</option>
+            </select>
+            <select name="tipo">
+                <option value="" {{ 'selected' if not tipo }}>Ambos</option>
+                <option value="publicacion" {{ 'selected' if tipo=='publicacion' }}>Publicación</option>
+                <option value="actualizacion" {{ 'selected' if tipo=='actualizacion' }}>Actualización</option>
+            </select>
+            <button type="submit" class="btn">Aplicar</button>
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Proyecto</th>
+                    <th>Solicitante</th>
+                    <th>Tipo</th>
+                    <th>Estado</th>
+                    <th>Creado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in requests %}
+                <tr>
+                    <td>{{ r.proyecto.nombre_proyecto if r.proyecto else ('ID ' ~ r.id_proyecto) }}</td>
+                    <td>{{ r.id_solicitante }}</td>
+                    <td>{{ r.tipo }}</td>
+                    <td>{{ r.estatus }}</td>
+                    <td>{{ r.created_at.strftime('%Y-%m-%d %H:%M') if r.created_at else '' }}</td>
+                    <td>
+                        {% if r.estatus == 'pendiente' %}
+                        <form method="POST" action="{{ url_for('proj_requests.resolver_solicitud_proyecto', req_id=r.id_request, action='aprobar') }}" style="display:inline;">
+                            <button class="btn btn-approve"><i class="fas fa-check"></i></button>
+                        </form>
+                        <form method="POST" action="{{ url_for('proj_requests.resolver_solicitud_proyecto', req_id=r.id_request, action='rechazar') }}" style="display:inline; margin-left:6px;">
+                            <button class="btn btn-reject"><i class="fas fa-times"></i></button>
+                        </form>
+                        {% else %}
+                        <em>Resuelta</em>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="pagination">
+            {% if page > 1 %}
+            <a class="btn" href="{{ url_for('proj_requests.listar_solicitudes_proyecto', page=page-1, status=status, tipo=tipo) }}">Anterior</a>
+            {% endif %}
+            <span> Página {{ page }} de {{ total_pages }} </span>
+            {% if page < total_pages %}
+            <a class="btn" href="{{ url_for('proj_requests.listar_solicitudes_proyecto', page=page+1, status=status, tipo=tipo) }}">Siguiente</a>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
+

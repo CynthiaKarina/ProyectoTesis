@@ -116,8 +116,37 @@ def init_basic_roles():
             ]
         },
         {
+            'nombre': 'Admin Institucional',
+            'descripcion': 'Administrador a nivel de institución',
+            'permisos': [
+                'admin_access', 'gestionar_usuarios', 'crear_usuario', 'editar_usuario',
+                'gestionar_laboratorios', 'crear_laboratorio', 'editar_laboratorio',
+                'gestionar_instituciones', 'editar_institucion',
+                'ver_todas_solicitudes', 'aprobar_solicitud', 'rechazar_solicitud',
+                'ver_reportes', 'ver_dashboard'
+            ]
+        },
+        {
             'nombre': 'Gestor de Laboratorios',
             'descripcion': 'Gestión de laboratorios y solicitudes',
+            'permisos': [
+                'gestionar_laboratorios', 'editar_laboratorio',
+                'ver_todas_solicitudes', 'aprobar_solicitud', 'rechazar_solicitud',
+                'ver_dashboard', 'ver_reportes'
+            ]
+        },
+        {
+            'nombre': 'Encargado Técnico',
+            'descripcion': 'Responsable técnico de laboratorios',
+            'permisos': [
+                'gestionar_laboratorios', 'editar_laboratorio',
+                'ver_todas_solicitudes', 'aprobar_solicitud', 'rechazar_solicitud',
+                'ver_dashboard', 'ver_reportes'
+            ]
+        },
+        {
+            'nombre': 'Admin de Laboratorio',
+            'descripcion': 'Administrador específico de laboratorios',
             'permisos': [
                 'gestionar_laboratorios', 'editar_laboratorio',
                 'ver_todas_solicitudes', 'aprobar_solicitud', 'rechazar_solicitud',
@@ -131,6 +160,46 @@ def init_basic_roles():
                 'ver_perfil', 'editar_perfil', 'cambiar_password',
                 'crear_solicitud', 'editar_solicitud', 'ver_solicitudes',
                 'ver_dashboard'
+            ]
+        },
+        {
+            'nombre': 'Estudiante',
+            'descripcion': 'Usuario estudiante con permisos estándar',
+            'permisos': [
+                'ver_perfil', 'editar_perfil', 'cambiar_password',
+                'crear_solicitud', 'editar_solicitud', 'ver_solicitudes',
+                'ver_dashboard'
+            ]
+        },
+        {
+            'nombre': 'Investigador',
+            'descripcion': 'Usuario investigador con gestión de solicitudes',
+            'permisos': [
+                'ver_perfil', 'editar_perfil', 'cambiar_password',
+                'crear_solicitud', 'editar_solicitud', 'ver_solicitudes',
+                'ver_reportes', 'ver_dashboard'
+            ]
+        },
+        {
+            'nombre': 'Administrativo',
+            'descripcion': 'Personal administrativo con gestión operativa',
+            'permisos': [
+                'ver_solicitudes', 'editar_solicitud',
+                'ver_reportes', 'ver_dashboard'
+            ]
+        },
+        {
+            'nombre': 'Empresa',
+            'descripcion': 'Usuario externo (empresa) con acceso a solicitudes',
+            'permisos': [
+                'ver_perfil', 'ver_dashboard', 'crear_solicitud', 'ver_solicitudes'
+            ]
+        },
+        {
+            'nombre': 'Colaborador',
+            'descripcion': 'Usuario colaborador externo',
+            'permisos': [
+                'ver_perfil', 'ver_dashboard', 'crear_solicitud', 'ver_solicitudes'
             ]
         },
         {

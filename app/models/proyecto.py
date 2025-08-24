@@ -12,6 +12,13 @@ class Proyecto(db.Model):
     fecha = db.Column(db.Date)
     tipo_proyecto = db.Column(db.String(100))
     estatus = db.Column(db.String(50), default='En Desarrollo')
+    # Nuevo: visibilidad pública y metadatos de aprobación
+    publico = db.Column(db.Boolean, default=False)
+    requiere_aprobacion = db.Column(db.Boolean, default=True)
+    aprobado_por = db.Column(db.BigInteger, nullable=True)
+    aprobado_en = db.Column(db.DateTime, nullable=True)
+    # Nuevo: responsable principal (director/docente/autor)
+    owner_id = db.Column(db.BigInteger, nullable=True)
     fecha_creacion = db.Column(db.DateTime, nullable=False, default=func.current_timestamp())
     fecha_modificacion = db.Column(db.DateTime, nullable=False, default=func.current_timestamp(), onupdate=func.current_timestamp())
 

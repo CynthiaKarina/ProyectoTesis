@@ -34,12 +34,23 @@
         <li class="dropdown">
             <a href="#" class="dropdown-toggle" title="Notificaciones">
                 <i class="fas fa-bell"></i>
-                {% set notif_count = (pending_for_admin if pending_for_admin else 0) + (responses_for_user if responses_for_user else 0) %}
+                {% set notif_count = (pending_for_admin or 0) + (responses_for_user or 0) + (admin_inst_pending_roles or 0) %}
                 {% if notif_count > 0 %}
                 <span class="badge" style="background:#ef4444;color:white;border-radius:999px;padding:2px 6px; font-size:10px; position:relative; top:-10px; left:-6px;">{{ notif_count }}</span>
                 {% endif %}
             </a>
             <ul class="dropdown-menu" style="min-width:260px;">
+                {% if admin_inst_pending_roles %}
+                <li style="padding:8px 12px; display:flex; align-items:center; gap:8px;">
+                    <i class="fas fa-building" style="color:#7c3aed;"></i>
+                    <div>
+                        <div><strong>Roles pendientes en tu institución</strong></div>
+                        <div style="font-size:12px;color:#6b7280;">{{ admin_inst_pending_roles }} por revisar</div>
+                    </div>
+                    <a href="/admin/roles#solicitudes" class="btn btn-sm" style="margin-left:auto; background:#7c3aed;color:white;padding:4px 8px;border-radius:6px; text-decoration:none;">Abrir</a>
+                </li>
+                <li class="divider"></li>
+                {% endif %}
                 {% if pending_for_admin %}
                 <li style="padding:8px 12px; display:flex; align-items:center; gap:8px;">
                     <i class="fas fa-user-shield" style="color:#f97316;"></i>
@@ -56,9 +67,10 @@
                     <i class="fas fa-inbox" style="color:#0891b2;"></i>
                     <div>
                         <div><strong>Respuestas a tus solicitudes</strong></div>
-                        <div style="font-size:12px;color:#6b7280;">{{ responses_for_user }} nuevas</div>
+                        <div style="font-size:12px;color:#6b7280;">{{ responses_for_user }} nuevas{% if latest_role_response %}: {{ latest_role_response.rol }} ({{ latest_role_response.estado }}){% if latest_role_response.lab %} · {{ latest_role_response.lab }}{% endif %}{% endif %}</div>
+                        <div style="font-size:11px;color:#9ca3af;">Si fue aprobada, tu sesión se cerró para actualizar permisos.</div>
                     </div>
-                    <a href="{{ url_for('profile.ver_perfil') }}" class="btn btn-sm" style="margin-left:auto; background:#0891b2;color:white;padding:4px 8px;border-radius:6px; text-decoration:none;">Ver</a>
+                    <a href="{{ url_for('solicitud.mis_solicitudes') }}" class="btn btn-sm" style="margin-left:auto; background:#0891b2;color:white;padding:4px 8px;border-radius:6px; text-decoration:none;">Ver</a>
                 </li>
                 {% endif %}
                 {% if not notif_count %}

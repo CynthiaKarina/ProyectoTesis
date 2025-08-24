@@ -182,9 +182,9 @@ def register():
             print(f"IDs: institucion={id_institucion}, area={id_area}, rol={id_rol}")
             
             # Determinar rol base y campos adicionales según tipo
-            # 2 = usuario normal (asumido por defecto)
+            # 2 = Usuario Regular por defecto; mapear "Usuario" -> Usuario Regular
             id_rol = 2
-            if user_type in ['docente', 'investigador', 'estudiante', 'normal']:
+            if user_type in ['docente', 'investigador', 'estudiante', 'normal', 'usuario']:
                 id_rol = 2
 
             # Si es investigador, exigir área
@@ -212,6 +212,15 @@ def register():
             
             cursor.execute(sql, valores)
             conn.commit()
+            # Log de creación de cuenta
+            try:
+                from app.utils.audit import log_user_action
+                # Obtener ID del insert
+                cursor.execute("SELECT LAST_INSERT_ID()")
+                _uid = cursor.fetchone()[0]
+                log_user_action(_uid, 'crear_cuenta', extra=f'username={username}; email={email}')
+            except Exception:
+                pass
 
             # Obtener id del usuario insertado para tablas puente/solicitudes
             try:
@@ -309,18 +318,69 @@ def register():
                         except Exception:
                             pass
 
-                        mensaje = (
-                            f"Se registró una nueva solicitud de rol.<br/>"
-                            f"<strong>Usuario:</strong> {resumen_usuario}<br/>"
-                            f"<strong>Solicitudes:</strong> {', '.join(detalles)}<br/>"
-                            f"{institutos_html}"
-                            f"{enlaces_html}"
-                            f"<strong>Fecha:</strong> {fecha_actual.strftime('%Y-%m-%d %H:%M:%S')}"
-                        )
-                        notify_super_admins(
-                            subject='SIGRAL - Nueva solicitud de rol',
-                            message=mensaje
-                        )
+                        # Usar plantilla configurable
+                        try:
+                            from app.models.monthly_report import SystemKV
+                            subj = (SystemKV.query.get('email.role_request.subject') or SystemKV(key='email.role_request.subject', value='SIGRAL - Nueva solicitud de rol')).value
+                            html_tmpl = (SystemKV.query.get('email.role_request.html') or SystemKV(key='email.role_request.html', value='<div style="font-family: Arial, sans-serif; line-height:1.6;"><h3>Nueva solicitud de rol</h3><p><strong>Usuario:</strong> {{ user_name }} | <strong>Usuario:</strong> {{ username }} | <strong>Email:</strong> {{ user_email }}</p><p><strong>Solicitudes:</strong> {{ requested_roles }}</p>{{ extra_instituciones }}<div>{{ approval_links_html }}</div><p style="color:#6b7280; font-size:12px;">Fecha: {{ fecha }}</p></div>')).value
+                            html_msg = (html_tmpl
+                                .replace('{{ user_name }}', f"{nombre} {apellido_paterno} {apellido_materno}")
+                                .replace('{{ username }}', username)
+                                .replace('{{ user_email }}', email)
+                                .replace('{{ requested_roles }}', ', '.join(detalles))
+                                .replace('{{ extra_instituciones }}', institutos_html)
+                                .replace('{{ approval_links_html }}', enlaces_html)
+                                .replace('{{ fecha }}', fecha_actual.strftime('%Y-%m-%d %H:%M:%S'))
+                            )
+                            from app.utils.notifications import get_super_admin_emails
+                            recipients = get_super_admin_emails()
+                            for to in recipients:
+                                try:
+                                    from app.utils.email_service import send_email
+                                    send_email(subject=subj, to_email=to, html_body=html_msg)
+                                except Exception:
+                                    continue
+                        except Exception:
+                            # Fallback al mecanismo anterior
+                            mensaje = (
+                                f"Se registró una nueva solicitud de rol.<br/>"
+                                f"<strong>Usuario:</strong> {resumen_usuario}<br/>"
+                                f"<strong>Solicitudes:</strong> {', '.join(detalles)}<br/>"
+                                f"{institutos_html}"
+                                f"{enlaces_html}"
+                                f"<strong>Fecha:</strong> {fecha_actual.strftime('%Y-%m-%d %H:%M:%S')}"
+                            )
+                            notify_super_admins(
+                                subject='SIGRAL - Nueva solicitud de rol',
+                                message=mensaje
+                            )
+                        # Notificar Admin Institucional si aplica
+                        try:
+                            if id_institucion:
+                                from app.models.user import User
+                                from app.models.roles import Roles
+                                aliases = ['Admin Institucional']
+                                rid = db.session.query(Roles.id_rol).filter(Roles.nombre_rol.in_(aliases)).first()
+                                if rid:
+                                    admins_inst = User.query.filter(User.id_institucion==id_institucion, User.id_rol==rid.id_rol).all()
+                                    for adm in admins_inst:
+                                        try:
+                                            from app.models.monthly_report import SystemKV
+                                            subj2 = (SystemKV.query.get('email.institution_role_request.subject') or SystemKV(key='email.institution_role_request.subject', value='SIGRAL - Nueva solicitud en tu institución')).value
+                                            html2 = (SystemKV.query.get('email.institution_role_request.html') or SystemKV(key='email.institution_role_request.html', value='<div style="font-family: Arial, sans-serif; line-height:1.6;"><h3>Nueva solicitud de usuario en tu institución</h3><p>Hola {{ inst_admin_name }},</p><p><strong>Usuario:</strong> {{ user_name }} ({{ username }}) - {{ user_email }}</p><p><strong>Solicitudes:</strong> {{ requested_roles }}</p><p style="color:#6b7280; font-size:12px;">Fecha: {{ fecha }}</p></div>')).value
+                                            html2 = (html2
+                                                     .replace('{{ inst_admin_name }}', getattr(adm, 'nombre', '') or 'Administrador')
+                                                     .replace('{{ user_name }}', f"{nombre} {apellido_paterno} {apellido_materno}")
+                                                     .replace('{{ username }}', username)
+                                                     .replace('{{ user_email }}', email)
+                                                     .replace('{{ requested_roles }}', ', '.join(detalles))
+                                                     .replace('{{ fecha }}', fecha_actual.strftime('%Y-%m-%d %H:%M:%S')))
+                                            from app.utils.email_service import send_email
+                                            send_email(subject=subj2, to_email=adm.email, html_body=html2)
+                                        except Exception:
+                                            continue
+                        except Exception:
+                            pass
                     except Exception:
                         pass
             except Exception as _:
