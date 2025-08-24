@@ -196,6 +196,39 @@ def get_default_statistics():
         ]
     }
 
+
+@home_bp.route('/health')
+def health():
+    """Endpoint de health check: verifica proceso y conexión a BD."""
+    from app.database.connection import get_db_connection
+    status = {
+        'status': 'ok',
+        'database': 'unknown'
+    }
+    conn = None
+    try:
+        conn = get_db_connection()
+        if conn and getattr(conn, 'is_connected', lambda: False)():
+            status['database'] = 'connected'
+            try:
+                cursor = conn.cursor()
+                cursor.execute('SELECT 1')
+                cursor.fetchone()
+                cursor.close()
+            except Exception as e:
+                status['database'] = f'connected_but_query_failed: {e}'
+        else:
+            status['database'] = 'not_connected'
+    except Exception as e:
+        status['database'] = f'error: {e}'
+    finally:
+        try:
+            if conn:
+                conn.close()
+        except Exception:
+            pass
+    return jsonify(status), (200 if status['database'].startswith('connected') else 500)
+
 @home_bp.route('/api/search')
 def api_search():
     """API mejorada para búsqueda global - Sin login requerido para testing"""

@@ -7,6 +7,7 @@ from logging.handlers import RotatingFileHandler
 import os
 from datetime import datetime
 from flask_migrate import Migrate
+from flask_cors import CORS
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -21,6 +22,11 @@ def load_user(user_id):
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+    # Habilitar CORS para APIs (ajusta origins según tu dominio frontend)
+    try:
+        CORS(app, resources={r"/api/*": {"origins": "*"}})
+    except Exception:
+        pass
     
     # Asegurarse de que hay una clave secreta
     if not app.secret_key:
