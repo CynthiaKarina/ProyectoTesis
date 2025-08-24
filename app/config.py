@@ -3,7 +3,7 @@ import os
 # Configuración de Base de Datos (lee variables de entorno si existen)
 DB_HOST = os.environ.get("DB_HOST", "34.51.57.50")
 DB_USER = os.environ.get("DB_USER", "proyecto-tesis")
-DB_PASSWORD = os.environ.get("DB_PASSWORD", "")
+DB_PASSWORD = os.environ.get("DB_PASSWORD", 'K7re^bY0q":Rf*|R')
 DB_NAME = os.environ.get("DB_NAME", "proyectotesis")
 DB_PORT = int(os.environ.get("DB_PORT", "3306"))
 
