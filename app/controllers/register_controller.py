@@ -93,9 +93,9 @@ def register():
         }
         
         campos_faltantes = []
-        for campo, nombre in campos_requeridos.items():
-            if not locals()[campo]:
-                campos_faltantes.append(nombre)
+        for campo, etiqueta in campos_requeridos.items():
+            if not locals().get(campo):
+                campos_faltantes.append(etiqueta)
         
         if campos_faltantes:
             flash(f'Los siguientes campos son obligatorios: {", ".join(campos_faltantes)}', 'error')
