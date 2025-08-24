@@ -170,6 +170,54 @@ def recover_password():
         return redirect(url_for('auth.login'))
     return render_template('recover_password.html')
 
+
+@auth_bp.route('/resend-activation', methods=['POST'])
+def resend_activation():
+    try:
+        recovery_input = request.form.get('email')  # email, username o teléfono
+        if not recovery_input:
+            flash('Ingresa tu email, usuario o teléfono para reenviar activación.', 'warning')
+            return redirect(url_for('auth.login'))
+
+        # Buscar usuario
+        user = User.query.filter(
+            db.or_(
+                User.email == recovery_input,
+                User.username == recovery_input,
+                User.telefono == recovery_input
+            )
+        ).first()
+
+        if not user:
+            flash('No se encontró un usuario con esos datos.', 'error')
+            return redirect(url_for('auth.login'))
+
+        if user.activo:
+            flash('Tu cuenta ya está activada. Inicia sesión.', 'info')
+            return redirect(url_for('auth.login'))
+
+        # Generar token y enviar email
+        token = generate_token(user.email)
+        activation_url = url_for('auth.activate', token=token, _external=True)
+        html = f"""
+        <div style='font-family:Arial,sans-serif;line-height:1.6'>
+          <h3>Activa tu cuenta</h3>
+          <p>Hola {user.nombre or user.username}, usa el siguiente enlace para activar tu cuenta:</p>
+          <p><a href='{activation_url}'>Activar cuenta</a></p>
+          <p style='color:#6b7280;font-size:12px'>El enlace expira en 60 minutos.</p>
+        </div>
+        """
+        # Reutilizar send_password_reset_email para canal SMTP o crear un envío genérico
+        from app.utils.email_service import send_email
+        ok = send_email(subject='SIGRAL - Reenvío de activación', to_email=user.email, html_body=html)
+        if ok:
+            flash('Te enviamos un nuevo enlace de activación a tu correo.', 'success')
+        else:
+            flash('No fue posible enviar el correo en este momento.', 'error')
+    except Exception as e:
+        flash(f'Error reenviando activación: {e}', 'error')
+    return redirect(url_for('auth.login'))
+
 @auth_bp.route('/reset-password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
     email = confirm_token(token, expiration_seconds=3600)
